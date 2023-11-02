@@ -17,18 +17,18 @@ def readme():
 
 
 setup(
-    name='glassfibre',
-    use_scm_version=True,
+    name = 'geosafi-consav',
+    use_scm_version = True,
     license='MIT License',
-    description='A global assessment of fixed broadband infrastructure (glassfibre) - A fiber-to-the-neighborhood approach',
-    long_description=readme(),
-    long_description_content_type="text/markdown",
-    author='Bonface Osoro, Edward Oughton & Fabion Kauker',
-    author_email='bosoro@gmu.edu',
-    url='https://github.com/Bonface-Osoro/glassfibre',
-    packages=find_packages('src'),
-    package_dir={'': 'src'},
-    py_modules=[splitext(basename(path))[0] for path in glob('src/*.py')],
+    description='A geospatial Assessment of Satellite and Fiber Connectivity Options for Sub-Sahara African Vulnerable Population (geosafi-consav)',
+    long_description = readme(),
+    long_description_content_type = "text/markdown",
+    author = 'Bonface Osoro',
+    author_email = 'bosoro@gmu.edu',
+    url = 'https://github.com/Bonface-Osoro/geosafi-consav.git',
+    packages = find_packages('src'),
+    package_dir = {'': 'src'},
+    py_modules = [splitext(basename(path))[0] for path in glob('src/*.py')],
     include_package_data=True,
     zip_safe=False,
     classifiers=[
@@ -42,7 +42,7 @@ setup(
         'Topic :: Utilities',
     ],
     keywords=[
-        'fibre','optimization', 'broadband', 'neighbourhood'
+        'broadband','satellite', 'fiber', 'Sub-Sahara Africa', 'Connectivity'
     ],
     setup_requires=[
         'setuptools_scm'
