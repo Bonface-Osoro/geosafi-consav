@@ -2,9 +2,9 @@ import configparser
 import os
 import warnings
 import pandas as pd
-from glassfibre.preprocessing import ProcessCountry, ProcessRegions, ProcessPopulation
-from glassfibre.generator import PointsGenerator, EdgeGenerator
-from glassfibre.country_groups import sub_saharan_africa
+from geosafi_consav.preprocessing import ProcessCountry, ProcessRegions, ProcessPopulation
+from geosafi_consav.preprocessing import PovertyProcess
+from geosafi_consav.generator import PointsGenerator, EdgeGenerator
 pd.options.mode.chained_assignment = None
 warnings.filterwarnings('ignore')
 
@@ -18,14 +18,15 @@ DATA_PROCESSED = os.path.join(BASE_PATH, 'processed')
 
 path = os.path.join(DATA_RAW, 'countries.csv')
 pop_tif_loc = os.path.join(DATA_RAW, 'WorldPop', 'ppp_2020_1km_Aggregated.tif')
+poverty_shp = os.path.join(DATA_RAW, 'poverty_data', 'GSAP2.shp')
 
 countries = pd.read_csv(path, encoding = 'latin-1')
 
 for idx, country in countries.iterrows():
         
-    if not country['region'] == 'Sub-Saharan Africa' or country['Exclude'] == 1:
+    #if not country['region'] == 'Sub-Saharan Africa' or country['Exclude'] == 1:
         
-    #if not country['iso3'] == 'AGO':
+    if not country['iso3'] == 'KEN':
         
         continue 
 
@@ -39,11 +40,16 @@ for idx, country in countries.iterrows():
     populations = ProcessPopulation(path, countries['iso3'].loc[idx], countries['lowest'].loc[idx], pop_tif_loc)
     #populations.process_national_population()
     #populations.process_population_tif()
+    #populations.process_sub_regional_pop_tiff()
+    #populations.pop_process_shapefiles()
+
+    poverty = PovertyProcess(path, countries['iso3'].loc[idx], countries['lowest'].loc[idx], poverty_shp)
+    poverty.country_poverty()
 
     points_generator = PointsGenerator(countries['iso3'].loc[idx])
     #points_generator.generate_gid_points()
     #points_generator.generate_country_points()
 
     edges_generator = EdgeGenerator(countries['iso3'].loc[idx])
-    edges_generator.fit_regional_node_edges()
-    edges_generator.fit_country_node_edges()
+    #edges_generator.fit_regional_node_edges()
+    #edges_generator.fit_country_node_edges()
