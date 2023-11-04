@@ -4,7 +4,9 @@ import warnings
 import pandas as pd
 from geosafi_consav.preprocessing import ProcessCountry, ProcessRegions, ProcessPopulation
 from geosafi_consav.preprocessing import PovertyProcess
+from geosafi_consav.preprocessing import CoverageProcess
 from geosafi_consav.generator import PointsGenerator, EdgeGenerator
+from geosafi_consav.intersections import IntersectLayers
 pd.options.mode.chained_assignment = None
 warnings.filterwarnings('ignore')
 
@@ -26,29 +28,34 @@ for idx, country in countries.iterrows():
         
     if not country['region'] == 'Sub-Saharan Africa' or country['Exclude'] == 1:
         
-    #if not country['iso3'] == 'KEN':
+    #if not country['iso3'] == 'BFA':
         
         continue 
 
     country = ProcessCountry(path, countries['iso3'].loc[idx])
-    country.process_country_shapes()
+    #country.process_country_shapes()
 
     regions = ProcessRegions(countries['iso3'].loc[idx], countries['lowest'].loc[idx])
-    regions.process_regions()
-    regions.process_sub_region_boundaries()
+    #regions.process_regions()
+    #regions.process_sub_region_boundaries()
 
     populations = ProcessPopulation(path, countries['iso3'].loc[idx], countries['lowest'].loc[idx], pop_tif_loc)
-    populations.process_national_population()
-    populations.process_population_tif()
-    populations.process_sub_regional_pop_tiff()
-    populations.pop_process_shapefiles()
+    #populations.process_national_population()
+    #populations.process_population_tif()
+    #populations.process_sub_regional_pop_tiff()
+    #populations.pop_process_shapefiles()
 
     poverty = PovertyProcess(path, countries['iso3'].loc[idx], countries['lowest'].loc[idx], poverty_shp)
-    poverty.country_poverty()
+    #poverty.country_poverty()
+
+    coverage = CoverageProcess(path, countries['iso3'].loc[idx])
+    #coverage.process_national_coverage()
+    #coverage.process_regional_coverage()
+    intersection = IntersectLayers(countries['iso3'].loc[idx], 'GSM')
+    intersection.pop_coverage()
 
     points_generator = PointsGenerator(countries['iso3'].loc[idx])
     #points_generator.generate_gid_points()
-    #points_generator.generate_country_points()
 
     edges_generator = EdgeGenerator(countries['iso3'].loc[idx])
     #edges_generator.fit_regional_node_edges()
