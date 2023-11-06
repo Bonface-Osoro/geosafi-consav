@@ -57,7 +57,9 @@ class IntersectLayers:
     
     def intersect_coverage(self, folder_1, folder_2, folder_out):
 
-        print('Processing coverage results {}'.format(self.country_iso3))
+        print('Processing {} coverage results {}'.format(
+            self.cell_gen, self.country_iso3))
+        
         for firstfile in os.listdir(folder_1):
             
             try:

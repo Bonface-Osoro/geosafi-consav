@@ -24,39 +24,44 @@ poverty_shp = os.path.join(DATA_RAW, 'poverty_data', 'GSAP2.shp')
 
 countries = pd.read_csv(path, encoding = 'latin-1')
 
-for idx, country in countries.iterrows():
-        
-    if not country['region'] == 'Sub-Saharan Africa' or country['Exclude'] == 1:
-        
-    #if not country['iso3'] == 'BFA':
-        
-        continue 
+if __name__ == '__main__':
 
-    country = ProcessCountry(path, countries['iso3'].loc[idx])
-    #country.process_country_shapes()
+    for idx, country in countries.iterrows():
+            
+        if not country['region'] == 'Sub-Saharan Africa' or country['Exclude'] == 1:
+            
+        #if not country['iso3'] == 'BFA':
+            
+            continue 
 
-    regions = ProcessRegions(countries['iso3'].loc[idx], countries['lowest'].loc[idx])
-    #regions.process_regions()
-    #regions.process_sub_region_boundaries()
+        country = ProcessCountry(path, countries['iso3'].loc[idx])
+        #country.process_country_shapes()
 
-    populations = ProcessPopulation(path, countries['iso3'].loc[idx], countries['lowest'].loc[idx], pop_tif_loc)
-    #populations.process_national_population()
-    #populations.process_population_tif()
-    #populations.process_sub_regional_pop_tiff()
-    #populations.pop_process_shapefiles()
+        regions = ProcessRegions(countries['iso3'].loc[idx], countries['lowest'].loc[idx])
+        #regions.process_regions()
+        #regions.process_sub_region_boundaries()
 
-    poverty = PovertyProcess(path, countries['iso3'].loc[idx], countries['lowest'].loc[idx], poverty_shp)
-    #poverty.country_poverty()
+        populations = ProcessPopulation(path, countries['iso3'].loc[idx], countries['lowest'].loc[idx], pop_tif_loc)
+        #populations.process_national_population()
+        #populations.process_population_tif()
+        #populations.process_sub_regional_pop_tiff()
+        #populations.pop_process_shapefiles()
 
-    coverage = CoverageProcess(path, countries['iso3'].loc[idx])
-    #coverage.process_national_coverage()
-    #coverage.process_regional_coverage()
-    intersection = IntersectLayers(countries['iso3'].loc[idx], 'GSM')
-    intersection.pop_coverage()
+        poverty = PovertyProcess(path, countries['iso3'].loc[idx], countries['lowest'].loc[idx], poverty_shp)
+        #poverty.country_poverty()
 
-    points_generator = PointsGenerator(countries['iso3'].loc[idx])
-    #points_generator.generate_gid_points()
+        coverage = CoverageProcess(path, countries['iso3'].loc[idx])
+        #coverage.process_national_coverage()
+        #coverage.process_regional_coverage()
+        techs = ['GSM', '3G', '4G']
+        for tech in techs:
 
-    edges_generator = EdgeGenerator(countries['iso3'].loc[idx])
-    #edges_generator.fit_regional_node_edges()
-    #edges_generator.fit_country_node_edges()
+            intersection = IntersectLayers(countries['iso3'].loc[idx], tech)
+            intersection.pop_coverage()
+
+        points_generator = PointsGenerator(countries['iso3'].loc[idx])
+        #points_generator.generate_gid_points()
+
+        edges_generator = EdgeGenerator(countries['iso3'].loc[idx])
+        #edges_generator.fit_regional_node_edges()
+        #edges_generator.fit_country_node_edges()
