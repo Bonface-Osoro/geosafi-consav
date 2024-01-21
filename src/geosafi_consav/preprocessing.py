@@ -13,8 +13,31 @@ from tqdm import tqdm
 CONFIG = configparser.ConfigParser()
 CONFIG.read(os.path.join(os.path.dirname(__file__), 'script_config.ini'))
 BASE_PATH = CONFIG['file_locations']['base_path']
-DATA_RAW = os.path.join(BASE_PATH, 'raw')
 DATA_PROCESSED = os.path.join(BASE_PATH, '..', 'results', 'processed')
+DATA_RAW = os.path.join(BASE_PATH, 'raw')
+
+if not os.path.exists(DATA_RAW):
+    
+    os.makedirs(DATA_RAW)
+
+boundary_folder = os.path.join(DATA_RAW, 'boundaries')
+
+if not os.path.exists(boundary_folder):
+    
+    os.makedirs(boundary_folder)
+
+pop_folder = os.path.join(DATA_RAW, 'WorldPop')
+
+if not os.path.exists(pop_folder):
+    
+    os.makedirs(pop_folder)
+
+poverty_data = os.path.join(DATA_RAW, 'poverty_data')
+
+if not os.path.exists(poverty_data):
+    
+    os.makedirs(poverty_data)
+
 
 def remove_small_shapes(x):
     """
@@ -102,7 +125,7 @@ class ProcessCountry:
             Dataframe containing all the country metadata.
 
         """
-        countries = pd.read_csv(self.csv_country, encoding = 'latin-1')
+        countries = pd.read_csv(self.csv_country, encoding = 'utf-8-sig')
 
         countries = countries[countries.Exclude == 0]
         
@@ -145,7 +168,7 @@ class ProcessCountry:
             remove_small_shapes, axis = 1)
         
         glob_info_path = os.path.join(self.csv_country)
-        load_glob_info = pd.read_csv(glob_info_path, encoding = 'ISO-8859-1', 
+        load_glob_info = pd.read_csv(glob_info_path, encoding = 'utf-8-sig', 
                                      keep_default_na = False)
         
         single_country = single_country.merge(load_glob_info, left_on = 'GID_0', 
@@ -441,7 +464,7 @@ class ProcessPopulation:
         population files created in process_national_population
         function.
         """
-        countries = pd.read_csv(self.csv_country, encoding = 'latin-1')
+        countries = pd.read_csv(self.csv_country, encoding = 'utf-8-sig')
         print('Working on {}'.format(self.country_iso3))
         
         for idx, country in countries.iterrows():
@@ -629,7 +652,7 @@ class PovertyProcess:
         """
         This function generates a national poverty shapefile.
         """
-        countries = pd.read_csv(self.csv_country, encoding = 'latin-1')
+        countries = pd.read_csv(self.csv_country, encoding = 'utf-8-sig')
         
         for idx, country in countries.iterrows():
 
@@ -744,7 +767,7 @@ class CoverageProcess:
 
     def process_national_coverage(self):
 
-        countries = pd.read_csv(self.csv_filename, encoding = 'latin-1')
+        countries = pd.read_csv(self.csv_filename, encoding = 'utf-8-sig')
 
         for idx, country in countries.iterrows():
             
@@ -827,7 +850,7 @@ class CoverageProcess:
             Function to process coverage of a single region 
             of an LMIC country.  
             """
-            countries = pd.read_csv(self.csv_filename, encoding = 'latin-1')
+            countries = pd.read_csv(self.csv_filename, encoding = 'utf-8-sig')
 
             iso3 = self.country_iso3
 
