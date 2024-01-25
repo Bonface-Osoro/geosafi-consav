@@ -733,8 +733,6 @@ def clean_coverage(x):
 
         threshold = 1e7
 
-        # save remaining polygons as new multipolygon for
-        # the specific country
         new_geom = []
         for y in x.geometry:
 
@@ -823,7 +821,7 @@ class CoverageProcess:
                     coverage = coverage.to_crs({'init': 'epsg:3857'})
 
                     print('Excluding small shapes')
-                    coverage['geometry'] = coverage.apply(clean_coverage, axis = 1)
+                    #coverage['geometry'] = coverage.apply(clean_coverage, axis = 1)
 
                     print('Removing empty and null geometries')
                     coverage = coverage[~(coverage['geometry'].is_empty)]
