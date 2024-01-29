@@ -6,9 +6,9 @@ from geosafi_consav.preprocessing import ProcessCountry, ProcessRegions, Process
 from geosafi_consav.preprocessing import PovertyProcess
 from geosafi_consav.preprocessing import CoverageProcess
 from geosafi_consav.generator import PointsGenerator, EdgeGenerator
-from geosafi_consav.intersections import IntersectLayers
+from geosafi_consav.intersections import IntersectLayers 
 from geosafi_consav.quantifications import (generate_unconnected_csv, 
-                                            generate_poverty_csv)
+    generate_poverty_csv, coverage_poverty_csv, csv_merger)
 
 pd.options.mode.chained_assignment = None
 warnings.filterwarnings('ignore')
@@ -18,14 +18,10 @@ CONFIG.read(os.path.join(os.path.dirname(__file__), 'script_config.ini'))
 BASE_PATH = CONFIG['file_locations']['base_path']
 
 DATA_RAW = os.path.join(BASE_PATH, 'raw')
-DATA_PROCESSED = os.path.join(BASE_PATH, 'processed')
+DATA_PROCESSED = os.path.join(BASE_PATH, '..', 'results', 'processed')
 DATA_RESULTS = os.path.join(BASE_PATH, '..', 'results', 'final')
 
-
 path = os.path.join(DATA_RAW, 'countries.csv')
-pop_tif_loc = os.path.join(DATA_RAW, 'WorldPop', 'ppp_2020_1km_Aggregated.tif')
-poverty_shp = os.path.join(DATA_RAW, 'poverty_data', 'GSAP2.shp')
-
 countries = pd.read_csv(path, encoding = 'utf-8-sig')
 
 if __name__ == '__main__':
@@ -37,7 +33,7 @@ if __name__ == '__main__':
         #if not country['iso3'] == 'BDI':
             
             continue 
-
+        
         '''country = ProcessCountry(path, countries['iso3'].loc[idx])
         country.process_country_shapes()
 
@@ -70,20 +66,22 @@ if __name__ == '__main__':
         edges_generator = EdgeGenerator(countries['iso3'].loc[idx])
         edges_generator.fit_regional_node_edges()
         edges_generator.fit_country_node_edges()'''
-
+    
     isos = os.listdir(DATA_RESULTS)
-    isos = ['RWA']
-
     for iso in isos:
 
         try:
 
             ######### UNCONNECTED POPULATION #########
             folder = os.path.join( DATA_RESULTS, iso, 'pop_connected')
-            generate_unconnected_csv(folder, iso)
+            #generate_unconnected_csv(folder, iso)
 
             ######### POVERTY IN-LINE POPULATION #########
-            generate_poverty_csv(iso)
+            #generate_poverty_csv(iso)
+            #coverage_poverty_csv(iso)
+            #csv_merger('poverty_results.csv', iso)
+            #csv_merger('unconnected_results.csv', iso)
+            csv_merger('poor_unconnected.csv', iso)
 
         except:
 
