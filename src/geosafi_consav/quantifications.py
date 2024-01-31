@@ -13,8 +13,8 @@ DATA_RAW = os.path.join(BASE_PATH, 'raw')
 DATA_PROCESSED = os.path.join(BASE_PATH,  '..', 'results', 'processed')
 DATA_RESULTS = os.path.join(BASE_PATH, '..', 'results', 'final')
 
-southern = ['AGO', 'ZMB', 'ZWE', 'NAM', 'BWA', 'ZAF', 'LSO', 
-            'SWZ', 'MOZ', 'MWI']
+southern = ['AGO', 'ZMB', 'ZWE', 'NAM', 'BWA', 'ZAF', 
+            'SWZ', 'MOZ', 'MWI', 'LSO']
 
 central = ['CMR', 'CAF', 'TCD', 'COD', 'GNQ', 'GAB', 'STP']
 
@@ -89,9 +89,17 @@ def generate_unconnected_csv(intersect_folder, iso3):
             merged_shapefile = pd.concat([merged_shapefile, shapefile], ignore_index = True)       
     
     fileout = '{}_unconnected_results.csv'.format(iso3, merged_shapefile).replace('shp', '_')
+    renamed_columns = {'GID_1_1': 'GID_1'}
+    merged_shapefile.rename(columns = renamed_columns, inplace = True)
     folder_out = os.path.join(DATA_RESULTS, iso3, 'csv_files')
 
-    renamed_columns = {'GID_1_1': 'GID_1'}
+    population_data = os.path.join(DATA_RESULTS, iso3, 'population', '{}_population_results.csv'.format(iso3))
+    population = pd.read_csv(population_data)
+    df2 = population.merge(merged_shapefile, on = 'GID_1', how = 'outer').reset_index(drop = True)
+
+    df2 = df2.drop(columns = ['iso3_y', 'region_x', 'latitude', 'longitude', 'geometry', 'area', ])
+    renamed_columns = {'iso3_x': 'iso3', 'region_y': 'region', 'value': 'pop_unconnected'}   
+    df2.rename(columns = renamed_columns, inplace = True) 
     
     if not os.path.exists(folder_out):
 
@@ -99,8 +107,7 @@ def generate_unconnected_csv(intersect_folder, iso3):
 
     path_out = os.path.join(folder_out, fileout)
 
-    merged_shapefile.rename(columns = renamed_columns, inplace = True)
-    unconnected = merged_shapefile.groupby(['iso3', 'GID_1', 'technology', 'region'])['value'].sum()
+    unconnected = df2.groupby(['iso3', 'GID_1', 'technology', 'region', 'population'])['pop_unconnected'].sum()
     unconnected.to_csv(path_out)
     
 
@@ -158,13 +165,27 @@ def generate_poverty_csv(iso3):
 
                 shapefile['iso3'].loc[i] = iso3  
 
-            merged_shapefile = pd.concat([merged_shapefile, shapefile], ignore_index = True)  
-            merged_shapefile = merged_shapefile[['iso3', 'GID_2', 'GSAP2_poor', 'GSAP2_po_1', 
-                                                 'GSAP2_po_2', 'poor_population', 'region']] 
-            merged_shapefile = pd.melt(merged_shapefile, id_vars = ['iso3', 'GID_2', 'poor_population', 'region'], 
-                               value_vars = ['GSAP2_poor', 'GSAP2_po_1', 
-                               'GSAP2_po_2'], var_name = 'poverty_range', 
-                               value_name = 'poverty_rate')
+            merged_shapefile = pd.concat([merged_shapefile, shapefile], ignore_index = True)
+
+            gid2_less = ['LSO', 'SSD', 'BEN', 'MRT', 'SWZ']
+
+            if iso3 in gid2_less:
+
+                merged_shapefile = merged_shapefile[['iso3', 'GID_1', 'GSAP2_poor', 'GSAP2_po_1', 
+                                                    'GSAP2_po_2', 'poor_population', 'region']] 
+                merged_shapefile = pd.melt(merged_shapefile, id_vars = ['iso3', 'GID_1', 'poor_population', 'region'], 
+                                value_vars = ['GSAP2_poor', 'GSAP2_po_1', 
+                                'GSAP2_po_2'], var_name = 'poverty_range', 
+                                value_name = 'poverty_rate')
+                
+            else:
+
+                merged_shapefile = merged_shapefile[['iso3', 'GID_2', 'GSAP2_poor', 'GSAP2_po_1', 
+                                                    'GSAP2_po_2', 'poor_population', 'region']] 
+                merged_shapefile = pd.melt(merged_shapefile, id_vars = ['iso3', 'GID_2', 'poor_population', 'region'], 
+                                value_vars = ['GSAP2_poor', 'GSAP2_po_1', 
+                                'GSAP2_po_2'], var_name = 'poverty_range', 
+                                value_name = 'poverty_rate')
             
     renamed_columns = {'GID_2': 'GID_1'}   
     merged_shapefile.rename(columns = renamed_columns, inplace = True) 
@@ -183,7 +204,7 @@ def generate_poverty_csv(iso3):
     df2.rename(columns = renamed_columns, inplace = True) 
 
     fileout = '{}_poverty_results.csv'.format(iso3, merged_shapefile).replace('shp', '_')
-    poverty_data = df2.groupby(['iso3', 'GID_1', 'poverty_range', 
+    poverty_data = df2.groupby(['iso3', 'GID_1', 'poverty_range', 'population',
                     'poverty_rate', 'region'])['poor_population'].sum()
     folder_out = os.path.join(DATA_RESULTS, iso3, 'csv_files')
     
@@ -223,13 +244,18 @@ def coverage_poverty_csv(iso3):
     vulnerability_results = os.path.join(DATA_RESULTS, iso3, 'csv_files', 
                             '{}_unconnected_results.csv'.format(iso3))
     df1 = pd.read_csv(vulnerability_results)
-
     df2 = df1.merge(df, on = 'GID_1', how = 'outer').reset_index(drop = True)
-    df2['poor_unconnected'] = df2['value']*((df2['poverty_rate'])/100)
-    df2 = df2.drop(columns = ['iso3_y', 'value', 'poverty_rate'])
+
+    population_data = os.path.join(DATA_RESULTS, iso3, 'population', '{}_population_results.csv'.format(iso3))
+    population = pd.read_csv(population_data)
+
+    df2 = df2.merge(population, on = 'GID_1', how = 'outer').reset_index(drop = True)
+    df2 = df2.drop(columns = ['iso3_y', 'iso3_x', 'region_y', 'latitude', 'longitude', 
+                              'geometry', 'area', 'population_y', 'population_x', 'region'])
     df2.rename(columns = {'iso3_x': 'iso3', 'region_x': 'region'}, inplace = True)
-    pov_cov = df2.groupby(['iso3', 'GID_1', 'technology', 'poverty_range', 
-                           'region'])['poor_unconnected'].sum()
+
+    df2['poor_unconnected'] = df2['pop_unconnected']*((df2['poverty_rate'])/100)
+    df2 = df2.drop(columns = ['pop_unconnected', 'poverty_rate', 'poor_population'])
 
     fileout = '{}_poor_unconnected.csv'.format(iso3)
     folder_out = os.path.join(DATA_RESULTS, iso3, 'csv_files')
@@ -239,7 +265,7 @@ def coverage_poverty_csv(iso3):
         os.makedirs(folder_out)
 
     path_out = os.path.join(folder_out, fileout)
-    pov_cov.to_csv(path_out)
+    df2.to_csv(path_out)
 
 
     return None
