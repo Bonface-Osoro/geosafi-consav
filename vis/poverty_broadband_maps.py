@@ -124,7 +124,7 @@ def plot_regions_by_poverty():
         ax.set_title(name, fontsize = 14)
 
     fig.subplots_adjust(wspace = 0)
-    fig.tight_layout(rect = [0, 0, 1.5, 1])
+    fig.tight_layout(rect = [0, 0, 1, 1])
 
     path = os.path.join(DATA_VIS, 'poverty_line_population.png')
     fig.savefig(path)
