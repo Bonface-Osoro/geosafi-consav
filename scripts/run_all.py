@@ -28,7 +28,7 @@ if __name__ == '__main__':
 
     for idx, country in countries.iterrows():
             
-        if not country['region'] == 'Sub-Saharan Africa' or country['Exclude'] == 1:
+        if not country['regions'] == 'Sub-Saharan Africa' or country['Exclude'] == 1:
             
         #if not country['iso3'] == 'BDI':
             
@@ -68,6 +68,7 @@ if __name__ == '__main__':
         edges_generator.fit_country_node_edges()'''
     
     isos = os.listdir(DATA_RESULTS)
+    #isos = ['BEN']
     for iso in isos:
 
         try:
@@ -79,9 +80,11 @@ if __name__ == '__main__':
             ######### POVERTY IN-LINE POPULATION #########
             #generate_poverty_csv(iso)
             #coverage_poverty_csv(iso)
+
+            ######### COMBINE FILES FOR ALL SSA #########
             #csv_merger('poverty_results.csv', iso)
             #csv_merger('unconnected_results.csv', iso)
-            csv_merger('poor_unconnected.csv', iso)
+            #csv_merger('poor_unconnected.csv', iso)
 
         except:
 
