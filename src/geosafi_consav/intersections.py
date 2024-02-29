@@ -43,7 +43,7 @@ class IntersectLayers:
     def pop_coverage(self):
 
         population_folder = os.path.join(DATA_PROCESSED, self.country_iso3, 'population', 'shapefiles')
-        coverage_folder = os.path.join(DATA_PROCESSED, self.country_iso3, 'coverage', 'regions', self.cell_gen)
+        coverage_folder = os.path.join(DATA_PROCESSED, self.country_iso3, 'uncovered', self.cell_gen)
         folder_out_1 = os.path.join(DATA_RESULTS, self.country_iso3, 'pop_connected')
         if not os.path.exists(folder_out_1):
 

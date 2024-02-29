@@ -22,19 +22,20 @@ DATA_PROCESSED = os.path.join(BASE_PATH, '..', 'results', 'processed')
 DATA_RESULTS = os.path.join(BASE_PATH, '..', 'results', 'final')
 
 path = os.path.join(DATA_RAW, 'countries.csv')
+pop_tif_loc = os.path.join(DATA_RAW, 'WorldPop', 'ppp_2020_1km_Aggregated.tif')
 countries = pd.read_csv(path, encoding = 'utf-8-sig')
 
 if __name__ == '__main__':
 
     for idx, country in countries.iterrows():
             
-        if not country['regions'] == 'Sub-Saharan Africa' or country['Exclude'] == 1:
+        #if not country['regions'] == 'Sub-Saharan Africa' or country['Exclude'] == 1:
             
-        #if not country['iso3'] == 'BDI':
+        if not country['iso3'] == 'ERI':
             
             continue 
         
-        '''country = ProcessCountry(path, countries['iso3'].loc[idx])
+        country = ProcessCountry(path, countries['iso3'].loc[idx])
         country.process_country_shapes()
 
         regions = ProcessRegions(countries['iso3'].loc[idx], countries['lowest'].loc[idx])
@@ -47,13 +48,14 @@ if __name__ == '__main__':
         populations.process_sub_regional_pop_tiff()
         populations.pop_process_shapefiles()
 
-        poverty = PovertyProcess(path, countries['iso3'].loc[idx], countries['lowest'].loc[idx], poverty_shp)
-        poverty.country_poverty()
+        #poverty = PovertyProcess(path, countries['iso3'].loc[idx], countries['lowest'].loc[idx], poverty_shp)
+        #poverty.country_poverty()
 
         coverage = CoverageProcess(path, countries['iso3'].loc[idx])
         coverage.process_national_coverage()
         coverage.process_regional_coverage()
-        techs = ['4G']
+        coverage.uncovered_regions()
+        techs = ['GSM', '3G', '4G']
         for tech in techs:
 
             intersection = IntersectLayers(countries['iso3'].loc[idx], tech)
@@ -65,13 +67,13 @@ if __name__ == '__main__':
 
         edges_generator = EdgeGenerator(countries['iso3'].loc[idx])
         edges_generator.fit_regional_node_edges()
-        edges_generator.fit_country_node_edges()'''
+        edges_generator.fit_country_node_edges()
     
     isos = os.listdir(DATA_RESULTS)
-    #isos = ['BEN']
+    #isos = ['RWA']
     for iso in isos:
 
-        try:
+        if not iso.startswith('.DS_Store'):
 
             ######### UNCONNECTED POPULATION #########
             folder = os.path.join( DATA_RESULTS, iso, 'pop_connected')
@@ -81,11 +83,10 @@ if __name__ == '__main__':
             #generate_poverty_csv(iso)
             #coverage_poverty_csv(iso)
 
-            ######### COMBINE FILES FOR ALL SSA #########
-            #csv_merger('poverty_results.csv', iso)
-            #csv_merger('unconnected_results.csv', iso)
-            #csv_merger('poor_unconnected.csv', iso)
-
-        except:
-
-            pass
+######### COMBINE FILES FOR ALL SSA #########
+#csv_merger('poverty_results.csv')
+#csv_merger('poor_unconnected.csv')
+#csv_merger('unconnected_mapping_results.csv')
+#csv_merger('unconnected_geo_reg.csv')
+#csv_merger('unconnected_tech_geo.csv')
+#csv_merger('unconnected_tech_reg.csv')

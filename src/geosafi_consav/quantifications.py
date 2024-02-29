@@ -16,7 +16,7 @@ DATA_RESULTS = os.path.join(BASE_PATH, '..', 'results', 'final')
 southern = ['AGO', 'ZMB', 'ZWE', 'NAM', 'BWA', 'ZAF', 
             'SWZ', 'MOZ', 'MWI', 'LSO']
 
-central = ['CMR', 'CAF', 'TCD', 'COD', 'GNQ', 'GAB', 'STP']
+central = ['CMR', 'CAF', 'TCD', 'COD', 'GNQ', 'GAB', 'STP', 'COG']
 
 eastern = ['BDI', 'COM', 'DJI', 'ERI', 'ETH', 'SWZ', 'MDG', 
            'KEN', 'MUS', 'SDN', 'SYC', 'SOM', 'SSD', 'UGA', 
@@ -47,15 +47,22 @@ def generate_unconnected_csv(intersect_folder, iso3):
 
     for file_name in os.listdir(intersect_folder):
 
+
         if file_name.endswith('.shp'):
+
+            first_underscore_index = file_name.find('_')
+            extracted_string = file_name[first_underscore_index + 1:]
+            extracted_string = os.path.splitext(extracted_string)[0]
 
             file_path = os.path.join(intersect_folder, file_name)
             shapefile = gpd.read_file(file_path)
 
-            shapefile[['iso3', 'technology', 'region']] = ''
+            shapefile[['iso3', 'GID_1', 'technology', 'region']] = ''
             technologies = ['GSM', '3G', '4G']
 
             for i in range(len(shapefile)):
+
+                shapefile['GID_1'].loc[i] = extracted_string
 
                 if iso3 in southern:
 
@@ -85,33 +92,77 @@ def generate_unconnected_csv(intersect_folder, iso3):
 
             shapefile = shapefile.to_crs(crs = 3857) 
             shapefile['area'] = shapefile.geometry.area      
-            shapefile = shapefile[['iso3', 'GID_1_1', 'value', 'technology', 'region']]  
-            merged_shapefile = pd.concat([merged_shapefile, shapefile], ignore_index = True)       
+            shapefile = shapefile[['iso3', 'GID_1', 'value', 'technology', 'region']]
+            renamed_columns = {'value': 'pop_unconnected'}  
+            shapefile.rename(columns = renamed_columns, inplace = True)
+            merged_shapefile = pd.concat([merged_shapefile, shapefile], ignore_index = True)  
     
-    fileout = '{}_unconnected_results.csv'.format(iso3, merged_shapefile).replace('shp', '_')
-    renamed_columns = {'GID_1_1': 'GID_1'}
-    merged_shapefile.rename(columns = renamed_columns, inplace = True)
+
+    fileout = '{}_unconnected_mapping_results.csv'.format(iso3)
+    fileout_1 = '{}_unconnected_tech_reg.csv'.format(iso3)
+    fileout_2 = '{}_unconnected_sub_region_results.csv'.format(iso3)
+    fileout_3 = '{}_unconnected_geo_reg.csv'.format(iso3)
+    fileout_4 = '{}_unconnected_tech_geo.csv'.format(iso3)
     folder_out = os.path.join(DATA_RESULTS, iso3, 'csv_files')
-
-    population_data = os.path.join(DATA_RESULTS, iso3, 'population', '{}_population_results.csv'.format(iso3))
-    population = pd.read_csv(population_data)
-    df2 = population.merge(merged_shapefile, on = 'GID_1', how = 'outer').reset_index(drop = True)
-
-    df2 = df2.drop(columns = ['iso3_y', 'region_x', 'latitude', 'longitude', 'geometry', 'area', ])
-    renamed_columns = {'iso3_x': 'iso3', 'region_y': 'region', 'value': 'pop_unconnected'}   
-    df2.rename(columns = renamed_columns, inplace = True) 
+    renamed_columns = {'value': 'pop_unconnected'}
+    merged_shapefile.rename(columns = renamed_columns, inplace = True)
     
     if not os.path.exists(folder_out):
 
         os.makedirs(folder_out)
 
     path_out = os.path.join(folder_out, fileout)
+    path_out_1 = os.path.join(folder_out, fileout_1)
+    path_out_2 = os.path.join(folder_out, fileout_2)
+    path_out_3 = os.path.join(folder_out, fileout_3)
+    path_out_4 = os.path.join(folder_out, fileout_4)
 
-    unconnected = df2.groupby(['iso3', 'GID_1', 'technology', 'region', 'population'])['pop_unconnected'].sum()
-    unconnected.to_csv(path_out)
-    
+    map_unconnected = merged_shapefile.groupby(['iso3', 'GID_1', 'technology', 'region'])['pop_unconnected'].sum()
+
+    population_data = os.path.join(DATA_RESULTS, iso3, 'population', '{}_population_results.csv'.format(iso3))
+    population = pd.read_csv(population_data)
+    merged_shapefile = merged_shapefile.groupby(['iso3', 'GID_1', 'technology', 'region'])['pop_unconnected'].sum()
+    aggregated_df = merged_shapefile.reset_index()
+    df = population.merge(aggregated_df, on = 'GID_1', how = 'outer').reset_index(drop = True)
+
+    df[['pop_density_sqkm', 'geotype']] = ''
+    for i in range(len(df)):
+
+        df['pop_density_sqkm'].loc[i] = df['population'].loc[i] / df['area'].loc[i]
+
+        if df['pop_density_sqkm'].loc[i] >= 1000:
+
+            df['geotype'].loc[i] = 'urban'
+
+        elif df['pop_density_sqkm'].loc[i] >= 500 and df['pop_density_sqkm'].loc[i] <= 1000:
+            
+            df['geotype'].loc[i] = 'suburban'
+
+        elif df['pop_density_sqkm'].loc[i] >= 50 and df['pop_density_sqkm'].loc[i] <= 500:
+
+            df['geotype'].loc[i] = 'rural'
+
+        else:
+
+            df['geotype'].loc[i] = 'remote'
+
+    df = df.drop(columns = ['iso3_y', 'region_x', 'latitude', 'longitude', 'geometry', 'area', 'pop_density_sqkm'])
+    renamed_columns = {'iso3_x': 'iso3', 'region_y': 'region'}   
+    df.rename(columns = renamed_columns, inplace = True)
+
+    sum_technology_region = df.groupby(['iso3', 'technology', 'region'])['pop_unconnected'].sum()
+    sum_geotype_region = df.groupby(['iso3', 'geotype', 'region'])['pop_unconnected'].sum()
+    sum_technology_geotype = df.groupby(['iso3', 'geotype', 'technology'])['pop_unconnected'].sum()
+
+    map_unconnected.to_csv(path_out)
+    sum_technology_region.to_csv(path_out_1)
+    sum_geotype_region.to_csv(path_out_3)
+    sum_technology_geotype.to_csv(path_out_4)
+    df.to_csv(path_out_2)
+
 
     return None
+
 
 
 def generate_poverty_csv(iso3):
@@ -242,7 +293,7 @@ def coverage_poverty_csv(iso3):
     df = pd.read_csv(poverty_data)
     print('Processing {} csv'.format(iso3))
     vulnerability_results = os.path.join(DATA_RESULTS, iso3, 'csv_files', 
-                            '{}_unconnected_results.csv'.format(iso3))
+                            '{}_unconnected_mapping_results.csv'.format(iso3))
     df1 = pd.read_csv(vulnerability_results)
     df2 = df1.merge(df, on = 'GID_1', how = 'outer').reset_index(drop = True)
 
@@ -271,7 +322,7 @@ def coverage_poverty_csv(iso3):
     return None
 
 
-def csv_merger(csv_name, iso3):
+def csv_merger(csv_name):
     """
     This funcion read and merge 
     multiple CSV files located 
@@ -286,13 +337,12 @@ def csv_merger(csv_name, iso3):
     iso3 : string
         Country iso3 to be processed. 
     """
-
-    print('Merging csv files for {}'.format(iso3))
     isos = os.listdir(DATA_RESULTS)
 
     merged_data = pd.DataFrame()
     for iso3 in isos:
 
+        print('Merging csv files for {}'.format(iso3))
         base_directory = os.path.join(DATA_RESULTS, iso3, 'csv_files') 
 
         for root, _, files in os.walk(base_directory):
@@ -306,15 +356,15 @@ def csv_merger(csv_name, iso3):
 
                     merged_data = pd.concat([merged_data, df], ignore_index = True)
 
-                    fileout = 'SSA_{}'.format(csv_name)
-                    folder_out = os.path.join(DATA_RESULTS, '..', 'SSA')
+        fileout = 'SSA_{}'.format(csv_name)
+        folder_out = os.path.join(DATA_RESULTS, '..', 'SSA')
 
-                    if not os.path.exists(folder_out):
+        if not os.path.exists(folder_out):
 
-                        os.makedirs(folder_out)
+            os.makedirs(folder_out)
 
-                    path_out = os.path.join(folder_out, fileout)
-                    merged_data.to_csv(path_out, index = False)
+        path_out = os.path.join(folder_out, fileout)
+        merged_data.to_csv(path_out, index = False)
 
 
     return None
