@@ -20,16 +20,16 @@ The method (see `Figure 1`) .....
 
 Results
 =======
-`Figure 2` shows the estimated revenue per local area for the 3932 local areas.
+`Figure 2` shows the estimated number of uncovered population by 4G and living below the poverty line.
 #### Figure 2 Demand Results.
 <p align="center">
-  <img src="/docs/region_by_revenue_per_area.png" />
+  <img src="/docs/unconnect_poor_4G.png" />
 </p>
 
-In `Figure 3`, the quantitative Total Cost of Ownership (TCO) per user results are presented.
-#### Figure 3 Supply Results.
+In `Figure 3`, the quantitative results of the poor and uncovered population by regions are presented.
+#### Figure 3 Poverty and Connectivity Results.
 <p align="center">
-  <img src = "/docs/revenue_and_tco.png" />
+  <img src = "/docs/poverty_unconnected_region.png" />
 </p>
 
 ## Required Data

@@ -4,6 +4,7 @@ library(tidyverse)
 library(ggtext)
 library(sf)
 library(readr)
+library(RColorBrewer)
 
 suppressMessages(library(tidyverse))
 folder <- dirname(rstudioapi::getSourceEditorContext()$path)
@@ -16,143 +17,56 @@ new_names <- c('iso3', 'country', 'gid_1', 'GID_1', 'geometry')
 colnames(africa_shp) <- new_names
 
 ###############################################
-##SSA Absolute Poor Population below US$ 1.9 ##
+##SSA Absolute Poor Population below poverty ##
 ###############################################
 data <- read.csv(file.path(folder, '..', 'results', 'SSA', 'SSA_poverty_results.csv'))
-data <- data[data$poverty_range == "GSAP2_poor", ]
+#data <- data[data$poverty_range == "GSAP2_poor", ]
 
 data = data %>%
-  distinct(GID_1, poverty_range, region, population, .keep_all = TRUE) %>%
   group_by(GID_1, poverty_range, region) %>%
-  summarize(poor_pops = (sum(poor_population) / 1e6),
-            total_pops = sum(population))
+  summarize(poor_pops = sum(poor_population))
+
+data$poverty_range = factor(
+  data$poverty_range,
+  levels = c('GSAP2_poor', 'GSAP2_po_1', 'GSAP2_po_2'),
+  labels = c('Below $US 1.9', 'Below $US 3.2', 'Below $US 5.5'))
 
 merged_data <- merge(africa_shp, data, by = "GID_1")
 
-brewer_color_ramp <- colorRampPalette(brewer.pal(11, "Spectral"))
-num_colors <- length(unique(merged_data$poor_pops))
+pop_bins <- c(-Inf, 200000, 500000, 850000, 1200000, 1600000, 2000000, 
+              2500000, 3000000, 3500000, Inf)
+merged_data$population_bin <- cut(merged_data$poor_pops, breaks = pop_bins, 
+    labels = c("Below 200k", "201 - 500k", "501 - 850k", "0.851 - 1.2 Million", 
+    "1.21 - 1.6 Million", "1.61 - 2 Million", "2.01 - 2.5 Million", 
+    "2.51 - 3 Million", "3.01 - 3.5 Million", "Above 3.5 Million"))
 
-create_sf_plot <-
-  function(data, data_2, fill_variable, legend_title, plot_title,
-           plot_subtitle) {
-    # Get unique values
-    unique_values <- unique(data[[fill_variable]])
-    # Create a Brewer color palette
-    num_colors <- length(unique_values) - 1
-    colors <- brewer_color_ramp(num_colors)
-    # Create a color gradient, including grey for zero
-    gradient_colors <- c("grey", colors)
-    gradient_breaks <- c(0, sort(unique_values[unique_values != 0]))
-    plot_title <- paste0(plot_title, "\n")
-    plot <-
-      ggplot(data) + geom_sf(
-        data = data_2,
-        fill = NA,
-        color = "dodgerblue",
-        linewidth = 0.1,
-        alpha = 1
-      ) +
-      geom_sf(
-        aes(fill = .data[[fill_variable]]),
-        linewidth = 0.01,
-        alpha = 0.8,
-        color = "white"
-      ) +
-      theme_transparent() + scale_fill_gradientn(
-        colors = gradient_colors,
-        values = scales::rescale(gradient_breaks),
-        name = legend_title
-      ) +
-      labs(title = plot_title, subtitle = plot_subtitle) + theme(
-        text = element_text(color = "#22211d", family = "Arial"),
-        panel.background = element_rect(fill = "transparent", color = NA),
-        plot.title = element_text(size = 12, face = 'bold', hjust = 0),
-        plot.subtitle = element_text(size = 9),
-        legend.position = 'bottom',
-        legend.key.width = unit(0.05, "npc"),
-        legend.text = element_text(size = 9),
-        legend.title = element_text(size = 8)
-      ) +
-      guides(fill = guide_colourbar(title.position = 'top', direction = "horizontal")) +
-      coord_sf()
-    return(plot)
-  }
-
-#################
-##Below US$ 1.9##
-#################
-below_1_9 <- create_sf_plot(
-  data = merged_data,
-  merged_data,
-  fill_variable = "poor_pops",
-  legend_title = "Total population (millions)",
-  plot_title = "Poor Population in SSA.",
-  plot_subtitle = '(A) Living Below US$ 1.9'
-)
-
-###############################################
-##SSA Absolute Poor Population Below $US 3.2 ##
-###############################################
-data <- read.csv(file.path(folder, '..', 'results', 'SSA', 'SSA_poverty_results.csv'))
-data <- data[data$poverty_range == "GSAP2_po_1", ]
-
-data = data %>%
-  distinct(GID_1, poverty_range, region, population, .keep_all = TRUE) %>%
-  group_by(GID_1, poverty_range, region) %>%
-  summarize(poor_pops = (sum(poor_population) / 1e6),
-            total_pops = sum(population))
-
-merged_data <- merge(africa_shp, data, by = "GID_1")
-
-brewer_color_ramp <- colorRampPalette(brewer.pal(11, "Spectral"))
-num_colors <- length(unique(merged_data$poor_pops))
-
-below_3_2 <- create_sf_plot(
-  data = merged_data,
-  merged_data,
-  fill_variable = "poor_pops",
-  legend_title = "Total Population (millions)",
-  plot_title = ' ',
-  plot_subtitle = "(B) Living Below US$ 3.2"
-)
-
-
-###############################################
-##SSA Absolute Poor Population Below $US 5.5 ##
-###############################################
-data <- read.csv(file.path(folder, '..', 'results', 'SSA', 'SSA_poverty_results.csv'))
-data <- data[data$poverty_range == "GSAP2_po_2", ]
-
-data = data %>%
-  distinct(GID_1, poverty_range, region, population, .keep_all = TRUE) %>%
-  group_by(GID_1, poverty_range, region) %>%
-  summarize(poor_pops = (sum(poor_population) / 1e6),
-            total_pops = sum(population))
-
-merged_data <- merge(africa_shp, data, by = "GID_1")
-
-brewer_color_ramp <- colorRampPalette(brewer.pal(11, "Spectral"))
-num_colors <- length(unique(merged_data$poor_pops))
-
-below_5_5 <- create_sf_plot(
-  data = merged_data,
-  merged_data,
-  fill_variable = "poor_pops",
-  legend_title = "Total Population (millions)",
-  plot_title = ' ',
-  plot_subtitle = "(C) Poor Population Below US$ 5.5"
-)
+poverty_maps <- ggplot() + 
+  geom_sf(data = merged_data, aes(fill = population_bin), 
+          linewidth = 0.001,) +
+  scale_fill_brewer(palette = "Spectral") +
+  labs(title = "Population below poverty level in SSA.",
+       subtitle = "Aggregated by national sub-regional boundaries and poverty rate.",
+       fill = "Range") +
+  theme(
+    legend.position = 'bottom',
+    axis.text.x = element_text(size = 5),
+    panel.spacing = unit(0.6, "lines"),
+    plot.title = element_text(size = 9, face = "bold"),
+    plot.subtitle = element_text(size = 8),
+    axis.text.y = element_text(size = 6),
+    axis.title.y = element_markdown(size = 6),
+    legend.title = element_text(size = 7),
+    legend.text = element_text(size = 7)) + 
+  guides(fill = guide_legend(nrow = 2)) + 
+  facet_wrap( ~ poverty_range, ncol = 4) +
+  guides(fill = guide_legend(ncol = 5))
 
 ###################################
 ##PANEL PLOTS FOR POOR POPULATION##
 ###################################
-poor_panel <- ggarrange(below_1_9, below_3_2, below_5_5,
-    ncol = 3, nrow = 1, align = c('hv'),
-    common.legend = FALSE, legend='bottom')
-
-path = file.path(folder, 'figures', 'poor_1_9_3_2_5_5.png')
+path = file.path(folder, 'figures', 'poor_population.png')
 png(path, units = "in", width = 10, height = 6, res = 300)
-print(poor_panel)
+print(poverty_maps)
 dev.off()
 
 ######################################
@@ -162,92 +76,57 @@ africa_shp <- st_read(file.path(folder, '..', 'data', 'raw', 'Africa_Boundaries'
 new_names <- c('objectid', 'iso3', 'country', 'continent', 'region', 'geometry')
 colnames(africa_shp) <- new_names
 
-###############################
-##Uncovered Remote Population##
-###############################
+########################
+##Uncovered Population##
+########################
 data <- read.csv(file.path(folder, '..', 'results', 'SSA', 'SSA_unconnected_geo_reg.csv'))
-data <- data[data$geotype == "remote", ]
+data <- data[data$geotype != "suburban", ]
 
 data = data %>%
-  distinct(iso3, geotype, region,.keep_all = TRUE) %>%
-  group_by(iso3, geotype, region) %>%
+  group_by(iso3, geotype) %>%
   summarize(unconnected_pop = (sum(pop_unconnected) / 1e6))
 
-merged_data <- merge(africa_shp, data, by = "iso3")
-
-brewer_color_ramp <- colorRampPalette(brewer.pal(11, "Spectral"))
-num_colors <- length(unique(merged_data$unconnected_pop))
-
-remote_unconnected <- create_sf_plot(
-  data = merged_data,
-  merged_data,
-  fill_variable = "unconnected_pop",
-  legend_title = "Total Population (millions)",
-  plot_title = 'Uncovered Population by Geotypes.',
-  plot_subtitle = "(A) Remote Population"
-)
-
-##############################
-##Uncovered Rural Population##
-##############################
-data <- read.csv(file.path(folder, '..', 'results', 'SSA', 'SSA_unconnected_geo_reg.csv'))
-data <- data[data$geotype == "rural", ]
-
-data = data %>%
-  distinct(iso3, geotype, region,.keep_all = TRUE) %>%
-  group_by(iso3, geotype, region) %>%
-  summarize(unconnected_pop = (sum(pop_unconnected) / 1e6))
+data$geotype = factor(
+  data$geotype,
+  levels = c('remote', 'rural', 'urban'),
+  labels = c('Remote', 'Rural', 'Urban'))
 
 merged_data <- merge(africa_shp, data, by = "iso3")
+pop_bins <- c(-Inf, 2, 5, 10, 20, 30, 50, 
+              80, 120, 150, Inf)
+merged_data$population_bin <- cut(merged_data$unconnected_pop, breaks = pop_bins, 
+    labels = c("Below 200k", "201 - 500k", "501 - 850k", "0.851 - 1.2 Million", 
+    "1.21 - 1.6 Million", "1.61 - 2 Million", "2.01 - 2.5 Million", 
+    "2.51 - 3 Million", "3.01 - 3.5 Million", "Above 3.5 Million"))
 
-brewer_color_ramp <- colorRampPalette(brewer.pal(11, "Spectral"))
-num_colors <- length(unique(merged_data$unconnected_pop))
+geotype_uncovered <- ggplot() + 
+  geom_sf(data = merged_data, aes(fill = population_bin), 
+          linewidth = 0.001,) +
+  scale_fill_brewer(palette = "Set3") +
+  labs(title = "Uncovered Population SSA.",
+       subtitle = "Presented per country and by geotypes.",
+       fill = "Population (millions)") +
+  theme(
+    legend.position = 'bottom',
+    axis.text.x = element_text(size = 5),
+    panel.spacing = unit(0.6, "lines"),
+    plot.title = element_text(size = 9, face = "bold"),
+    plot.subtitle = element_text(size = 8),
+    axis.text.y = element_text(size = 6),
+    axis.title.y = element_markdown(size = 6),
+    legend.title = element_text(size = 7),
+    legend.text = element_text(size = 7)) + 
+  guides(fill = guide_legend(nrow = 2)) + 
+  facet_wrap( ~ geotype, ncol = 4) +
+  guides(fill = guide_legend(ncol = 5))
 
-rural_unconnected <- create_sf_plot(
-  data = merged_data,
-  merged_data,
-  fill_variable = "unconnected_pop",
-  legend_title = "Total Population (millions)",
-  plot_title = ' ',
-  plot_subtitle = "(B) Rural Population"
-)
-
-##############################
-##Uncovered Urban Population##
-##############################
-data <- read.csv(file.path(folder, '..', 'results', 'SSA', 'SSA_unconnected_geo_reg.csv'))
-data <- data[data$geotype == "urban", ]
-
-data = data %>%
-  distinct(iso3, geotype, region,.keep_all = TRUE) %>%
-  group_by(iso3, geotype, region) %>%
-  summarize(unconnected_pop = (sum(pop_unconnected) / 1e6))
-
-merged_data <- merge(africa_shp, data, by = "iso3")
-
-brewer_color_ramp <- colorRampPalette(brewer.pal(11, "Spectral"))
-num_colors <- length(unique(merged_data$unconnected_pop))
-
-urban_unconnected <- create_sf_plot(
-  data = merged_data,
-  merged_data,
-  fill_variable = "unconnected_pop",
-  legend_title = "Total Population (millions)",
-  plot_title = ' ',
-  plot_subtitle = "(C) Urban Population"
-)
 
 ######################################################
 ##PANEL PLOTS FOR UNCONNECTED BY POPULATION GEOTYPES##
 ######################################################
-geotype_panel <- ggarrange(remote_unconnected, 
-   rural_unconnected,
-   urban_unconnected, ncol = 3, nrow = 1, align = c('hv'),
-   common.legend = FALSE, legend = 'bottom')
-
 path = file.path(folder, 'figures', 'unconnected_geotype.png')
 png(path, units = "in", width = 10, height = 10, res = 300)
-print(geotype_panel)
+print(geotype_uncovered)
 dev.off()
 
 #################################################
@@ -260,93 +139,58 @@ africa_shp <- africa_data %>%
 new_names <- c('iso3', 'country', 'gid_1', 'GID_1', 'geometry')
 colnames(africa_shp) <- new_names
 
-##############################
-##Uncovered Population by 2G##
-##############################
+######################################
+##Uncovered Population by Technology##
+######################################
 data <- read.csv(file.path(folder, '..', 'results', 'SSA', 'SSA_unconnected_mapping_results.csv'))
-data <- data[data$technology == "GSM", ]
 
 data = data %>%
-  distinct(GID_1, technology, region, .keep_all = TRUE) %>%
   group_by(GID_1, technology, region) %>%
-  summarize(pop_unconnected = (sum(pop_unconnected) / 1e6))
+  summarize(pop_unconnected = (sum(pop_unconnected)))
+
+data$technology = factor(
+  data$technology,
+  levels = c('GSM', '3G', '4G'),
+  labels = c('2G', '3G', '4G'))
 
 merged_data <- merge(africa_shp, data, by = "GID_1")
 
-brewer_color_ramp <- colorRampPalette(brewer.pal(11, "Spectral"))
-num_colors <- length(unique(merged_data$pop_unconnected))
+pop_bins <- c(-Inf, 5000, 10000, 20000, 50000, 80000, 100000, 
+              150000, 200000, 500000, Inf)
 
-gsm_unconnected <- create_sf_plot(
-  data = merged_data,
-  merged_data,
-  fill_variable = "pop_unconnected",
-  legend_title = "Total Population (millions)",
-  plot_title = 'Uncovered Population in SSA.',
-  plot_subtitle = "(A) By 2G"
-)
+merged_data$population_bin <- cut(merged_data$pop_unconnected, breaks = pop_bins, 
+    labels = c("Below 5k", "51 - 10k", "11 - 20k", "21 - 50k", 
+    "51 - 80k", "81 - 100k", "101 - 150k", 
+    "151 - 200k", "201 - 500k", "Above 500k"))
 
-##############################
-##Uncovered Population by 3G##
-##############################
-data <- read.csv(file.path(folder, '..', 'results', 'SSA', 'SSA_unconnected_mapping_results.csv'))
-data <- data[data$technology == "3G", ]
-
-data = data %>%
-  distinct(GID_1, technology, region, .keep_all = TRUE) %>%
-  group_by(GID_1, technology, region) %>%
-  summarize(pop_unconnected = (sum(pop_unconnected) / 1e6))
-
-merged_data <- merge(africa_shp, data, by = "GID_1")
-
-brewer_color_ramp <- colorRampPalette(brewer.pal(11, "Spectral"))
-num_colors <- length(unique(merged_data$pop_unconnected))
-
-g_3_unconnected <- create_sf_plot(
-  data = merged_data,
-  merged_data,
-  fill_variable = "pop_unconnected",
-  legend_title = "Total Population (millions)",
-  plot_title = ' ',
-  plot_subtitle = "(B) By 3G"
-)
-
-##############################
-##Uncovered Population by 4G##
-##############################
-data <- read.csv(file.path(folder, '..', 'results', 'SSA', 'SSA_unconnected_mapping_results.csv'))
-data <- data[data$technology == "4G", ]
-
-data = data %>%
-  distinct(GID_1, technology, region, .keep_all = TRUE) %>%
-  group_by(GID_1, technology, region) %>%
-  summarize(pop_unconnected = (sum(pop_unconnected) / 1e6))
-
-merged_data <- merge(africa_shp, data, by = "GID_1")
-
-brewer_color_ramp <- colorRampPalette(brewer.pal(11, "Spectral"))
-num_colors <- length(unique(merged_data$pop_unconnected))
-
-g_4_unconnected <- create_sf_plot(
-  data = merged_data,
-  merged_data,
-  fill_variable = "pop_unconnected",
-  legend_title = "Total Population (millions)",
-  plot_title = ' ',
-  plot_subtitle = "(C) By 4G"
-)
+uncovered_technology <- ggplot() + 
+  geom_sf(data = merged_data, aes(fill = population_bin), 
+          linewidth = 0.001,) +
+  scale_fill_brewer(palette = "Spectral") +
+  labs(title = "Uncovered Population in SSA.",
+       subtitle = "Presented at sub-regional boundaries and mobile technology.",
+       fill = "Population") +
+  theme(
+    legend.position = 'bottom',
+    axis.text.x = element_text(size = 5),
+    panel.spacing = unit(0.6, "lines"),
+    plot.title = element_text(size = 9, face = "bold"),
+    plot.subtitle = element_text(size = 8),
+    axis.text.y = element_text(size = 6),
+    axis.title.y = element_markdown(size = 6),
+    legend.title = element_text(size = 7),
+    legend.text = element_text(size = 7)) + 
+  guides(fill = guide_legend(nrow = 2)) + 
+  facet_wrap( ~ technology, ncol = 4) +
+  guides(fill = guide_legend(ncol = 5))
 
 ###################################
 ##PANEL PLOTS FOR POOR POPULATION##
 ###################################
-unconnect_tech <- ggarrange(gsm_unconnected, g_3_unconnected, 
-    g_4_unconnected, ncol = 3, nrow = 1, align = c('hv'),
-    common.legend = FALSE, legend='bottom')
-
 path = file.path(folder, 'figures', 'unconnect_2_3_4_G.png')
 png(path, units = "in", width = 10, height = 6, res = 300)
-print(unconnect_tech)
+print(uncovered_technology)
 dev.off()
-
 
 ################################
 ##CONNECTION AND POVERTY PLOTS##
@@ -362,262 +206,164 @@ colnames(africa_shp) <- new_names
 ##Poor (Below US$ 1.9) and uncovered by 2G##
 ############################################
 data <- read.csv(file.path(folder, '..', 'results', 'SSA', 'SSA_poor_unconnected.csv'))
+data <- na.omit(data)
 data <- data[data$technology == "GSM", ]
-data <- data[data$poverty_range == "GSAP2_poor", ]
 
 data = data %>%
-  distinct(GID_1, technology, poverty_range, .keep_all = TRUE) %>%
   group_by(GID_1, technology, poverty_range) %>%
-  summarize(poor_unconnected = (sum(poor_unconnected)) / 1e6)
+  summarize(poor_unconnected = (sum(poor_unconnected)))
+
+data$poverty_range = factor(
+  data$poverty_range,
+  levels = c('GSAP2_poor', 'GSAP2_po_1', 'GSAP2_po_2'),
+  labels = c('Below $US 1.9', 'Below $US 3.2', 'Below $US 5.5'))
 
 merged_data <- merge(africa_shp, data, by = "GID_1")
-brewer_color_ramp <- colorRampPalette(brewer.pal(11, "Spectral"))
-num_colors <- length(unique(merged_data$poor_unconnected))
+pop_bins <- c(-Inf, 5000, 10000, 20000, 50000, 80000, 100000, 
+              500000, 1000000, 1500000, Inf)
 
-poor_gsm_1_9_unconnected <- create_sf_plot(
-  data = merged_data,
-  merged_data,
-  fill_variable = "poor_unconnected",
-  legend_title = "Total population (millions)",
-  plot_title = 'Poor Population and Uncovered by 2G.',
-  plot_subtitle = '(A) Uncovered and Living Below US$ 1.9'
-)
+merged_data$population_bin <- cut(merged_data$poor_unconnected, breaks = pop_bins, 
+   labels = c("Below 5k", "51 - 10k", "11 - 20k", "21 - 50k", "51 - 80k", 
+              "81 - 100k", "101 - 500k", "0.51 - 1 Million", "1.1 - 1.5 Million", 
+              "Above 1.5 Million"))
 
-############################################
-##Poor (Below US$ 3.2) and uncovered by 2G##
-############################################
-data <- read.csv(file.path(folder, '..', 'results', 'SSA', 'SSA_poor_unconnected.csv'))
-data <- data[data$technology == "GSM", ]
-data <- data[data$poverty_range == "GSAP2_po_1", ]
+uncovered_2g_poor <- ggplot() + 
+  geom_sf(data = merged_data, aes(fill = population_bin), 
+          linewidth = 0.001,) +
+  scale_fill_brewer(palette = "Spectral") +
+  labs(title = "Uncovered by 2G and Poor Population in SSA.",
+       subtitle = "Presented at sub-regional boundaries and poverty range.",
+       fill = "Population") +
+  theme(
+    legend.position = 'bottom',
+    axis.text.x = element_text(size = 5),
+    panel.spacing = unit(0.6, "lines"),
+    plot.title = element_text(size = 9, face = "bold"),
+    plot.subtitle = element_text(size = 8),
+    axis.text.y = element_text(size = 6),
+    axis.title.y = element_markdown(size = 6),
+    legend.title = element_text(size = 7),
+    legend.text = element_text(size = 7)) + 
+  guides(fill = guide_legend(nrow = 2)) + 
+  facet_wrap( ~ poverty_range, ncol = 3) +
+  guides(fill = guide_legend(ncol = 5))
 
-data = data %>%
-  distinct(GID_1, technology, poverty_range, .keep_all = TRUE) %>%
-  group_by(GID_1, technology, poverty_range) %>%
-  summarize(poor_unconnected = (sum(poor_unconnected)) / 1e6)
-
-merged_data <- merge(africa_shp, data, by = "GID_1")
-brewer_color_ramp <- colorRampPalette(brewer.pal(11, "Spectral"))
-num_colors <- length(unique(merged_data$poor_unconnected))
-
-poor_gsm_3_2_unconnected <- create_sf_plot(
-  data = merged_data,
-  merged_data,
-  fill_variable = "poor_unconnected",
-  legend_title = "Total population (millions)",
-  plot_title = ' ',
-  plot_subtitle = '(B) Uncovered and Living Below US$ 3.2'
-)
-
-############################################
-##Poor (Below US$ 5.5) and uncovered by 2G##
-############################################
-data <- read.csv(file.path(folder, '..', 'results', 'SSA', 'SSA_poor_unconnected.csv'))
-data <- data[data$technology == "GSM", ]
-data <- data[data$poverty_range == "GSAP2_po_2", ]
-
-data = data %>%
-  distinct(GID_1, technology, poverty_range, .keep_all = TRUE) %>%
-  group_by(GID_1, technology, poverty_range) %>%
-  summarize(poor_unconnected = (sum(poor_unconnected)) / 1e6)
-
-merged_data <- merge(africa_shp, data, by = "GID_1")
-brewer_color_ramp <- colorRampPalette(brewer.pal(11, "Spectral"))
-num_colors <- length(unique(merged_data$poor_unconnected))
-
-poor_gsm_5_5_unconnected <- create_sf_plot(
-  data = merged_data,
-  merged_data,
-  fill_variable = "poor_unconnected",
-  legend_title = "Total population (millions)",
-  plot_title = ' ',
-  plot_subtitle = '(C) Uncovered and Living Below  US$ 5.5'
-)
 
 ####################################################
 ##PANEL PLOTS FOR POOR AND 2G UNCOVERED POPULATION##
 ####################################################
-unconnect_gsm_poor <- ggarrange(poor_gsm_1_9_unconnected, poor_gsm_3_2_unconnected, 
-   poor_gsm_5_5_unconnected, ncol = 3, nrow = 1, align = c('hv'),
-   common.legend = FALSE, legend='bottom')
-
 path = file.path(folder, 'figures', 'unconnect_poor_2G.png')
 png(path, units = "in", width = 10, height = 6, res = 300)
-print(unconnect_gsm_poor)
+print(uncovered_2g_poor)
 dev.off()
 
-############################################
-##Poor (Below US$ 1.9) and Uncovered by 3G##
-############################################
+############################
+##Poor and Uncovered by 3G##
+############################
 data <- read.csv(file.path(folder, '..', 'results', 'SSA', 'SSA_poor_unconnected.csv'))
+data <- na.omit(data)
 data <- data[data$technology == "3G", ]
-data <- data[data$poverty_range == "GSAP2_poor", ]
 
 data = data %>%
-  distinct(GID_1, technology, poverty_range, .keep_all = TRUE) %>%
   group_by(GID_1, technology, poverty_range) %>%
-  summarize(poor_unconnected = (sum(poor_unconnected)) / 1e6)
+  summarize(poor_unconnected = (sum(poor_unconnected)))
+
+data$poverty_range = factor(
+  data$poverty_range,
+  levels = c('GSAP2_poor', 'GSAP2_po_1', 'GSAP2_po_2'),
+  labels = c('Below $US 1.9', 'Below $US 3.2', 'Below $US 5.5'))
 
 merged_data <- merge(africa_shp, data, by = "GID_1")
-brewer_color_ramp <- colorRampPalette(brewer.pal(11, "Spectral"))
-num_colors <- length(unique(merged_data$poor_unconnected))
+pop_bins <- c(-Inf, 10000, 20000, 50000, 80000, 500000, 850000, 
+              1200000, 1800000, 2200000, Inf)
 
-poor_3g_1_9_unconnected <- create_sf_plot(
-  data = merged_data,
-  merged_data,
-  fill_variable = "poor_unconnected",
-  legend_title = "Total population (millions)",
-  plot_title = 'Poor Population and Uncovered by 3G.',
-  plot_subtitle = '(A) Uncovered and Living Below  US$ 1.9'
-)
+merged_data$population_bin <- cut(merged_data$poor_unconnected, breaks = pop_bins, 
+    labels = c("Below 10k", "11 - 20k", "21 - 50k", "51 - 80k", "81 - 500k", 
+    "501 - 850k", "0.851 - 1.2 Million", "1.21 - 1.8 Million", "1.8 - 2.2 Million", 
+    "Above 2.2 Million"))
 
-############################################
-##Poor (Below US$ 3.2) and Uncovered by 3G##
-############################################
-data <- read.csv(file.path(folder, '..', 'results', 'SSA', 'SSA_poor_unconnected.csv'))
-data <- data[data$technology == "3G", ]
-data <- data[data$poverty_range == "GSAP2_po_1", ]
-
-data = data %>%
-  distinct(GID_1, technology, poverty_range, .keep_all = TRUE) %>%
-  group_by(GID_1, technology, poverty_range) %>%
-  summarize(poor_unconnected = (sum(poor_unconnected)) / 1e6)
-
-merged_data <- merge(africa_shp, data, by = "GID_1")
-brewer_color_ramp <- colorRampPalette(brewer.pal(11, "Spectral"))
-num_colors <- length(unique(merged_data$poor_unconnected))
-
-poor_3g_3_2_unconnected <- create_sf_plot(
-  data = merged_data,
-  merged_data,
-  fill_variable = "poor_unconnected",
-  legend_title = "Total population (millions)",
-  plot_title = ' ',
-  plot_subtitle = '(B) Uncovered and Living Below  US$ 3.2'
-)
-
-############################################
-##Poor (Below US$ 5.5) and Uncovered by 3G##
-############################################
-data <- read.csv(file.path(folder, '..', 'results', 'SSA', 'SSA_poor_unconnected.csv'))
-data <- data[data$technology == "3G", ]
-data <- data[data$poverty_range == "GSAP2_po_2", ]
-
-data = data %>%
-  distinct(GID_1, technology, poverty_range, .keep_all = TRUE) %>%
-  group_by(GID_1, technology, poverty_range) %>%
-  summarize(poor_unconnected = (sum(poor_unconnected)) / 1e6)
-
-merged_data <- merge(africa_shp, data, by = "GID_1")
-brewer_color_ramp <- colorRampPalette(brewer.pal(11, "Spectral"))
-num_colors <- length(unique(merged_data$poor_unconnected))
-
-poor_3g_5_5_unconnected <- create_sf_plot(
-  data = merged_data,
-  merged_data,
-  fill_variable = "poor_unconnected",
-  legend_title = "Total population (millions)",
-  plot_title = ' ',
-  plot_subtitle = '(C) Uncovered and Living Below  US$ 5.5'
-)
-
+uncovered_3g_poor <- ggplot() + 
+  geom_sf(data = merged_data, aes(fill = population_bin), 
+          linewidth = 0.001,) +
+  scale_fill_brewer(palette = "Spectral") +
+  labs(title = "Uncovered by 3G and Poor Population in SSA.",
+       subtitle = "Presented at sub-regional boundaries and poverty range.",
+       fill = "Population") +
+  theme(
+    legend.position = 'bottom',
+    axis.text.x = element_text(size = 5),
+    panel.spacing = unit(0.6, "lines"),
+    plot.title = element_text(size = 9, face = "bold"),
+    plot.subtitle = element_text(size = 8),
+    axis.text.y = element_text(size = 6),
+    axis.title.y = element_markdown(size = 6),
+    legend.title = element_text(size = 7),
+    legend.text = element_text(size = 7)) + 
+  guides(fill = guide_legend(nrow = 2)) + 
+  facet_wrap( ~ poverty_range, ncol = 3) +
+  guides(fill = guide_legend(ncol = 5))
 
 ####################################################
 ##PANEL PLOTS FOR POOR AND 3G UNCOVERED POPULATION##
 ####################################################
-unconnect_3g_poor <- ggarrange(poor_3g_1_9_unconnected, poor_3g_3_2_unconnected, 
-     poor_3g_5_5_unconnected, ncol = 3, nrow = 1, align = c('hv'),
-    common.legend = FALSE, legend='bottom')
-
 path = file.path(folder, 'figures', 'unconnect_poor_3G.png')
 png(path, units = "in", width = 10, height = 6, res = 300)
-print(unconnect_3g_poor)
+print(uncovered_3g_poor)
 dev.off()
 
 
-############################################
-##Poor (Below US$ 1.9) and Uncovered by 4G##
-############################################
+############################
+##Poor and Uncovered by 4G##
+############################
 data <- read.csv(file.path(folder, '..', 'results', 'SSA', 'SSA_poor_unconnected.csv'))
+data <- na.omit(data)
 data <- data[data$technology == "4G", ]
-data <- data[data$poverty_range == "GSAP2_poor", ]
 
 data = data %>%
-  distinct(GID_1, technology, poverty_range, .keep_all = TRUE) %>%
   group_by(GID_1, technology, poverty_range) %>%
-  summarize(poor_unconnected = (sum(poor_unconnected)) / 1e6)
+  summarize(poor_unconnected = (sum(poor_unconnected)))
+
+data$poverty_range = factor(
+  data$poverty_range,
+  levels = c('GSAP2_poor', 'GSAP2_po_1', 'GSAP2_po_2'),
+  labels = c('Below $US 1.9', 'Below $US 3.2', 'Below $US 5.5'))
 
 merged_data <- merge(africa_shp, data, by = "GID_1")
-brewer_color_ramp <- colorRampPalette(brewer.pal(11, "Spectral"))
-num_colors <- length(unique(merged_data$poor_unconnected))
+pop_bins <- c(-Inf, 50000, 100000, 250000, 500000, 1000000, 1500000, 
+              2000000, 2500000, 3000000, Inf)
 
-poor_4g_1_9_unconnected <- create_sf_plot(
-  data = merged_data,
-  merged_data,
-  fill_variable = "poor_unconnected",
-  legend_title = "Total population (millions)",
-  plot_title = 'Poor Population and Uncovered by 4G.',
-  plot_subtitle = '(A) Uncovered and Living Below  US$ 1.9'
-)
+merged_data$population_bin <- cut(merged_data$poor_unconnected, breaks = pop_bins, 
+   labels = c("Below 50k", "51 - 100k", "101 - 250k", "251 - 500k", "0.51 - 1 Million", 
+   "1.1 - 1.5 Million", "1.51 - 2 Million", "2.1 - 2.5 Million", "2.51 - 3 Million", 
+   "Above 3 Million"))
 
-############################################
-##Poor (Below US$ 3.2) and Uncovered by 4G##
-############################################
-data <- read.csv(file.path(folder, '..', 'results', 'SSA', 'SSA_poor_unconnected.csv'))
-data <- data[data$technology == "4G", ]
-data <- data[data$poverty_range == "GSAP2_po_1", ]
+uncovered_4g_poor <- ggplot() + 
+  geom_sf(data = merged_data, aes(fill = population_bin), 
+          linewidth = 0.001,) +
+  scale_fill_brewer(palette = "Spectral") +
+  labs(title = "Uncovered by 4G and Poor Population in SSA.",
+       subtitle = "Presented at sub-regional boundaries and poverty range.",
+       fill = "Population") +
+  theme(
+    legend.position = 'bottom',
+    axis.text.x = element_text(size = 5),
+    panel.spacing = unit(0.6, "lines"),
+    plot.title = element_text(size = 9, face = "bold"),
+    plot.subtitle = element_text(size = 8),
+    axis.text.y = element_text(size = 6),
+    axis.title.y = element_markdown(size = 6),
+    legend.title = element_text(size = 7),
+    legend.text = element_text(size = 7)) + 
+  guides(fill = guide_legend(nrow = 2)) + 
+  facet_wrap( ~ poverty_range, ncol = 3) +
+  guides(fill = guide_legend(ncol = 5))
 
-data = data %>%
-  distinct(GID_1, technology, poverty_range, .keep_all = TRUE) %>%
-  group_by(GID_1, technology, poverty_range) %>%
-  summarize(poor_unconnected = (sum(poor_unconnected)) / 1e6)
-
-merged_data <- merge(africa_shp, data, by = "GID_1")
-brewer_color_ramp <- colorRampPalette(brewer.pal(11, "Spectral"))
-num_colors <- length(unique(merged_data$poor_unconnected))
-
-poor_4g_3_2_unconnected <- create_sf_plot(
-  data = merged_data,
-  merged_data,
-  fill_variable = "poor_unconnected",
-  legend_title = "Total population (millions)",
-  plot_title = ' ',
-  plot_subtitle = '(B) Uncovered and Living Below  US$ 3.2'
-)
-
-############################################
-##Poor (Below US$ 5.5) and Uncovered by 4G##
-############################################
-data <- read.csv(file.path(folder, '..', 'results', 'SSA', 'SSA_poor_unconnected.csv'))
-data <- data[data$technology == "4G", ]
-data <- data[data$poverty_range == "GSAP2_po_2", ]
-
-data = data %>%
-  distinct(GID_1, technology, poverty_range, .keep_all = TRUE) %>%
-  group_by(GID_1, technology, poverty_range) %>%
-  summarize(poor_unconnected = (sum(poor_unconnected)) / 1e6)
-
-merged_data <- merge(africa_shp, data, by = "GID_1")
-brewer_color_ramp <- colorRampPalette(brewer.pal(11, "Spectral"))
-num_colors <- length(unique(merged_data$poor_unconnected))
-
-poor_4g_5_5_unconnected <- create_sf_plot(
-  data = merged_data,
-  merged_data,
-  fill_variable = "poor_unconnected",
-  legend_title = "Total population (millions)",
-  plot_title = ' ',
-  plot_subtitle = '(C) Uncovered and Living Below  US$ 5.5'
-)
 
 ####################################################
 ##PANEL PLOTS FOR POOR AND 3G UNCOVERED POPULATION##
 ####################################################
-unconnect_4g_poor <- ggarrange(poor_4g_1_9_unconnected, poor_4g_3_2_unconnected, 
-    poor_4g_5_5_unconnected, ncol = 3, nrow = 1, align = c('hv'),
-    common.legend = FALSE, legend='bottom')
-
 path = file.path(folder, 'figures', 'unconnect_poor_4G.png')
 png(path, units = "in", width = 10, height = 6, res = 300)
-print(unconnect_4g_poor)
+print(uncovered_4g_poor)
 dev.off()
 
