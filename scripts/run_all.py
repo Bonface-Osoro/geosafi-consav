@@ -8,7 +8,8 @@ from geosafi_consav.preprocessing import CoverageProcess
 from geosafi_consav.generator import PointsGenerator, EdgeGenerator
 from geosafi_consav.intersections import IntersectLayers 
 from geosafi_consav.quantifications import (generate_unconnected_csv, 
-    generate_poverty_csv, coverage_poverty_csv, csv_merger)
+    generate_poverty_csv, coverage_poverty_csv, csv_merger, sum_population,
+    pop_csv_merger)
 
 pd.options.mode.chained_assignment = None
 warnings.filterwarnings('ignore')
@@ -31,11 +32,11 @@ if __name__ == '__main__':
             
         #if not country['regions'] == 'Sub-Saharan Africa' or country['Exclude'] == 1:
             
-        if not country['iso3'] == 'ERI':
+        if not country['iso3'] == 'RWA':
             
             continue 
         
-        country = ProcessCountry(path, countries['iso3'].loc[idx])
+        '''country = ProcessCountry(path, countries['iso3'].loc[idx])
         country.process_country_shapes()
 
         regions = ProcessRegions(countries['iso3'].loc[idx], countries['lowest'].loc[idx])
@@ -67,10 +68,10 @@ if __name__ == '__main__':
 
         edges_generator = EdgeGenerator(countries['iso3'].loc[idx])
         edges_generator.fit_regional_node_edges()
-        edges_generator.fit_country_node_edges()
+        edges_generator.fit_country_node_edges()'''
     
     isos = os.listdir(DATA_RESULTS)
-    #isos = ['RWA']
+    isos = ['RWA']
     for iso in isos:
 
         if not iso.startswith('.DS_Store'):
@@ -82,6 +83,9 @@ if __name__ == '__main__':
             ######### POVERTY IN-LINE POPULATION #########
             #generate_poverty_csv(iso)
             #coverage_poverty_csv(iso)
+
+            sum_population(iso)
+            pop_csv_merger(iso)
 
 ######### COMBINE FILES FOR ALL SSA #########
 #csv_merger('poverty_results.csv')

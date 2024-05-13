@@ -3,7 +3,9 @@ import time
 import pandas as pd
 import geopandas as gpd
 import configparser
+import warnings
 pd.options.mode.chained_assignment = None
+warnings.filterwarnings('ignore')
 
 CONFIG = configparser.ConfigParser()
 CONFIG.read(os.path.join(os.path.dirname(__file__), 'script_config.ini'))
@@ -12,6 +14,7 @@ BASE_PATH = CONFIG['file_locations']['base_path']
 DATA_RAW = os.path.join(BASE_PATH, 'raw')
 DATA_PROCESSED = os.path.join(BASE_PATH,  '..', 'results', 'processed')
 DATA_RESULTS = os.path.join(BASE_PATH, '..', 'results', 'final')
+DATA_SSA = os.path.join(BASE_PATH, '..', 'results', 'SSA')
 
 southern = ['AGO', 'ZMB', 'ZWE', 'NAM', 'BWA', 'ZAF', 
             'SWZ', 'MOZ', 'MWI', 'LSO']
@@ -138,13 +141,9 @@ def generate_unconnected_csv(intersect_folder, iso3):
             
             df['geotype'].loc[i] = 'suburban'
 
-        elif df['pop_density_sqkm'].loc[i] >= 50 and df['pop_density_sqkm'].loc[i] <= 500:
-
-            df['geotype'].loc[i] = 'rural'
-
         else:
 
-            df['geotype'].loc[i] = 'remote'
+            df['geotype'].loc[i] = 'rural'
 
     df = df.drop(columns = ['iso3_y', 'region_x', 'latitude', 'longitude', 'geometry', 'area', 'pop_density_sqkm'])
     renamed_columns = {'iso3_x': 'iso3', 'region_y': 'region'}   
@@ -365,6 +364,88 @@ def csv_merger(csv_name):
 
         path_out = os.path.join(folder_out, fileout)
         merged_data.to_csv(path_out, index = False)
+
+
+    return None
+
+
+def sum_population(iso3):
+
+    """
+    This function calculates the population for each sub-region of a country
+    """
+    
+    print('Summing {} population'.format(iso3))
+    file_path = os.path.join(DATA_RESULTS, iso3, 'population', 
+                             '{}_population_results.csv'.format(iso3))
+    
+    df = pd.read_csv(file_path)
+    df = df[['iso3', 'GID_1', 'population']]
+    df = df.groupby(['iso3', 'GID_1'])['population'].sum().reset_index()
+    df['region'] = ''
+    for i in range(len(df)):
+
+        if iso3 in southern:
+
+            df['region'].loc[i] = 'Southern'
+
+        elif iso3 in central:
+
+            df['region'].loc[i] = 'Central'
+
+        elif iso3 in eastern:
+
+            df['region'].loc[i] = 'Eastern'
+
+        else: 
+
+            df['region'].loc[i] = 'West'
+    
+    fileout = '{}_total_population.csv'.format(iso3)
+    folder_out = os.path.join(DATA_RESULTS, iso3, 'summary')
+
+    if not os.path.exists(folder_out):
+
+        os.makedirs(folder_out)
+
+    path_out = os.path.join(folder_out, fileout)
+    df.to_csv(path_out)
+
+    return None
+
+
+def pop_csv_merger(iso3):
+    """
+    This function calculate the total population for all SSA countries
+    """
+    
+    isos = os.listdir(DATA_RESULTS)
+
+    merged_data = pd.DataFrame()
+    for iso3 in isos:
+        
+        print('Merging {} csv files'. format(iso3))
+        base_directory = os.path.join(DATA_RESULTS, iso3, 'summary') 
+
+        for root, _, files in os.walk(base_directory):
+    
+            for file in files:
+    
+                if file.endswith('total_population.csv'):
+                    
+                    file_path = os.path.join(base_directory, file)
+                    df = pd.read_csv(file_path)
+                    merged_data = pd.concat([merged_data, df], ignore_index = True)
+
+                    fileout = 'SSA_total_population.csv'
+                    folder_out = os.path.join(DATA_SSA)
+
+                    if not os.path.exists(folder_out):
+
+                        os.makedirs(folder_out)
+
+                    path_out = os.path.join(folder_out, fileout)
+                    merged_data.to_csv(path_out, index = False)
 
 
     return None
