@@ -26,16 +26,18 @@ path = os.path.join(DATA_RAW, 'countries.csv')
 pop_tif_loc = os.path.join(DATA_RAW, 'WorldPop', 'ppp_2020_1km_Aggregated.tif')
 countries = pd.read_csv(path, encoding = 'utf-8-sig')
 
+poverty_shp = os.path.join(DATA_RAW, 'poverty_data', 'GSAP2.shp')
+
 if __name__ == '__main__':
 
     for idx, country in countries.iterrows():
             
         #if not country['regions'] == 'Sub-Saharan Africa' or country['Exclude'] == 1:
             
-        if not country['iso3'] == 'RWA':
+        if not country['iso3'] == 'ERI':
             
             continue 
-        
+
         '''country = ProcessCountry(path, countries['iso3'].loc[idx])
         country.process_country_shapes()
 
@@ -71,7 +73,7 @@ if __name__ == '__main__':
         edges_generator.fit_country_node_edges()'''
     
     isos = os.listdir(DATA_RESULTS)
-    isos = ['RWA']
+    isos = ['SOM']
     for iso in isos:
 
         if not iso.startswith('.DS_Store'):
@@ -84,7 +86,8 @@ if __name__ == '__main__':
             #generate_poverty_csv(iso)
             #coverage_poverty_csv(iso)
 
-            sum_population(iso)
+            #sum_population(iso)
+            #pop_csv_merger(iso)
             pop_csv_merger(iso)
 
 ######### COMBINE FILES FOR ALL SSA #########
