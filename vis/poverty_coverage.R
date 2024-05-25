@@ -50,7 +50,7 @@ poor_population_region <-
   geom_bar(stat = 'identity', position = position_dodge(0.9)) + coord_flip() + 
   geom_text(aes(label = formatC(signif(after_stat(y), 3), 
                                 digits = 3, format = "fg", flag = "#")),
-            size = 2.5, position = position_dodge(0.9),
+            size = 3.5, position = position_dodge(0.9),
             vjust = 0.5, hjust = -0.3) +
   labs(colour = NULL,
        title = 'SSA Population below poverty line.',
@@ -116,7 +116,7 @@ relative_region_poor_population <-
   ggplot(df,  aes(x = decile, y = perc, fill = poverty_range)) +
   geom_bar(stat = 'identity', position = position_dodge(0.9)) +  coord_flip() +
   geom_text(aes(label = formatC(signif(after_stat(y), 3), 
-                                digits = 3,format = 'fg', flag = '#')), size = 2.5,
+                                digits = 3,format = 'fg', flag = '#')), size = 3.5,
             position = position_dodge(0.9), vjust = 0.5, hjust = -0.1) +
   labs(colour = NULL, title = ' ',
        subtitle = '(b) Relative Population.', x = NULL,
@@ -243,7 +243,7 @@ unconnected_population_geotype <-
   geom_bar(stat = 'identity', position = position_dodge(0.9)) + coord_flip() + 
   geom_text(aes(label = formatC(signif(after_stat(y), 3), 
                                 digits = 3, format = "fg", flag = "#")),
-            size = 2, position = position_dodge(0.9),
+            size = 3.5, position = position_dodge(0.9),
             vjust = 0.5, hjust = -0.3) +
   labs(colour = NULL,
        title = 'Uncovered population in SSA.',
@@ -304,7 +304,7 @@ relative_geo_tech_uncovered_population <-
   ggplot(df,  aes(x = decile, y = perc, fill = technology)) +
   geom_bar(stat = 'identity', position = position_dodge(0.9)) +  coord_flip() +
   geom_text(aes(label = formatC(signif(after_stat(y), 3), 
-                                digits = 3,format = 'fg', flag = '#')), size = 2,
+                                digits = 3,format = 'fg', flag = '#')), size = 3.5,
             position = position_dodge(0.9), vjust = 0.5, hjust = -0.1)+
   labs(colour = NULL, title = ' ',
        subtitle = '(b) Relative population by geotypes.', x = NULL,
@@ -604,7 +604,7 @@ uncovered_poor_population <-
   geom_bar(stat = 'identity', position = position_dodge(0.9)) + coord_flip() + 
   geom_text(aes(label = formatC(signif(after_stat(y), 3), 
                                 digits = 3, format = "fg", flag = "#")),
-            size = 2, position = position_dodge(0.9),
+            size = 3, position = position_dodge(0.9),
             vjust = 0.5, hjust = -0.3) +
   labs(colour = NULL,
        title = 'Uncovered and population below poverty line.',
@@ -669,7 +669,7 @@ relative_uncovered_poor_population <-
   ggplot(df,  aes(x = decile, y = mean_perc, fill = technology)) +
   geom_bar(stat = 'identity', position = position_dodge(0.9)) +  coord_flip() +
   geom_text(aes(label = formatC(signif(after_stat(y), 3), 
-                                digits = 3,format = 'fg', flag = '#')), size = 2,
+                                digits = 3,format = 'fg', flag = '#')), size = 3,
             position = position_dodge(0.9), vjust = 0.5, hjust = -0.1) +
   labs(colour = NULL, title = ' ', subtitle = '(b) Relative population.', 
        x = NULL,
@@ -717,5 +717,81 @@ path = file.path(folder, 'figures', 'poor_and_uncovered_maps.png')
 png(path, units = "in", width = 7, height = 9, res = 300)
 print(uncovered_poor)
 dev.off()
+
+########################
+## SATELLITE COVERAGE ##
+########################
+africa_data <- st_read(file.path(folder, '..', 'data', 'raw', 'Africa_Boundaries', 'SSA_combined_shapefile.shp'))
+africa_shp <- africa_data %>%
+  select(GID_0, NAME_0, GID_1, GID_2, geometry)
+
+new_names <- c('iso3', 'country', 'gid_1', 'GID_1', 'geometry')
+colnames(africa_shp) <- new_names
+
+data <- read.csv(file.path(folder, '..', 'results', 'SSA', 'satellite_coverage.csv'))
+data <- na.omit(data)
+data <- data[, c('GID_1', 'constellation', 'user_capacity_mbs_per_user')]
+data = data %>%
+  distinct(GID_1, constellation, user_capacity_mbs_per_user,.keep_all = TRUE) %>%
+  group_by(GID_1, constellation) %>%
+  summarize(sat_coverage = mean(user_capacity_mbs_per_user))
+
+data$constellation = factor(
+  data$constellation,
+  levels = c('Starlink', 'OneWeb', 'Kuiper', 'GEO'))
+
+merged_data <- merge(africa_shp, data, by = "GID_1")
+cap_bins <- c(-Inf, 0.5, 1, 5, 10, 15, 25, 
+              35, 45, 50, Inf)
+
+merged_data$capacity_bin <- cut(merged_data$sat_coverage, breaks = cap_bins, 
+  labels = c("Below 0.5 Mbps", "0.6 - 1 Mbps", "1.1 - 5 Mbps", "5.1 - 10 Mbps", 
+             "10.1 - 15 Mbps", "15.1 - 25 Mps", "25.1 - 35 Mbps", 
+             "35.1 - 45 Mbps", "45 - 50 Mbps", "Above 50 Mbps"))
+
+satellite_coverage <- ggplot() + 
+  geom_sf(data = africa_data, fill = "maroon", color = "black", linewidth = 0.01) +
+  geom_sf(data = merged_data, aes(fill = capacity_bin), 
+          linewidth = 0.001,) +
+  scale_fill_brewer(palette = "Spectral") +
+  labs(title ='(a) Average per user capacities',
+       subtitle = "Estimated satellite capacity per user for population uncovered by 2G mobile signal and living below US$ 1.9 per day.",
+       fill = "Capacity per User") +
+  theme(
+    legend.position = 'bottom',
+    axis.text.x = element_text(size = 5),
+    panel.spacing = unit(0.6, "lines"),
+    plot.title = element_text(size = 9, face = "bold"),
+    plot.subtitle = element_text(size = 8),
+    axis.text.y = element_text(size = 6),
+    axis.title.y = element_markdown(size = 6),
+    legend.title = element_text(size = 7),
+    legend.text = element_text(size = 7)) + 
+  guides(fill = guide_legend(nrow = 2)) + 
+  facet_wrap( ~ constellation, ncol = 2) +
+  guides(fill = guide_legend(ncol = 5)) 
+
+path = file.path(folder, 'figures', 'satellite_coverage.png')
+png(path, units = "in", width = 9, height = 8, res = 300)
+print(satellite_coverage)
+dev.off()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
