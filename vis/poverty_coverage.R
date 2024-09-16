@@ -20,24 +20,22 @@ gid_pop <- gid_pop[, c("GID_1", "decile")]
 data <- merge(data, gid_pop, by = "GID_1")
 
 data = data %>%
-  distinct(poverty_range, decile, population, .keep_all = TRUE) %>%
+  distinct(poverty_range, decile, poor_population, population, .keep_all = TRUE) %>%
   group_by(poverty_range, decile) %>%
-  summarize(poor_pops = sum(poor_population),
-            total_pops = sum(population))
+  summarize(poor_pops = sum(poor_population))
 
 df = data %>%
   group_by(poverty_range, decile) %>%
-  summarize(poor_pop = sum(poor_pops),
-            total_pop = sum(total_pops))
+  summarize(poor_pop = sum(poor_pops))
 
-df$decile = factor(df$decile,
-  levels = c('decile 1', 'decile 2', 'decile 3', 'decile 4', 'decile 5',
-  'decile 6', 'decile 7', 'decile 8', 'decile 9', 'decile 10'),
-  labels = c('Decile 1 \n(>700 per km²)', 'Decile 2 \n(600 - 700 per km²)', 
-  'Decile 3 \n(500 - 600 per km²)', 'Decile 4 \n(400 - 500 per km²)', 
-  'Decile 5 \n(300 - 400 per km²)', 'Decile 6 \n(200 - 300 per km²)',
-  'Decile 7 \n(100 - 200 per km²)', 'Decile 8 \n(75 - 100 per km²)',
-  'Decile 9 \n(50 - 75 per km²)', 'Decile 10 \n(<50 per km²)'))
+df$decile = factor(df$decile, levels = c('Decile 1', 'Decile 2', 'Decile 3', 
+   'Decile 4', 'Decile 5', 'Decile 6', 'Decile 7', 'Decile 8', 'Decile 9', 
+   'Decile 10'), labels = c('Decile 1 \n(>958 per km²)', 
+   'Decile 2 \n(456 - 957 per km²)', 'Decile 3 \n(273 - 455 per km²)', 
+   'Decile 4 \n(172 - 272 per km²)', 'Decile 5 \n(107 - 171 per km²)', 
+   'Decile 6 \n(64 - 106 per km²)', 'Decile 7 \n(40 - 63 per km²)', 
+   'Decile 8 \n(22 - 39 per km²)', 'Decile 9 \n(10 - 21 per km²)', 
+   'Decile 10 \n(<9 per km²)'))
 
 df$poverty_range = factor(
   df$poverty_range,
@@ -73,7 +71,7 @@ poor_population_region <-
   scale_fill_brewer(palette = "Spectral") +
   scale_x_discrete(expand = c(0, 0.15)) +
   scale_y_continuous(expand = c(0, 0),
-  labels = function(y) format(y, scientific = FALSE),limits = c(0, 245))
+  labels = function(y) format(y, scientific = FALSE),limits = c(0, 59))
 
 ############################################
 ##SSA Relative Poor Population by Regions ##
@@ -95,14 +93,14 @@ df = data %>%
   summarize(poor_pop = sum(poor_pops),
             total_pop = sum(total_pops))
 
-df$decile = factor(df$decile,
-  levels = c('decile 1', 'decile 2', 'decile 3', 'decile 4', 'decile 5',
-  'decile 6', 'decile 7', 'decile 8', 'decile 9', 'decile 10'),
-  labels = c('Decile 1 \n(>700 per km²)', 'Decile 2 \n(600 - 700 per km²)', 
-  'Decile 3 \n(500 - 600 per km²)', 'Decile 4 \n(400 - 500 per km²)', 
-  'Decile 5 \n(300 - 400 per km²)', 'Decile 6 \n(200 - 300 per km²)',
-  'Decile 7 \n(100 - 200 per km²)', 'Decile 8 \n(75 - 100 per km²)',
-  'Decile 9 \n(50 - 75 per km²)', 'Decile 10 \n(<50 per km²)'))
+df$decile = factor(df$decile, levels = c('Decile 1', 'Decile 2', 'Decile 3', 
+   'Decile 4', 'Decile 5', 'Decile 6', 'Decile 7', 'Decile 8', 'Decile 9', 
+   'Decile 10'), labels = c('Decile 1 \n(>958 per km²)', 
+   'Decile 2 \n(456 - 957 per km²)', 'Decile 3 \n(273 - 455 per km²)', 
+   'Decile 4 \n(172 - 272 per km²)', 'Decile 5 \n(107 - 171 per km²)', 
+   'Decile 6 \n(64 - 106 per km²)', 'Decile 7 \n(40 - 63 per km²)', 
+   'Decile 8 \n(22 - 39 per km²)', 'Decile 9 \n(10 - 21 per km²)', 
+   'Decile 10 \n(<9 per km²)'))
 
 df$poverty_range = factor(
   df$poverty_range,
@@ -141,18 +139,21 @@ relative_region_poor_population <-
 ##################################################
 ##SSA Absolute Poor Population below poverty map##
 ##################################################
-africa_data <- st_read(file.path(folder, '..', 'data', 'raw', 'Africa_Boundaries', 'SSA_combined_shapefile.shp'))
+africa_data <- st_read(file.path(folder, '..', 'data', 'raw', 
+                                 'Africa_Boundaries', 'SSA_combined_shapefile.shp'))
 africa_shp <- africa_data %>%
   select(GID_0, NAME_0, GID_1, GID_2, geometry)
 
 new_names <- c('iso3', 'country', 'gid_1', 'GID_1', 'geometry')
 colnames(africa_shp) <- new_names
 data <- read.csv(file.path(folder, '..', 'results', 'SSA', 'SSA_poverty_results.csv'))
-#data <- data[data$poverty_range == "GSAP2_poor", ]
 
 data = data %>%
   group_by(GID_1, poverty_range, region) %>%
-  summarize(poor_pops = sum(poor_population))
+  summarize(poor_pops = sum(poor_population),
+            total_pops = sum(population))
+
+data$rel_pop = (data$poor_pops / data$total_pops) * 100
 
 data$poverty_range = factor(
   data$poverty_range,
@@ -161,19 +162,21 @@ data$poverty_range = factor(
 
 merged_data <- merge(africa_shp, data, by = "GID_1")
 
-pop_bins <- c(-Inf, 200000, 500000, 850000, 1200000, 1600000, 2000000, 
-              2500000, 3000000, 3500000, Inf)
-merged_data$population_bin <- cut(merged_data$poor_pops, breaks = pop_bins, 
-    labels = c("Below 200k", "201 - 500k", "501 - 850k", "0.851 - 1.2 Million", 
-    "1.21 - 1.6 Million", "1.61 - 2 Million", "2.01 - 2.5 Million", 
-    "2.51 - 3 Million", "3.01 - 3.5 Million", "Above 3.5 Million"))
+pop_bins <- c(-Inf, 10, 20, 30, 40, 50, 60, 
+              70, 80, 90, Inf)
+
+merged_data <- na.omit(merged_data, cols = "rel_pop")
+
+merged_data$population_bin <- cut(merged_data$rel_pop, breaks = pop_bins, 
+    labels = c("Below 10%", "10 - 20%", "21 - 30%", "31 - 40$", 
+    "41 - 50%", "51 - 60%", "61 - 70%", "71 - 80%", "81 - 90%", "Above 90%"))
 
 poverty_maps <- ggplot() + 
   geom_sf(data = merged_data, aes(fill = population_bin), 
           linewidth = 0.001,) +
-  scale_fill_brewer(palette = "Spectral") +
-  labs(title = "(c) Population below poverty line in SSA.",
-       subtitle = "Aggregated by national sub-regional boundaries and poverty rate.",
+  scale_fill_brewer(palette = "Spectral", direction = -1) +
+  labs(title = "(c) Relative population below poverty line in SSA.",
+       subtitle = "Aggregated by normalized sub-regional population and grouped by poverty rate.",
        fill = "Range") +
   theme(
     legend.position = 'bottom',
@@ -229,14 +232,14 @@ df$technology = factor(
   levels = c('GSM', '3G', '4G'),
   labels = c('2G', '3G', '4G'))
 
-df$decile = factor(df$decile,
- levels = c('decile 1', 'decile 2', 'decile 3', 'decile 4', 'decile 5',
- 'decile 6', 'decile 7', 'decile 8', 'decile 9', 'decile 10'),
- labels = c('Decile 1 \n(>700 per km²)', 'Decile 2 \n(600 - 700 per km²)', 
- 'Decile 3 \n(500 - 600 per km²)', 'Decile 4 \n(400 - 500 per km²)', 
- 'Decile 5 \n(300 - 400 per km²)', 'Decile 6 \n(200 - 300 per km²)',
- 'Decile 7 \n(100 - 200 per km²)', 'Decile 8 \n(75 - 100 per km²)',
- 'Decile 9 \n(50 - 75 per km²)', 'Decile 10 \n(<50 per km²)'))
+df$decile = factor(df$decile, levels = c('Decile 1', 'Decile 2', 'Decile 3', 
+   'Decile 4', 'Decile 5', 'Decile 6', 'Decile 7', 'Decile 8', 'Decile 9', 
+   'Decile 10'), labels = c('Decile 1 \n(>958 per km²)', 
+   'Decile 2 \n(456 - 957 per km²)', 'Decile 3 \n(273 - 455 per km²)', 
+   'Decile 4 \n(172 - 272 per km²)', 'Decile 5 \n(107 - 171 per km²)', 
+   'Decile 6 \n(64 - 106 per km²)', 'Decile 7 \n(40 - 63 per km²)', 
+   'Decile 8 \n(22 - 39 per km²)', 'Decile 9 \n(10 - 21 per km²)', 
+   'Decile 10 \n(<9 per km²)'))
 
 unconnected_population_geotype <-
   ggplot(df,  aes(x = decile, y = pop_unconnected/1e6, fill = technology)) +

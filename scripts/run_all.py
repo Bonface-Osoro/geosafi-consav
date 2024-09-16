@@ -88,7 +88,6 @@ if __name__ == '__main__':
 
             #sum_population(iso)
             #pop_csv_merger(iso)
-            pop_csv_merger(iso)
 
 ######### COMBINE FILES FOR ALL SSA #########
 #csv_merger('poverty_results.csv')
