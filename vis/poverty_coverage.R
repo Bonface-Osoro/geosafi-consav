@@ -168,7 +168,7 @@ pop_bins <- c(-Inf, 10, 20, 30, 40, 50, 60,
 merged_data <- na.omit(merged_data, cols = "rel_pop")
 
 merged_data$population_bin <- cut(merged_data$rel_pop, breaks = pop_bins, 
-    labels = c("Below 10%", "10 - 20%", "21 - 30%", "31 - 40$", 
+    labels = c("Below 10%", "10 - 20%", "21 - 30%", "31 - 40%", 
     "41 - 50%", "51 - 60%", "61 - 70%", "71 - 80%", "81 - 90%", "Above 90%"))
 
 poverty_maps <- ggplot() + 
@@ -269,7 +269,7 @@ unconnected_population_geotype <-
   scale_fill_brewer(palette = "Spectral") +
   scale_x_discrete(expand = c(0, 0.15)) +
   scale_y_continuous(expand = c(0, 0),
-  labels = function(y) format(y, scientific = FALSE),limits = c(0, 280))
+  labels = function(y) format(y, scientific = FALSE),limits = c(0, 12))
 
 #################################################
 ##SSA Relative Uncovered population by geotypes##
@@ -294,14 +294,14 @@ df$technology = factor(
   labels = c('2G', '3G', '4G')
 )
 
-df$decile = factor(df$decile,
-  levels = c('decile 1', 'decile 2', 'decile 3', 'decile 4', 'decile 5',
-  'decile 6', 'decile 7', 'decile 8', 'decile 9', 'decile 10'),
-  labels = c('Decile 1 \n(>700 per km²)', 'Decile 2 \n(600 - 700 per km²)', 
-  'Decile 3 \n(500 - 600 per km²)', 'Decile 4 \n(400 - 500 per km²)', 
-  'Decile 5 \n(300 - 400 per km²)', 'Decile 6 \n(200 - 300 per km²)',
-  'Decile 7 \n(100 - 200 per km²)', 'Decile 8 \n(75 - 100 per km²)',
-  'Decile 9 \n(50 - 75 per km²)', 'Decile 10 \n(<50 per km²)'))
+df$decile = factor(df$decile, levels = c('Decile 1', 'Decile 2', 'Decile 3', 
+   'Decile 4', 'Decile 5', 'Decile 6', 'Decile 7', 'Decile 8', 'Decile 9', 
+   'Decile 10'), labels = c('Decile 1 \n(>958 per km²)', 
+   'Decile 2 \n(456 - 957 per km²)', 'Decile 3 \n(273 - 455 per km²)', 
+   'Decile 4 \n(172 - 272 per km²)', 'Decile 5 \n(107 - 171 per km²)', 
+   'Decile 6 \n(64 - 106 per km²)', 'Decile 7 \n(40 - 63 per km²)', 
+   'Decile 8 \n(22 - 39 per km²)', 'Decile 9 \n(10 - 21 per km²)', 
+   'Decile 10 \n(<9 per km²)'))
 
 relative_geo_tech_uncovered_population <-
   ggplot(df,  aes(x = decile, y = perc, fill = technology)) +
@@ -327,7 +327,7 @@ relative_geo_tech_uncovered_population <-
   scale_fill_brewer(palette = "Spectral") +
   scale_x_discrete(expand = c(0, 0.15)) +
   scale_y_continuous(expand = c(0, 0), labels = function(y)
-    format(y, scientific = FALSE), limits = c(0, 105))
+    format(y, scientific = FALSE), limits = c(0, 109))
 
 #################################################
 ##UNCONNECTED POPULATION BY CELLULAR TECHNOLOGY##
@@ -342,11 +342,19 @@ colnames(africa_shp) <- new_names
 ######################################
 ##Uncovered Population by Technology##
 ######################################
-data <- read.csv(file.path(folder, '..', 'results', 'SSA', 'SSA_unconnected_mapping_results.csv'))
+data1 <- read.csv(file.path(folder, '..', 'results', 'SSA', 
+                           'SSA_unconnected_mapping_results.csv'))
+pop <- read.csv(file.path(folder, '..', 'results', 'SSA', 
+                           'SSA_total_population.csv'))
+pop <- pop %>% select('GID_1', 'population')
+data <- merge(data1, pop, by = "GID_1")
 
 data = data %>%
-  group_by(GID_1, technology, region) %>%
-  summarize(pop_unconnected = (sum(pop_unconnected)))
+  group_by(GID_1, technology) %>%
+  summarize(pop_unconnected = (sum(pop_unconnected)),
+            total_pops = sum(population))
+
+data$rel_pop = (data$pop_unconnected / data$total_pops) * 100
 
 data$technology = factor(
   data$technology,
@@ -355,20 +363,21 @@ data$technology = factor(
 
 merged_data <- merge(africa_shp, data, by = "GID_1")
 
-pop_bins <- c(-Inf, 5000, 10000, 20000, 50000, 80000, 100000, 
-              150000, 200000, 500000, Inf)
+pop_bins <- c(-Inf, 10, 20, 30, 40, 50, 60, 
+              70, 80, 90, Inf)
 
-merged_data$population_bin <- cut(merged_data$pop_unconnected, breaks = pop_bins, 
-    labels = c("Below 5k", "51 - 10k", "11 - 20k", "21 - 50k", 
-    "51 - 80k", "81 - 100k", "101 - 150k", 
-    "151 - 200k", "201 - 500k", "Above 500k"))
+#merged_data <- na.omit(merged_data, cols = "rel_pop")
+
+merged_data$population_bin <- cut(merged_data$rel_pop, breaks = pop_bins, 
+   labels = c("Below 10%", "10 - 20%", "21 - 30%", "31 - 40%", 
+   "41 - 50%", "51 - 60%", "61 - 70%", "71 - 80%", "81 - 90%", "Above 90%"))
 
 uncovered_technology <- ggplot() + 
   geom_sf(data = merged_data, aes(fill = population_bin), 
           linewidth = 0.001,) +
-  scale_fill_brewer(palette = "Spectral") +
+  scale_fill_brewer(palette = "Spectral", direction = -1) +
   labs(title = "(e) Uncovered population in SSA.",
-       subtitle = "Presented at sub-regional boundaries and mobile technology.",
+       subtitle = "Aggregated by normalized sub-regional population and grouped by mobile technology.",
        fill = "Population") +
   theme(
     legend.position = 'bottom',
@@ -414,17 +423,25 @@ colnames(africa_shp) <- new_names
 ############################################
 ##Poor (Below US$ 1.9) and uncovered by 2G##
 ############################################
-data <- read.csv(file.path(folder, '..', 'results', 'SSA', 'SSA_poor_unconnected.csv'))
-data <- na.omit(data)
-data <- data[, c("GID_1", "technology", "region", "poverty_range", "poor_unconnected")]
-data = data %>%
-  distinct(GID_1, technology, region, poverty_range, poor_unconnected, .keep_all = TRUE) %>%
-  group_by(GID_1, technology, region, poverty_range) %>%
-  summarize(poor_uncovered_gid = mean(poor_unconnected))
-data <- data[data$technology == "GSM", ]
+data1 <- read.csv(file.path(folder, '..', 'results', 'SSA', 'SSA_poor_unconnected.csv'))
+data1 <- na.omit(data1)
+data1 <- data1[, c("GID_1", "technology", "region", "poverty_range", "poor_unconnected")]
+pop <- read.csv(file.path(folder, '..', 'results', 'SSA', 
+                          'SSA_total_population.csv'))
+pop <- pop %>% select('GID_1', 'population')
+data <- merge(data1, pop, by = "GID_1")
 
 data = data %>%
+  distinct(GID_1, technology, poverty_range, .keep_all = TRUE) %>%
   group_by(GID_1, technology, poverty_range) %>%
+  summarize(poor_uncovered_gid = mean(poor_unconnected),
+            population)
+data <- data[data$technology == "GSM", ]
+
+data$rel_pop = (data$poor_uncovered_gid / data$population) * 100
+
+data = data %>%
+  group_by(GID_1, technology, poverty_range, rel_pop) %>%
   summarize(poor_unconnected = (sum(poor_uncovered_gid)))
 
 data$poverty_range = factor(
@@ -433,18 +450,17 @@ data$poverty_range = factor(
   labels = c('Below $US 1.9', 'Below $US 3.2', 'Below $US 5.5'))
 
 merged_data <- merge(africa_shp, data, by = "GID_1")
-pop_bins <- c(-Inf, 5000, 10000, 20000, 30000, 50000, 100000, 
-              150000, 250000, 400000, Inf)
+pop_bins <- c(-Inf, 10, 20, 30, 40, 50, 60, 
+              70, 80, 90, Inf)
 
-merged_data$population_bin <- cut(merged_data$poor_unconnected, breaks = pop_bins, 
-   labels = c("Below 5k", "5.1 - 10k", "11 - 20k", "21 - 30k", "31 - 50k", 
-              "51 - 100k", "101 - 150k", "150 - 250k", "250 - 400k", 
-              "Above 400k"))
+merged_data$population_bin <- cut(merged_data$rel_pop, breaks = pop_bins, 
+   labels = c("Below 10%", "10 - 20%", "21 - 30%", "31 - 40%", 
+   "41 - 50%", "51 - 60%", "61 - 70%", "71 - 80%", "81 - 90%", "Above 90%"))
 
 uncovered_2g_poor <- ggplot() + 
   geom_sf(data = merged_data, aes(fill = population_bin), 
           linewidth = 0.001,) +
-  scale_fill_brewer(palette = "Spectral") +
+  scale_fill_brewer(palette = "Spectral", direction = -1) +
   labs(title = "Uncovered and below poverty line population.",
        subtitle = "(a) Uncovered by (2G).",
        fill = "Population") +
@@ -465,17 +481,25 @@ uncovered_2g_poor <- ggplot() +
 ############################
 ##Poor and Uncovered by 3G##
 ############################
-data <- read.csv(file.path(folder, '..', 'results', 'SSA', 'SSA_poor_unconnected.csv'))
-data <- na.omit(data)
-data <- data[, c("GID_1", "technology", "region", "poverty_range", "poor_unconnected")]
-data = data %>%
-  distinct(GID_1, technology, region, poverty_range, poor_unconnected, .keep_all = TRUE) %>%
-  group_by(GID_1, technology, region, poverty_range) %>%
-  summarize(poor_uncovered_gid = mean(poor_unconnected))
-data <- data[data$technology == "3G", ]
+data1 <- read.csv(file.path(folder, '..', 'results', 'SSA', 'SSA_poor_unconnected.csv'))
+data1 <- na.omit(data1)
+data1 <- data1[, c("GID_1", "technology", "region", "poverty_range", "poor_unconnected")]
+pop <- read.csv(file.path(folder, '..', 'results', 'SSA', 
+                          'SSA_total_population.csv'))
+pop <- pop %>% select('GID_1', 'population')
+data <- merge(data1, pop, by = "GID_1")
 
 data = data %>%
+  distinct(GID_1, technology,poverty_range, .keep_all = TRUE) %>%
   group_by(GID_1, technology, poverty_range) %>%
+  summarize(poor_uncovered_gid = mean(poor_unconnected),
+            population)
+data <- data[data$technology == "3G", ]
+
+data$rel_pop = (data$poor_uncovered_gid / data$population) * 100
+
+data = data %>%
+  group_by(GID_1, technology, poverty_range, rel_pop) %>%
   summarize(poor_unconnected = (sum(poor_uncovered_gid)))
 
 data$poverty_range = factor(
@@ -484,17 +508,17 @@ data$poverty_range = factor(
   labels = c('Below $US 1.9', 'Below $US 3.2', 'Below $US 5.5'))
 
 merged_data <- merge(africa_shp, data, by = "GID_1")
-pop_bins <- c(-Inf, 5000, 20000, 50000, 100000, 150000, 250000, 
-              350000, 450000, 500000, Inf)
+pop_bins <- c(-Inf, 10, 20, 30, 40, 50, 60, 
+              70, 80, 90, Inf)
 
-merged_data$population_bin <- cut(merged_data$poor_unconnected, breaks = pop_bins, 
-   labels = c("Below 5k", "5.1 - 20k", "21 - 50k", "51 - 100k", "101 - 150k", 
-   "151 - 250", "251 - 350k", "351 - 450", "451 - 500k", "Above 500k"))
+merged_data$population_bin <- cut(merged_data$rel_pop, breaks = pop_bins, 
+   labels = c("Below 10%", "10 - 20%", "21 - 30%", "31 - 40%", 
+   "41 - 50%", "51 - 60%", "61 - 70%", "71 - 80%", "81 - 90%", "Above 90%"))
 
 uncovered_3g_poor <- ggplot() + 
   geom_sf(data = merged_data, aes(fill = population_bin), 
           linewidth = 0.001,) +
-  scale_fill_brewer(palette = "Spectral") +
+  scale_fill_brewer(palette = "Spectral", direction = -1) +
   labs(title = ' ',
        subtitle = "(b) Uncovered by (3G).",
        fill = "Population") +
@@ -515,17 +539,24 @@ uncovered_3g_poor <- ggplot() +
 ############################
 ##Poor and Uncovered by 4G##
 ############################
-data <- read.csv(file.path(folder, '..', 'results', 'SSA', 'SSA_poor_unconnected.csv'))
-data <- na.omit(data)
-data <- data[, c("GID_1", "technology", "region", "poverty_range", "poor_unconnected")]
-data = data %>%
-  distinct(GID_1, technology, region, poverty_range, poor_unconnected, .keep_all = TRUE) %>%
-  group_by(GID_1, technology, region, poverty_range) %>%
-  summarize(poor_uncovered_gid = mean(poor_unconnected))
-data <- data[data$technology == "4G", ]
+data1 <- read.csv(file.path(folder, '..', 'results', 'SSA', 'SSA_poor_unconnected.csv'))
+data1 <- na.omit(data1)
+data1 <- data1[, c("GID_1", "technology", "region", "poverty_range", "poor_unconnected")]
+pop <- read.csv(file.path(folder, '..', 'results', 'SSA', 
+                          'SSA_total_population.csv'))
+pop <- pop %>% select('GID_1', 'population')
+data <- merge(data1, pop, by = "GID_1")
 
 data = data %>%
+  distinct(GID_1, technology, poverty_range, .keep_all = TRUE) %>%
   group_by(GID_1, technology, poverty_range) %>%
+  summarize(poor_uncovered_gid = mean(poor_unconnected),
+            population)
+data <- data[data$technology == "4G", ]
+data$rel_pop = (data$poor_uncovered_gid / data$population) * 100
+
+data = data %>%
+  group_by(GID_1, technology, poverty_range, rel_pop) %>%
   summarize(poor_unconnected = (sum(poor_uncovered_gid)))
 
 data$poverty_range = factor(
@@ -534,18 +565,17 @@ data$poverty_range = factor(
   labels = c('Below $US 1.9', 'Below $US 3.2', 'Below $US 5.5'))
 
 merged_data <- merge(africa_shp, data, by = "GID_1")
-pop_bins <- c(-Inf, 5000, 20000, 50000, 100000, 150000, 250000, 
-              350000, 450000, 500000, Inf)
+pop_bins <- c(-Inf, 10, 20, 30, 40, 50, 60, 
+              70, 80, 90, Inf)
 
-merged_data$population_bin <- cut(merged_data$poor_unconnected, breaks = pop_bins, 
-   labels = c("Below 5k", "5.1 - 20k", "21 - 50k", "51 - 100k", "101 - 150k", 
-   "151 - 250", "251 - 350k", "351 - 450", "451 - 500k", 
-   "Above 500k"))
+merged_data$population_bin <- cut(merged_data$rel_pop, breaks = pop_bins, 
+   labels = c("Below 10%", "10 - 20%", "21 - 30%", "31 - 40%", 
+   "41 - 50%", "51 - 60%", "61 - 70%", "71 - 80%", "81 - 90%", "Above 90%"))
 
 uncovered_4g_poor <- ggplot() + 
   geom_sf(data = merged_data, aes(fill = population_bin), 
           linewidth = 0.001,) +
-  scale_fill_brewer(palette = "Spectral") +
+  scale_fill_brewer(palette = "Spectral", direction = -1) +
   labs(title =' ',
        subtitle = "(c) Uncovered by (4G).",
        fill = "Population") +
@@ -593,14 +623,14 @@ df$poverty_range = factor(
   levels = c('GSAP2_poor', 'GSAP2_po_1', 'GSAP2_po_2'),
   labels = c('Below $US 1.9', 'Below $US 3.2', 'Below $US 5.5'))
 
-df$decile = factor(df$decile,
-  levels = c('decile 1', 'decile 2', 'decile 3', 'decile 4', 'decile 5',
-  'decile 6', 'decile 7', 'decile 8', 'decile 9', 'decile 10'),
-  labels = c('Decile 1 \n(>700 per km²)', 'Decile 2 \n(600 - 700 per km²)', 
-  'Decile 3 \n(500 - 600 per km²)', 'Decile 4 \n(400 - 500 per km²)', 
-  'Decile 5 \n(300 - 400 per km²)', 'Decile 6 \n(200 - 300 per km²)',
-  'Decile 7 \n(100 - 200 per km²)', 'Decile 8 \n(75 - 100 per km²)',
-  'Decile 9 \n(50 - 75 per km²)', 'Decile 10 \n(<50 per km²)'))
+df$decile = factor(df$decile, levels = c('Decile 1', 'Decile 2', 'Decile 3', 
+   'Decile 4', 'Decile 5', 'Decile 6', 'Decile 7', 'Decile 8', 'Decile 9', 
+   'Decile 10'), labels = c('Decile 1 \n(>958 per km²)', 
+   'Decile 2 \n(456 - 957 per km²)', 'Decile 3 \n(273 - 455 per km²)', 
+   'Decile 4 \n(172 - 272 per km²)', 'Decile 5 \n(107 - 171 per km²)', 
+   'Decile 6 \n(64 - 106 per km²)', 'Decile 7 \n(40 - 63 per km²)', 
+   'Decile 8 \n(22 - 39 per km²)', 'Decile 9 \n(10 - 21 per km²)', 
+   'Decile 10 \n(<9 per km²)'))
 
 uncovered_poor_population <-
   ggplot(df,  aes(x = decile, y = poor_uncovered, fill = technology)) +
@@ -630,7 +660,7 @@ uncovered_poor_population <-
   scale_fill_brewer(palette = "Spectral") +
   scale_x_discrete(expand = c(0, 0.15)) +
   scale_y_continuous(expand = c(0, 0),
-  labels = function(y) format(y, scientific = FALSE),limits = c(0, 250)) + 
+  labels = function(y) format(y, scientific = FALSE),limits = c(0, 12)) + 
   facet_wrap( ~ poverty_range, ncol = 5) 
 
 ##########################################################
@@ -659,14 +689,14 @@ df$poverty_range = factor(
   levels = c('GSAP2_poor', 'GSAP2_po_1', 'GSAP2_po_2'),
   labels = c('Below $US 1.9', 'Below $US 3.2', 'Below $US 5.5'))
 
-df$decile = factor(df$decile,
-  levels = c('decile 1', 'decile 2', 'decile 3', 'decile 4', 'decile 5',
-  'decile 6', 'decile 7', 'decile 8', 'decile 9', 'decile 10'),
-  labels = c('Decile 1 \n(>700 per km²)', 'Decile 2 \n(600 - 700 per km²)', 
-  'Decile 3 \n(500 - 600 per km²)', 'Decile 4 \n(400 - 500 per km²)', 
-  'Decile 5 \n(300 - 400 per km²)', 'Decile 6 \n(200 - 300 per km²)',
-  'Decile 7 \n(100 - 200 per km²)', 'Decile 8 \n(75 - 100 per km²)',
-  'Decile 9 \n(50 - 75 per km²)', 'Decile 10 \n(<50 per km²)'))
+df$decile = factor(df$decile, levels = c('Decile 1', 'Decile 2', 'Decile 3', 
+   'Decile 4', 'Decile 5', 'Decile 6', 'Decile 7', 'Decile 8', 'Decile 9', 
+   'Decile 10'), labels = c('Decile 1 \n(>958 per km²)', 
+   'Decile 2 \n(456 - 957 per km²)', 'Decile 3 \n(273 - 455 per km²)', 
+   'Decile 4 \n(172 - 272 per km²)', 'Decile 5 \n(107 - 171 per km²)', 
+   'Decile 6 \n(64 - 106 per km²)', 'Decile 7 \n(40 - 63 per km²)', 
+   'Decile 8 \n(22 - 39 per km²)', 'Decile 9 \n(10 - 21 per km²)', 
+   'Decile 10 \n(<9 per km²)'))
 
 relative_uncovered_poor_population <-
   ggplot(df,  aes(x = decile, y = mean_perc, fill = technology)) +
@@ -693,7 +723,7 @@ relative_uncovered_poor_population <-
   scale_fill_brewer(palette = "Spectral") +
   scale_x_discrete(expand = c(0, 0.15)) +
   scale_y_continuous(expand = c(0, 0), labels = function(y)
-    format(y, scientific = FALSE), limits = c(0, 100)) +
+    format(y, scientific = FALSE), limits = c(0, 109)) +
   facet_wrap( ~ poverty_range, ncol = 3) 
 
 
@@ -778,7 +808,6 @@ path = file.path(folder, 'figures', 'satellite_coverage.png')
 png(path, units = "in", width = 9, height = 8, res = 300)
 print(satellite_coverage)
 dev.off()
-
 
 
 
