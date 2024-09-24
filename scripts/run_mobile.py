@@ -60,7 +60,10 @@ def run_uq_processing_capacity():
         
         noise_db = mb.calc_noise(item['channel_bandwidth_mhz'])
         
-        cnr_db = mb.calc_cnr(received_power_db, noise_db)
+        cnr_db = mb.calc_cnr(received_power_db, noise_db, 
+                             item['user_antenna_gain_dbi'], 
+                             item['user_antenna_loss_db'], 
+                             item['interference_db'])
         
         spectral_efficiency_bpshz = mb.get_spectral_efficiency(lut, 
                                     item['cell_generation'], cnr_db)
@@ -77,6 +80,7 @@ def run_uq_processing_capacity():
             'path_loss_db' : path_loss_db,
             'received_power_db' : received_power_db,
             'noise_db' : noise_db,
+            'network_load_perc' : item['network_load'],
             'cnr_db' : cnr_db,
             'spectral_efficiency_bpshz' : spectral_efficiency_bpshz,
             'channel_capacity_mbps' : channel_capacity_mbps

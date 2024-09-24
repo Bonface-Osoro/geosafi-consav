@@ -212,7 +212,7 @@ def calc_noise(chn_bandwidth_mhz):
     return noise_db
   
 
-def calc_cnr(received_power, noise):
+def calc_cnr(received_power, noise, ue_gain, ue_losses, interference_db):
     """
     Calculate the Carrier-to-Noise Ratio (CNR).
 
@@ -221,7 +221,13 @@ def calc_cnr(received_power, noise):
     received_power : float
         The received signal power at the receiver in dB.
     noise : float
-        Received noise power spectral density in dBm/Hz.
+        Received noise power spectral density in dBm.
+    ue_gain : float
+        User equipment antenna gain in dBi
+    ue_losses : float
+        User equipment antenna losses in dBi
+    interference_db : float
+        Interference noise power in db
 
     Returns
     -------
@@ -229,7 +235,7 @@ def calc_cnr(received_power, noise):
         Carrier-to-Noise Ratio (CNR) in dB.
 
     """
-    cnr = received_power - noise
+    cnr = ((received_power + ue_gain) - (noise + ue_losses + interference_db))
 
     return cnr
 
