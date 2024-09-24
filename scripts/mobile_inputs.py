@@ -79,7 +79,7 @@ parameters = {
         'transmitter_height_low_m' : 30,
         'transmitter_height_high_m' : 50,
         'trans_user_dist_low_km' : 1,
-        'trans_user_dist_high_km' : 20,
+        'trans_user_dist_high_km' : 5,
         'user_antenna_height_low_m' : 1,
         'user_antenna_height_high_m' : 10,
         'transmitter_power_low_dbm' : 40,
