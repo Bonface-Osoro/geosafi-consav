@@ -42,43 +42,65 @@ def multigeneration_cell_capacity(i, mobile_params):
 
     for frequency in mobile_params['frequencies_mhz']:
 
-        trans_user_dist_km = random.randint(mobile_params['trans_user_dist_low_km'], 
-            mobile_params['trans_user_dist_high_km'])
-        
-        transmitter_height_m = random.randint(
-            mobile_params['transmitter_height_low_m'], 
-            mobile_params['transmitter_height_high_m'])
-        
-        user_antenna_height_m = random.randint(mobile_params['user_antenna_height_low_m'], 
-            mobile_params['user_antenna_height_high_m'])
-        
-        transmitter_power_dbm = random.randint(
-            mobile_params['transmitter_power_low_dbm'], 
-            mobile_params['transmitter_power_high_dbm'])
-        
-        trans_antenna_gain_dbi = random.randint(mobile_params['trans_antenna_gain_low_dbi'], 
-            mobile_params['trans_antenna_gain_high_dbi'])
+        for network in mobile_params['network_load']:
 
-        
-        output.append({
-            'iteration' : i,
-            'mu' : mobile_params['mu'],
-            'sigma' : mobile_params['sigma'],
-            'seed_value' : mobile_params['seed_value'],
-            'draws' : mobile_params['draws'],
-            'cell_generation' : mobile_params['cell_generation'],
-            'frequency_mhz' : frequency,
-            'channel_bandwidth_mhz' : mobile_params['channel_bandwidth_mhz'],
-            'transmitter_height_m' : transmitter_height_m,
-            'trans_user_dist_km' : trans_user_dist_km,
-            'user_antenna_height_m' : user_antenna_height_m,
-            'transmitter_power_dbm' : transmitter_power_dbm,
-            'trans_antenna_gain_dbi' : trans_antenna_gain_dbi,
-            'shadow_fading_db' : mobile_params['shadow_fading_db'],
-            'building_penetration_loss_db' : mobile_params['building_penetration_loss_db'],
-            'antenna_sectors' : mobile_params['antenna_sectors'],
-            'network_load' : mobile_params['network_load']
-        })
+            trans_user_dist_km = random.randint(
+                mobile_params['trans_user_dist_low_km'], 
+                mobile_params['trans_user_dist_high_km'])
+            
+            transmitter_height_m = random.randint(
+                mobile_params['transmitter_height_low_m'], 
+                mobile_params['transmitter_height_high_m'])
+            
+            user_antenna_height_m = random.randint(
+                mobile_params['user_antenna_height_low_m'], 
+                mobile_params['user_antenna_height_high_m'])
+            
+            transmitter_power_dbm = random.randint(
+                mobile_params['transmitter_power_low_dbm'], 
+                mobile_params['transmitter_power_high_dbm'])
+            
+            trans_antenna_gain_dbi = random.randint(
+                mobile_params['trans_antenna_gain_low_dbi'], 
+                mobile_params['trans_antenna_gain_high_dbi'])
+            
+            user_antenna_gain_dbi = random.randint(
+                mobile_params['user_antenna_gain_low_dbi'], 
+                mobile_params['user_antenna_gain_high_dbi'])
+            
+            user_antenna_loss_db = random.randint(
+                mobile_params['user_antenna_loss_low_db'], 
+                mobile_params['user_antenna_loss_high_db'])
+            
+            interference_db = random.randint(
+                mobile_params['interference_low_db'], 
+                mobile_params['interference_high_db'])
+
+            
+            output.append({
+                'iteration' : i,
+                'mu' : mobile_params['mu'],
+                'sigma' : mobile_params['sigma'],
+                'seed_value' : mobile_params['seed_value'],
+                'draws' : mobile_params['draws'],
+                'cell_generation' : mobile_params['cell_generation'],
+                'frequency_mhz' : frequency,
+                'channel_bandwidth_mhz' : mobile_params['channel_bandwidth_mhz'],
+                'transmitter_height_m' : transmitter_height_m,
+                'trans_user_dist_km' : trans_user_dist_km,
+                'user_antenna_height_m' : user_antenna_height_m,
+                'transmitter_power_dbm' : transmitter_power_dbm,
+                'trans_antenna_gain_dbi' : trans_antenna_gain_dbi,
+                'user_antenna_gain_dbi' : user_antenna_gain_dbi,
+                'user_antenna_loss_db' : user_antenna_loss_db,
+                'interference_db' : interference_db,
+                'shadow_fading_db' : mobile_params['shadow_fading_db'],
+                'building_penetration_loss_db' : (
+                    mobile_params['building_penetration_loss_db']),
+                'antenna_sectors' : mobile_params['antenna_sectors'],
+                'system_temperature_k' : mobile_params['system_temperature_k'],
+                'network_load' : network
+            })
 
     return output
 
@@ -276,4 +298,4 @@ if __name__ == '__main__':
     uq_inputs_capacity(parameters)
 
     print('Running uq_cost_inputs_generator()')
-    uq_inputs_costs(parameters)
+    #uq_inputs_costs(parameters)
