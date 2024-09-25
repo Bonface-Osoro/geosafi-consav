@@ -163,4 +163,129 @@ def run_uq_processing_cost():
 
     return
 
-run_uq_processing_capacity()
+
+def run_uq_processing_emission(users):
+    """
+    Run the UQ inputs through the mobile broadband model.
+
+    Parameters
+    ----------
+    users : int.
+        Number of users served by the base station.
+    
+    """
+    path = os.path.join(RESULTS, 'uq_parameters_emission.csv') 
+
+    if not os.path.exists(path):
+        print('Cannot locate uq_parameters_emission.csv')
+
+    df = pd.read_csv(path)
+    df = df.to_dict('records')
+
+    results = []
+
+    for item in tqdm(df, desc = "Processing uncertainty mobile results"):
+
+        lca_mfg = mb.lca_manufacturing(item['bbu_rru_pcb_kg'], 
+                    item['bbu_rru_aluminium_kg'], item['copper_antenna_kg'], 
+                    item['aluminium_antenna_kg'], item['pvc_antenna_kg'],
+                    item['iron_antenna_kg'], item['steel_antenna_kg'], 
+                    item['steel_tower_kg'], item['aluminium_frame_kg'], 
+                    item['steel_pole_kg'], item['machine_concrete_kg'], 
+                    item['machine_steel_kg'], item['basic_aluminium_device_kg'], 
+                    item['pcb_kg_co2e'], item['aluminium_kg_co2e'], 
+                    item['copper_kg_co2e'], item['pvc_kg_co2e'], 
+                    item['iron_kg_co2e'], item['steel_kg_co2e'], 
+                    item['concrete_kg_co2e'])
+        
+        aluminium_mfg_ghg = (lca_mfg['aluminium_ghg'])
+        steel_iron_mfg_ghg = (lca_mfg['steel_iron_ghg'])
+        concrete_mfg_ghg = (lca_mfg['concrete_ghg'])
+        plastics_mfg_ghg = (lca_mfg['plastics_ghg'])
+        other_metals_mfg_ghg = (lca_mfg['other_metals_ghg'])
+        total_mfg_ghg = (aluminium_mfg_ghg + steel_iron_mfg_ghg 
+                        + concrete_mfg_ghg + plastics_mfg_ghg 
+                        + other_metals_mfg_ghg)
+        
+        lca_trans = mb.lca_transportation(item['distance_km'], 
+                                          item['consumption_lt_per_km'], 
+                                          item['diesel_factor_kgco2e'])
+        
+        total_trans_ghg_kg = (lca_trans['trans_ghg_kg'])
+
+        lca_constr = mb.lca_construction(item['machine_fuel_eff_lt_per_hr'], 
+                                         item['machine_operation_hrs'], 
+                                         item['diesel_factor_kgco2e'])
+        
+        total_construction_ghg = (lca_constr['construction_ghg'])
+
+        lca_ops = mb.lca_operations(item['cpe_kwh'], 
+                                    item['base_station_power_kwh'], users, 
+                                    item['electricity_kg_co2e'])
+        
+        total_operations_ghg = (lca_ops['operations_ghg'])
+
+        lca_eolts = mb.lca_eolt(item['bbu_rru_pcb_kg'], 
+                    item['bbu_rru_aluminium_kg'], item['copper_antenna_kg'], 
+                    item['aluminium_antenna_kg'], item['pvc_antenna_kg'],
+                    item['iron_antenna_kg'], item['steel_antenna_kg'], 
+                    item['steel_tower_kg'], item['aluminium_frame_kg'], 
+                    item['steel_pole_kg'], item['machine_steel_kg'], 
+                    item['basic_aluminium_device_kg'], item['metals_factor_kgco2e'], 
+                    item['plastics_factor_kgco2e'])
+
+        aluminium_eolt_ghg = (lca_eolts['aluminium_ghg'])
+        steel_iron_eolt_ghg = (lca_eolts['steel_iron_ghg'])
+        plastics_eolt_ghg = (lca_eolts['plastics_ghg'])
+        other_metals_eolt_ghg = (lca_eolts['other_metals_ghg'])
+        total_eolt_ghg = (aluminium_eolt_ghg + steel_iron_eolt_ghg 
+                         + plastics_eolt_ghg + other_metals_eolt_ghg)
+        
+        total_emissions_ghg_kg = (total_mfg_ghg + total_trans_ghg_kg 
+                                  + total_construction_ghg 
+                                  + total_operations_ghg + total_eolt_ghg)
+
+        results.append({
+            'cell_generation' : item['cell_generation'],
+            'aluminium_mfg_ghg_kg' : aluminium_mfg_ghg,
+            'steel_iron_mfg_ghg_kg' : steel_iron_mfg_ghg,
+            'concrete_mfg_ghg_kg' : concrete_mfg_ghg,
+            'plastics_mfg_ghg_kg' : plastics_mfg_ghg,
+            'other_metals_mfg_ghg_kg' : other_metals_mfg_ghg,
+            'aluminium_eolt_ghg' : aluminium_eolt_ghg,
+            'steel_iron_eolt_ghg' : steel_iron_eolt_ghg,
+            'plastics_eolt_ghg' : plastics_eolt_ghg,
+            'other_metals_eolt_ghg' : other_metals_eolt_ghg,
+            'total_mfg_ghg' : total_mfg_ghg,
+            'total_trans_ghg_kg' : total_trans_ghg_kg,
+            'total_construction_ghg_kg' : total_construction_ghg,
+            'total_operations_ghg_kg' : total_operations_ghg,
+            'total_eolt_ghg_kg' : total_eolt_ghg,
+            'total_emissions_ghg_kg' : total_emissions_ghg_kg
+        })
+
+        df = pd.DataFrame.from_dict(results)
+
+        filename = 'mobile_emission_results.csv'
+        
+        if not os.path.exists(RESULTS):
+
+            os.makedirs(RESULTS)
+
+        path_out = os.path.join(RESULTS, filename)
+        df.to_csv(path_out, index = False)
+
+
+    return
+
+
+if __name__ == '__main__':
+
+    print('Running mobile broadband capacity model')
+    run_uq_processing_capacity()
+
+    print('Running mobile broadband cost model')
+    run_uq_processing_cost()
+
+    print('Running mobile broadband emissions model')
+    run_uq_processing_emission(20000)

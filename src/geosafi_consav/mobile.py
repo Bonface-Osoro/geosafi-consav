@@ -11,6 +11,9 @@ import numpy as np
 import itertools
 from collections import OrderedDict
 
+################################
+######## CAPACITY MODEL ########
+################################
 
 def generate_log_normal_dist_value(frequency, mu, sigma, seed_value, draws):
     """
@@ -305,8 +308,13 @@ def calc_channel_capacity(spectral_efficiency, chn_bandwidth_mhz):
     channel_capacity_mbps = ((spectral_efficiency * chn_bandwidth_mhz * 10 ** 6) 
                              / 1e6)
 
+
     return channel_capacity_mbps
 
+
+############################
+######## COST MODEL ########
+############################
 
 def equipment_cost(sector_antenna, remote_radio_unit, fronthaul_interface,
                    control_unit, cooling_fans, battery_system, 
@@ -484,3 +492,283 @@ def total_cost_ownership(total_capex, total_opex, discount_rate,
 
 
     return total_cost_ownership
+
+
+#################################
+######## EMISSIONS MODEL ########
+#################################
+
+def lca_manufacturing(pcb_emissions_kg, alu_bbu_rru_kg, cu_antenna_kg, 
+                      alu_antenna_kg, pvc_antenna_kg, iron_antenna_kg, 
+                      steel_antenna_kg, tower_kg, alu_frame_kg, steel_pole_kg, 
+                      room_concrete_kg, room_steel_kg, basic_alu_kg,
+                      pcb_carbon_factor, alu_carbon_factor, cu_carbon_factor, 
+                      pvc_carbon_factor, fe_carbon_factor, steel_carbon_factor, 
+                      concrete_carbon_factor):
+    """
+    This function calculates the total GHG emissions in the manufacturing 
+    phase LCA of mobile broadband using carbon emission factors.
+
+    Parameters
+    ----------
+    pcb_emissions_kg : float.
+        Mass of printed circuit board.
+    alu_bbu_rru_kg : float.
+        Mass of aluminium used in baseband and remote radio unit.
+    cu_antenna_kg : float.
+        Mass of copper metal used in building antenna.
+    alu_antenna_kg : float.
+        Mass of alumonium metal used in building antenna.
+    pvc_antenna_kg : float.
+        Mass of PVC material used in building antenna.
+    iron_antenna_kg : float.
+        Mass of iron metal used in building antenna.
+    steel_antenna_kg : float.
+        Mass of steel metal used in building antenna.
+    tower_kg : float.
+        Mass of steel tower.
+    alu_frame_kg : float.
+        Mass of aluminium frame.
+    steel_pole_kg : float.
+        Mass of steel poles used in the base station construction.
+    room_concrete_kg : float.
+        Mass of concrete used in building machine room.
+    room_steel_kg : float.
+        Mass of steel ribar used in building machine room.
+    basic_alu_kg : float.
+        Mass of aluminium used in all basic materials in the base station.
+
+    pcb_carbon_factor, alu_carbon_factor, cu_carbon_factor, pvc_carbon_factor, 
+    fe_carbon_factor, steel_carbon_factor, concrete_carbon_factor : float.
+        Carbon emission factors sof PCB, alumnium, copper, PVC, iron, steel and
+        concrete respectively. 
+
+    Returns
+    -------
+    mfg_emission_dict : dict
+        Dictionary containing GHG emissions by type.
+
+    """
+    mfg_emission_dict = {}
+
+    pcb_ghg = (pcb_emissions_kg * pcb_carbon_factor)
+    
+    alu_bbu__ghg = (alu_bbu_rru_kg * alu_carbon_factor)
+    
+    cu_antenna_ghg = (cu_antenna_kg * cu_carbon_factor)
+    
+    alu_antenna_ghg = (alu_antenna_kg * alu_carbon_factor)
+    
+    pvc_ghg = (pvc_antenna_kg * pvc_carbon_factor)
+    
+    iron_ghg = (iron_antenna_kg * fe_carbon_factor)
+    
+    steel_ghg = (steel_antenna_kg * steel_carbon_factor)
+
+    tower_ghg = (tower_kg * steel_carbon_factor)
+    
+    alu_frame_ghg = (alu_frame_kg * alu_carbon_factor)
+
+    steel_pole_ghg = (steel_pole_kg * steel_carbon_factor)
+    
+    room_concrete_ghg = (room_concrete_kg * concrete_carbon_factor)
+
+    room_steel_ghg = (room_steel_kg * steel_carbon_factor)
+    
+    basic_alu_device_ghg = (basic_alu_kg * alu_carbon_factor)
+    
+    mfg_emission_dict['aluminium_ghg'] = (alu_bbu__ghg + alu_antenna_ghg 
+                                        + alu_frame_ghg + basic_alu_device_ghg)
+
+    mfg_emission_dict['steel_iron_ghg'] = (iron_ghg + steel_ghg + tower_ghg 
+                                           + steel_pole_ghg + room_steel_ghg)
+
+    mfg_emission_dict['concrete_ghg'] = room_concrete_ghg
+
+    mfg_emission_dict['plastics_ghg'] = (pcb_ghg + pvc_ghg)
+
+    mfg_emission_dict['other_metals_ghg'] = cu_antenna_ghg
+
+
+    return mfg_emission_dict
+
+
+def lca_transportation(distance_km, consumption_lt_per_km, diesel_factor_kgco2e):
+    """
+    This function calculates the total GHG emissions in the transportation 
+    LCA phase of mobile broadband deployment.
+
+    Parameters
+    ----------
+    distance_km : float.
+        Distance travelled by the vehicle.
+    consumption_lt_per_km : float.
+        Fuel consumption of the vehicle per distance.
+    diesel_factor_kgco2e : float.
+        Carbon emission factor of diesel fuel.
+
+    Returns
+    -------
+    trans_emission_dict : dict
+        Dictionary containing GHG emissions by type.
+    """
+    trans_emission_dict = {}
+
+    trans_ghg = (distance_km * consumption_lt_per_km * diesel_factor_kgco2e)
+
+    trans_emission_dict['trans_ghg_kg'] = trans_ghg
+
+
+    return trans_emission_dict
+
+
+def lca_construction(fuel_efficiency, machine_operating_hours, 
+                     diesel_factor_kgco2e):
+    """
+    This function calculates the total GHG emissions in the construction 
+    LCA phase of mobile broadband deployment.
+
+    Parameters
+    ----------
+    fuel_efficiency : float.
+        Fuel efficiency of the machine.
+    machine_operating_hours : float.
+        Number of hours the machine operated.
+    diesel_factor_kgco2e : float.
+        Carbon emission factor of diesel fuel.
+
+    Returns
+    -------
+    trans_emission_dict : dict
+        Dictionary containing GHG emissions by type.
+    """
+    construction_emission_dict = {}
+
+    construction_ghg_kg = (fuel_efficiency * machine_operating_hours 
+                     * diesel_factor_kgco2e)
+
+    construction_emission_dict['construction_ghg'] = construction_ghg_kg
+
+
+    return construction_emission_dict
+
+
+def lca_operations(cpe_power_kwh, base_station_power_kwh, number_of_users, 
+                   electricity_kg_co2e):
+    """
+    This function calculates the total GHG emissions due to operation of the 
+    fiber broadband
+
+    Parameters
+    ----------
+    cpe_power_kwh : float.
+        Mobile phone/user equipment power consumption.
+    base_station_power_kwh : float.
+        Total power consumption of base station.
+    number_of_users : int.
+        Number of users accessing the base station.
+    electricity_kg_co2e : float.
+        Carbon emission factor of electricity.
+
+    Returns
+    -------
+    operations_emission_dict : dict
+        Dictionary containing GHG emissions by type.
+    """
+
+    operations_emission_dict = {}
+
+    per_user_power = cpe_power_kwh + (base_station_power_kwh / number_of_users)
+    operations_ghg_kg = (per_user_power * electricity_kg_co2e)
+
+    operations_emission_dict['operations_ghg'] = operations_ghg_kg
+
+
+    return operations_emission_dict
+
+
+def lca_eolt(pcb_emissions_kg, alu_bbu_rru_kg, cu_antenna_kg, alu_antenna_kg, 
+             pvc_antenna_kg, iron_antenna_kg, steel_antenna_kg, tower_kg, 
+             alu_frame_kg, steel_pole_kg, room_steel_kg, basic_alu_kg, 
+             metals_factor_kgco2, plastics_factor_kgco2):
+    """
+    This function calculates the total GHG emissions in the end-of-life treatment 
+    phase LCA of mobile broadband using carbon emission factors.
+
+    Parameters
+    ----------
+    pcb_emissions_kg : float.
+        Mass of printed circuit board.
+    alu_bbu_rru_kg : float.
+        Mass of aluminium used in baseband and remote radio unit.
+    cu_antenna_kg : float.
+        Mass of copper metal used in building antenna.
+    alu_antenna_kg : float.
+        Mass of alumonium metal used in building antenna.
+    pvc_antenna_kg : float.
+        Mass of PVC material used in building antenna.
+    iron_antenna_kg : float.
+        Mass of iron metal used in building antenna.
+    steel_antenna_kg : float.
+        Mass of steel metal used in building antenna.
+    tower_kg : float.
+        Mass of steel tower.
+    alu_frame_kg : float.
+        Mass of aluminium frame.
+    steel_pole_kg : float.
+        Mass of steel poles used in the base station construction.
+    room_concrete_kg : float.
+        Mass of concrete used in building machine room.
+    room_steel_kg : float.
+        Mass of steel ribar used in building machine room.
+    basic_alu_kg : float.
+        Mass of aluminium used in all basic materials in the base station.
+    metals_factor_kgco2 : float.
+        Carbon emissions factor of metals.
+    plastics_factor_kgco2 : float.
+        Carbon emissions factor of plastics.
+
+    Returns
+    -------
+    mfg_emission_dict : dict
+        Dictionary containing GHG emissions by type.
+
+    """
+    eolt_emission_dict = {}
+
+    pcb_ghg = (pcb_emissions_kg * plastics_factor_kgco2)
+    
+    alu_bbu__ghg = (alu_bbu_rru_kg * metals_factor_kgco2)
+    
+    cu_antenna_ghg = (cu_antenna_kg * metals_factor_kgco2)
+    
+    alu_antenna_ghg = (alu_antenna_kg * metals_factor_kgco2)
+    
+    pvc_ghg = (pvc_antenna_kg * plastics_factor_kgco2)
+    
+    iron_ghg = (iron_antenna_kg * metals_factor_kgco2)
+    
+    steel_ghg = (steel_antenna_kg * metals_factor_kgco2)
+
+    tower_ghg = (tower_kg * metals_factor_kgco2)
+    
+    alu_frame_ghg = (alu_frame_kg * metals_factor_kgco2)
+
+    steel_pole_ghg = (steel_pole_kg * metals_factor_kgco2)
+
+    room_steel_ghg = (room_steel_kg * metals_factor_kgco2)
+    
+    basic_alu_device_ghg = (basic_alu_kg * metals_factor_kgco2)
+    
+    eolt_emission_dict['aluminium_ghg'] = (alu_bbu__ghg + alu_antenna_ghg 
+                                        + alu_frame_ghg + basic_alu_device_ghg)
+
+    eolt_emission_dict['steel_iron_ghg'] = (iron_ghg + steel_ghg + tower_ghg 
+                                           + steel_pole_ghg + room_steel_ghg)
+
+    eolt_emission_dict['plastics_ghg'] = (pcb_ghg + pvc_ghg)
+
+    eolt_emission_dict['other_metals_ghg'] = cu_antenna_ghg
+
+
+    return eolt_emission_dict

@@ -289,13 +289,180 @@ def uq_inputs_costs(parameters):
     return
 
 
+def multigeneration_cell_emissions(i, mobile_params):
+    """
+    This function generates random values within the given emission ranges. 
+
+    Parameters
+    ----------
+    i : int.
+        number of iterations
+    mobile_params : dict
+        Dictionary containing mobile engineering details
+
+    Return
+    ------
+        output : list
+            List containing capacity outputs
+
+    """
+    output = []
+
+    bbu_rru_pcb_kg = random.randint(mobile_params['bbu_rru_pcb_low_kg'], 
+        mobile_params['bbu_rru_pcb_high_kg'])
+    
+    bbu_rru_aluminium_kg = random.randint(
+        mobile_params['bbu_rru_aluminium_low_kg'], 
+        mobile_params['bbu_rru_aluminium_high_kg'])
+    
+    copper_antenna_kg = random.randint(
+        mobile_params['copper_antenna_low_kg'], 
+        mobile_params['copper_antenna_high_kg'])
+    
+    aluminium_antenna_kg = random.randint(
+        mobile_params['aluminium_antenna_low_kg'], 
+        mobile_params['aluminium_antenna_high_kg'])
+    
+    pvc_antenna_kg = random.randint(mobile_params['pvc_antenna_low_kg'], 
+                                    mobile_params['pvc_antenna_high_kg'])
+    
+    iron_antenna_kg = random.randint(mobile_params['iron_antenna_low_kg'], 
+                                        mobile_params['iron_antenna_high_kg'])
+    
+    steel_antenna_kg = random.randint(mobile_params['steel_antenna_low_kg'], 
+                                        mobile_params['steel_antenna_high_kg'])
+    
+    steel_tower_kg = random.randint(mobile_params['steel_tower_low_kg'], 
+                                    mobile_params['steel_tower_high_kg'])
+    
+    aluminium_frame_kg = random.randint(
+        mobile_params['aluminium_frame_low_kg'], 
+        mobile_params['aluminium_frame_high_kg'])
+    
+    steel_pole_kg = random.randint(mobile_params['steel_pole_low_kg'], 
+                                    mobile_params['steel_pole_high_kg'])
+    
+    machine_concrete_kg = random.randint(
+        mobile_params['machine_concrete_low_kg'], 
+        mobile_params['machine_concrete_high_kg'])
+    
+    machine_steel_kg = random.randint(mobile_params['machine_steel_low_kg'], 
+                                        mobile_params['machine_steel_high_kg'])
+    
+    basic_aluminium_device_kg = random.randint(
+        mobile_params['basic_aluminium_device_low_kg'], 
+        mobile_params['basic_aluminium_device_high_kg'])
+    
+    distance_km = random.randint(mobile_params['distance_low_km'], 
+                                 mobile_params['distance_high_km'])
+    
+    consumption_lt_per_km = random.uniform(
+        mobile_params['consumption_low_lt_per_km'], 
+        mobile_params['consumption_high_lt_per_km'])
+    
+    machine_fuel_eff_lt_per_hr = random.randint(
+        mobile_params['machine_fuel_eff_low_lt_per_hr'], 
+        mobile_params['machine_fuel_eff_high_lt_per_hr'])
+    
+    machine_operation_hrs = random.randint(
+        mobile_params['machine_operation_low_hrs'], 
+        mobile_params['machine_operation_high_hrs'])
+    
+    cpe_kwh = random.uniform(mobile_params['cpe_low_kwh'], 
+        mobile_params['cpe_high_kwh'])
+    
+    base_station_power_kwh = random.uniform(
+        mobile_params['base_station_power_low_kwh'], 
+        mobile_params['base_station_power_high_kwh'])
+    
+    output.append({
+        'iteration' : i,
+        'cell_generation' : mobile_params['cell_generation'],
+        'bbu_rru_pcb_kg' : bbu_rru_pcb_kg,
+        'bbu_rru_aluminium_kg' : bbu_rru_aluminium_kg,
+        'copper_antenna_kg' : copper_antenna_kg,
+        'aluminium_antenna_kg' : aluminium_antenna_kg,
+        'pvc_antenna_kg' : pvc_antenna_kg,
+        'iron_antenna_kg' : iron_antenna_kg,
+        'steel_antenna_kg' : steel_antenna_kg,
+        'steel_tower_kg' : steel_tower_kg,
+        'aluminium_frame_kg' : aluminium_frame_kg,
+        'steel_pole_kg' : steel_pole_kg,
+        'machine_concrete_kg' : machine_concrete_kg,
+        'machine_steel_kg' : machine_steel_kg,
+        'basic_aluminium_device_kg' : basic_aluminium_device_kg,
+        'pcb_kg_co2e' : mobile_params['pcb_kg_co2e'],
+        'aluminium_kg_co2e' : mobile_params['aluminium_kg_co2e'],
+        'copper_kg_co2e' : mobile_params['copper_kg_co2e'],
+        'pvc_kg_co2e' : mobile_params['pvc_kg_co2e'],
+        'iron_kg_co2e' : mobile_params['iron_kg_co2e'],
+        'steel_kg_co2e' : mobile_params['steel_kg_co2e'],
+        'concrete_kg_co2e' : mobile_params['concrete_kg_co2e'],
+        'olnu_kg_co2e' : mobile_params['olnu_kg_co2e'],
+        'electricity_kg_co2e' : mobile_params['electricity_kg_co2e'],
+        'plastics_factor_kgco2e' : mobile_params['plastics_factor_kgco2'],
+        'metals_factor_kgco2e' : mobile_params['metals_factor_kgco2'],
+        'diesel_factor_kgco2e' : mobile_params['diesel_factor_kgco2e'],
+        'distance_km' : distance_km,
+        'consumption_lt_per_km' : consumption_lt_per_km,
+        'machine_fuel_eff_lt_per_hr' : machine_fuel_eff_lt_per_hr,
+        'machine_operation_hrs' : machine_operation_hrs,
+        'cpe_kwh' : cpe_kwh,
+        'base_station_power_kwh' : base_station_power_kwh,
+    })
+
+
+    return output
+
+
+def uq_inputs_emissions(parameters):
+    """
+    Generate all UQ emission inputs in preparation for running through the 
+    mobile broadband model. 
+
+    Parameters
+    ----------
+    parameters : dict
+        dictionary of dictionary containing mobile cost values.
+
+    """
+    iterations = []
+
+    for key, mobile_params in parameters.items():
+
+        for i in range(0, mobile_params['iterations']):
+
+            if key in ['4G', '5G']:
+                
+                data = multigeneration_cell_emissions(i, mobile_params)
+
+            iterations = iterations + data
+
+    df = pd.DataFrame.from_dict(iterations)
+
+    filename = 'uq_parameters_emission.csv'
+    folder_out = os.path.join(DATA_RESULTS, 'cellular')
+
+    if not os.path.exists(folder_out):
+
+        os.makedirs(folder_out)
+    
+    path_out = os.path.join(folder_out, filename)
+    df.to_csv(path_out, index = False)
+
+
+    return
+
+
 if __name__ == '__main__':
 
     print('Setting seed for consistent results')
     random.seed(10)
 
     print('Running uq_capacity_inputs_generator()')
-    uq_inputs_capacity(parameters)
+    #uq_inputs_capacity(parameters)
 
     print('Running uq_cost_inputs_generator()')
     #uq_inputs_costs(parameters)
+
+    uq_inputs_emissions(parameters)
