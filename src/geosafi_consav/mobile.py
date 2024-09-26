@@ -7,8 +7,10 @@ September 2024
 
 """
 import math
-import numpy as np
 import itertools
+import numpy as np
+import geopandas as gpd
+from shapely.geometry import Point, Polygon
 from collections import OrderedDict
 
 ################################
@@ -284,6 +286,30 @@ def get_spectral_efficiency(lut, network_type, cnr_value):
             return lower_entry[5] 
 
     return None
+
+
+def calc_maximum_distance(geometry):
+
+    """
+    This is a helper function for calculate the maximum distance from a centroid 
+    of a polygon.
+
+    Parameters
+    ----------
+    geometry : polygon
+        Geographic polygon where the mobile station serves.
+
+    Returns
+    -------
+    max_distance_km : float
+        Maximum distance from the centroid.
+    """
+
+    centroid = geometry.centroid 
+    max_distance_km = max(centroid.distance(Point(point)) for point in geometry.exterior.coords)
+    
+
+    return max_distance_km
 
 
 def calc_channel_capacity(spectral_efficiency, chn_bandwidth_mhz):

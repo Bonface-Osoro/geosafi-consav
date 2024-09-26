@@ -3,6 +3,7 @@ import json
 import os
 import rasterio
 import shutil
+import warnings
 import geopandas as gpd
 import pandas as pd
 from rasterio.mask import mask
@@ -1011,3 +1012,90 @@ class CoverageProcess:
                         first_gdf.to_file(path_out, driver = 'ESRI Shapefile')
 
         return None
+    
+
+def convert_multipolygon_to_polygon(geometry):
+    """
+    This is a helper function for converting MultiPolygon geometries to Polygon 
+    geometries.
+
+    Parameters
+    ----------
+    geometry : polygon
+        Geographic polygon where the mobile station serves.
+
+    Returns
+    -------
+    geometry : float
+        Polygon geometry.
+    """
+    if isinstance(geometry, MultiPolygon):
+        
+        return geometry.geoms[0] if geometry.geoms else None
+    
+    elif isinstance(geometry, Polygon):
+
+        return geometry
+    
+    else:
+
+        return None
+    
+
+def population_decile(decile_value):
+
+    """
+    This function determines the population decile
+
+    Parameters
+    ----------
+    decile_value : Integer
+        Decile categorization value
+
+    Returns
+    -------
+    decile : string
+        Population decile category where the region belongs
+    """
+
+    if decile_value == 1:
+
+        decile = 'Decile 10'
+
+    elif decile_value == 2:
+
+        decile = 'Decile 9'
+
+    elif decile_value == 3:
+
+        decile = 'Decile 8'
+
+    elif decile_value == 4:
+
+        decile = 'Decile 7'
+
+    elif decile_value == 5:
+
+        decile = 'Decile 6'
+
+    elif decile_value == 6:
+
+        decile = 'Decile 5'
+
+    elif decile_value == 7:
+
+        decile = 'Decile 4'
+
+    elif decile_value == 8:
+
+        decile = 'Decile 3'
+
+    elif decile_value == 9:
+
+        decile = 'Decile 2'
+
+    else:
+
+        decile = 'Decile 1'
+
+    return decile 
