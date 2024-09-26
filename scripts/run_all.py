@@ -32,9 +32,9 @@ if __name__ == '__main__':
 
     for idx, country in countries.iterrows():
             
-        #if not country['regions'] == 'Sub-Saharan Africa' or country['Exclude'] == 1:
+        if not country['regions'] == 'Sub-Saharan Africa' or country['Exclude'] == 1:
             
-        if not country['iso3'] == 'ERI':
+        #if not country['iso3'] == 'ERI':
             
             continue 
 
@@ -73,7 +73,7 @@ if __name__ == '__main__':
         edges_generator.fit_country_node_edges()'''
     
     isos = os.listdir(DATA_RESULTS)
-    isos = ['SOM']
+    #isos = ['GMB']
     for iso in isos:
 
         if not iso.startswith('.DS_Store'):
@@ -87,12 +87,10 @@ if __name__ == '__main__':
             #coverage_poverty_csv(iso)
 
             #sum_population(iso)
-            #pop_csv_merger(iso)
+            pop_csv_merger(iso)
 
 ######### COMBINE FILES FOR ALL SSA #########
 #csv_merger('poverty_results.csv')
 #csv_merger('poor_unconnected.csv')
 #csv_merger('unconnected_mapping_results.csv')
-#csv_merger('unconnected_geo_reg.csv')
-#csv_merger('unconnected_tech_geo.csv')
-#csv_merger('unconnected_tech_reg.csv')
+#csv_merger('unconnected_by_tech.csv')
