@@ -5,6 +5,7 @@ library(ggtext)
 library(sf)
 library(readr)
 library(RColorBrewer)
+library(dplyr)
 library("cowplot")
 
 suppressMessages(library(tidyverse))
@@ -14,13 +15,13 @@ folder <- dirname(rstudioapi::getSourceEditorContext()$path)
 ##SSA Absolute Poor Population by Regions ##
 ############################################
 data <- read.csv(file.path(folder, '..', 'results', 'SSA', 'SSA_poverty_results.csv'))
+names(data)[names(data) == "GID_1"] <- "GID_2"
 gid_pop <- read.csv(file.path(folder, '..', 'results', 'SSA', 
                                  'SSA_subregional_population_deciles.csv'))
-gid_pop <- gid_pop[, c("GID_1", "decile")]
-data <- merge(data, gid_pop, by = "GID_1")
+gid_pop <- gid_pop[, c("GID_2", "decile")]
+data <- merge(data, gid_pop, by = "GID_2")
 
 data = data %>%
-  distinct(poverty_range, decile, poor_population, population, .keep_all = TRUE) %>%
   group_by(poverty_range, decile) %>%
   summarize(poor_pops = sum(poor_population))
 
@@ -71,19 +72,19 @@ poor_population_region <-
   scale_fill_brewer(palette = "Spectral") +
   scale_x_discrete(expand = c(0, 0.15)) +
   scale_y_continuous(expand = c(0, 0),
-  labels = function(y) format(y, scientific = FALSE),limits = c(0, 59))
+  labels = function(y) format(y, scientific = FALSE),limits = c(0, 200))
 
 ############################################
 ##SSA Relative Poor Population by Regions ##
 ############################################
 data <- read.csv(file.path(folder, '..', 'results', 'SSA', 'SSA_poverty_results.csv'))
+names(data)[names(data) == "GID_1"] <- "GID_2"
 gid_pop <- read.csv(file.path(folder, '..', 'results', 'SSA', 
                               'SSA_subregional_population_deciles.csv'))
-gid_pop <- gid_pop[, c("GID_1", "decile")]
-data <- merge(data, gid_pop, by = "GID_1")
+gid_pop <- gid_pop[, c("GID_2", "decile")]
+data <- merge(data, gid_pop, by = "GID_2")
 
 data = data %>%
-  distinct(poverty_range, decile, population, .keep_all = TRUE) %>%
   group_by(poverty_range, decile) %>%
   summarize(poor_pops = sum(poor_population),
             total_pops = sum(population))
@@ -136,9 +137,9 @@ relative_region_poor_population <-
   scale_y_continuous(expand = c(0, 0), labels = function(y)
     format(y, scientific = FALSE), limits = c(0, 100)) 
 
-##################################################
-##SSA Absolute Poor Population below poverty map##
-##################################################
+##########################################
+##SSA Poor Population below poverty map ##
+##########################################
 africa_data <- st_read(file.path(folder, '..', 'data', 'raw', 
                                  'Africa_Boundaries', 'SSA_combined_shapefile.shp'))
 africa_shp <- africa_data %>%
@@ -149,7 +150,7 @@ colnames(africa_shp) <- new_names
 data <- read.csv(file.path(folder, '..', 'results', 'SSA', 'SSA_poverty_results.csv'))
 
 data = data %>%
-  group_by(GID_1, poverty_range, region) %>%
+  group_by(GID_1, poverty_range) %>%
   summarize(poor_pops = sum(poor_population),
             total_pops = sum(population))
 
@@ -215,13 +216,14 @@ dev.off()
 ########################
 
 #################################################
-##SSA Absolute Uncovered Population by Geotypes##
+##SSA Absolute Uncovered Population by deciles ##
 #################################################
 data <- read.csv(file.path(folder, '..', 'results', 'SSA', 
                            'SSA_unconnected_mapping_results.csv'))
+names(data)[names(data) == "GID_1"] <- "GID_2"
 gid_pop <- read.csv(file.path(folder, '..', 'results', 'SSA', 
                               'SSA_subregional_population_deciles.csv'))
-data <- merge(data, gid_pop, by = "GID_1")
+data <- merge(data, gid_pop, by = "GID_2")
 
 df = data %>%
   group_by(technology, decile) %>%
@@ -250,7 +252,7 @@ unconnected_population_geotype <-
             vjust = 0.5, hjust = -0.3) +
   labs(colour = NULL,
        title = 'Uncovered population in SSA.',
-       subtitle = '(a) Absolute population by geotypes',
+       subtitle = '(a) Absolute population by deciles',
        x = NULL,
        y = 'Uncovered Population (in millions)',
        fill = NULL) +
@@ -269,19 +271,19 @@ unconnected_population_geotype <-
   scale_fill_brewer(palette = "Spectral") +
   scale_x_discrete(expand = c(0, 0.15)) +
   scale_y_continuous(expand = c(0, 0),
-  labels = function(y) format(y, scientific = FALSE),limits = c(0, 12))
+  labels = function(y) format(y, scientific = FALSE),limits = c(0, 149))
 
 #################################################
 ##SSA Relative Uncovered population by geotypes##
 #################################################
 data <- read.csv(file.path(folder, '..', 'results', 'SSA', 
                            'SSA_unconnected_mapping_results.csv'))
+names(data)[names(data) == "GID_1"] <- "GID_2"
 gid_pop <- read.csv(file.path(folder, '..', 'results', 'SSA', 
                               'SSA_subregional_population_deciles.csv'))
-data <- merge(data, gid_pop, by = "GID_1")
+data <- merge(data, gid_pop, by = "GID_2")
 
 df = data %>%
-  distinct(technology, pop_unconnected, decile, population, .keep_all = TRUE) %>%
   group_by(technology, decile) %>%
   summarize(pop_unconnected = sum(pop_unconnected),
             total_pop = sum(population))
@@ -310,7 +312,7 @@ relative_geo_tech_uncovered_population <-
                                 digits = 3,format = 'fg', flag = '#')), size = 3.5,
             position = position_dodge(0.9), vjust = 0.5, hjust = -0.1)+
   labs(colour = NULL, title = ' ',
-       subtitle = '(b) Relative population by geotypes.', x = NULL,
+       subtitle = '(b) Relative population by deciles', x = NULL,
        y = 'Percentage of Population (%)', fill = NULL) +
   theme(legend.position = 'bottom',
         axis.text.x = element_text(size = 5),
@@ -432,7 +434,6 @@ pop <- pop %>% select('GID_1', 'population')
 data <- merge(data1, pop, by = "GID_1")
 
 data = data %>%
-  distinct(GID_1, technology, poverty_range, .keep_all = TRUE) %>%
   group_by(GID_1, technology, poverty_range) %>%
   summarize(poor_uncovered_gid = mean(poor_unconnected),
             population)
@@ -490,7 +491,6 @@ pop <- pop %>% select('GID_1', 'population')
 data <- merge(data1, pop, by = "GID_1")
 
 data = data %>%
-  distinct(GID_1, technology,poverty_range, .keep_all = TRUE) %>%
   group_by(GID_1, technology, poverty_range) %>%
   summarize(poor_uncovered_gid = mean(poor_unconnected),
             population)
@@ -548,7 +548,6 @@ pop <- pop %>% select('GID_1', 'population')
 data <- merge(data1, pop, by = "GID_1")
 
 data = data %>%
-  distinct(GID_1, technology, poverty_range, .keep_all = TRUE) %>%
   group_by(GID_1, technology, poverty_range) %>%
   summarize(poor_uncovered_gid = mean(poor_unconnected),
             population)
@@ -601,7 +600,6 @@ data1 <- read.csv(file.path(folder, '..', 'results', 'SSA', 'SSA_poor_unconnecte
 data1 <- na.omit(data1)
 data1 <- data1[, c("GID_1", "technology", "region", "poverty_range", "poor_unconnected")]
 data1 = data1 %>%
-  distinct(GID_1, technology, region, poverty_range, poor_unconnected, .keep_all = TRUE) %>%
   group_by(GID_1, technology, region, poverty_range) %>%
   summarize(poor_uncovered_gid = mean(poor_unconnected))
 
@@ -611,7 +609,7 @@ data1 <- merge(data1, gid_pop, by = "GID_1")
 
 df = data1 %>%
   group_by(technology, decile, poverty_range) %>%
-  summarize(poor_uncovered = sum(poor_uncovered_gid)/1e6)
+  summarize(poor_uncovered = sum(poor_uncovered_gid)/1e3)
 
 df$technology = factor(
   df$technology,
@@ -643,7 +641,7 @@ uncovered_poor_population <-
        title = 'Uncovered and population below poverty line.',
        subtitle = '(a) Absolute population.',
        x = NULL,
-       y = 'Uncovered and population below poverty line (in millions)',
+       y = 'Uncovered and population below poverty line (`000`)',
        fill = NULL) +
   theme(legend.position = 'bottom',
         axis.text.x = element_text(size = 5),
@@ -660,7 +658,7 @@ uncovered_poor_population <-
   scale_fill_brewer(palette = "Spectral") +
   scale_x_discrete(expand = c(0, 0.15)) +
   scale_y_continuous(expand = c(0, 0),
-  labels = function(y) format(y, scientific = FALSE),limits = c(0, 12)) + 
+  labels = function(y) format(y, scientific = FALSE),limits = c(0, 12000)) + 
   facet_wrap( ~ poverty_range, ncol = 5) 
 
 ##########################################################
@@ -668,9 +666,10 @@ uncovered_poor_population <-
 ##########################################################
 data <- read.csv(file.path(folder, '..', 'results', 'SSA', 'SSA_poor_unconnected.csv'))
 data <- na.omit(data)
+names(data)[names(data) == "GID_1"] <- "GID_2"
 gid_pop <- read.csv(file.path(folder, '..', 'results', 'SSA', 
                               'SSA_subregional_population_deciles.csv'))
-data <- merge(data, gid_pop, by = "GID_1")
+data <- merge(data, gid_pop, by = "GID_2")
 
 data$perc = (data$poor_unconnected / data$population) * 100
 
