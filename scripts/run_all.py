@@ -73,7 +73,6 @@ if __name__ == '__main__':
         edges_generator.fit_country_node_edges()'''
     
     isos = os.listdir(DATA_RESULTS)
-    #isos = ['GMB']
     for iso in isos:
 
         if not iso.startswith('.DS_Store'):
@@ -87,7 +86,7 @@ if __name__ == '__main__':
             #coverage_poverty_csv(iso)
 
             #sum_population(iso)
-            pop_csv_merger(iso)
+            #pop_csv_merger(iso)
 
 ######### COMBINE FILES FOR ALL SSA #########
 #csv_merger('poverty_results.csv')
