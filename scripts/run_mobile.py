@@ -125,7 +125,8 @@ def run_uq_processing_cost():
                 item['tower_usd'], item['civil_materials_usd'], 
                 item['router_usd'])
         
-        spectrum_cost_usd = mb.spectrum_cost(item['frequency_mhz'], 10000, 0.03)
+        spectrum_cost_usd = mb.spectrum_cost(item['frequency_mhz'], 
+                item['mean_poor_connected'], item['mhz_per_pop_usd'])
 
         capex_cost_usd = mb.capex_cost(equipment_cost_usd, spectrum_cost_usd,
                 item['installation_usd'], item['transportation_usd'])
@@ -164,7 +165,7 @@ def run_uq_processing_cost():
     return
 
 
-def run_uq_processing_emission(users):
+def run_uq_processing_emission():
     """
     Run the UQ inputs through the mobile broadband model.
 
@@ -186,6 +187,9 @@ def run_uq_processing_emission(users):
 
     for item in tqdm(df, desc = "Processing uncertainty mobile results"):
 
+        base_station_number = [item['no_of_4g_base_stations'], 
+                               item['no_of_5g_base_stations']]
+
         lca_mfg = mb.lca_manufacturing(item['bbu_rru_pcb_kg'], 
                     item['bbu_rru_aluminium_kg'], item['copper_antenna_kg'], 
                     item['aluminium_antenna_kg'], item['pvc_antenna_kg'],
@@ -203,27 +207,37 @@ def run_uq_processing_emission(users):
         concrete_mfg_ghg = (lca_mfg['concrete_ghg'])
         plastics_mfg_ghg = (lca_mfg['plastics_ghg'])
         other_metals_mfg_ghg = (lca_mfg['other_metals_ghg'])
+
         total_mfg_ghg = (aluminium_mfg_ghg + steel_iron_mfg_ghg 
                         + concrete_mfg_ghg + plastics_mfg_ghg 
-                        + other_metals_mfg_ghg)
+                        + other_metals_mfg_ghg)    
+        total_mfg_ghg = mb.phase_emission_ghg(item['cell_generation'], 
+                            total_mfg_ghg, base_station_number)
         
-        lca_trans = mb.lca_transportation(item['distance_km'], 
+        lca_trans = mb.lca_transportation(item['mean_distance_km'], 
                                           item['consumption_lt_per_km'], 
                                           item['diesel_factor_kgco2e'])
         
         total_trans_ghg_kg = (lca_trans['trans_ghg_kg'])
+        total_trans_ghg_kg = mb.phase_emission_ghg(item['cell_generation'], 
+                            total_trans_ghg_kg, base_station_number)
 
         lca_constr = mb.lca_construction(item['machine_fuel_eff_lt_per_hr'], 
                                          item['machine_operation_hrs'], 
                                          item['diesel_factor_kgco2e'])
         
         total_construction_ghg = (lca_constr['construction_ghg'])
+        total_construction_ghg = mb.phase_emission_ghg(item['cell_generation'], 
+                            total_construction_ghg, base_station_number)
 
         lca_ops = mb.lca_operations(item['cpe_kwh'], 
-                                    item['base_station_power_kwh'], users, 
+                                    item['base_station_power_kwh'], 
+                                    item['mean_poor_connected'], 
                                     item['electricity_kg_co2e'])
         
         total_operations_ghg = (lca_ops['operations_ghg'])
+        total_operations_ghg = mb.phase_emission_ghg(item['cell_generation'], 
+                            total_operations_ghg, base_station_number)
 
         lca_eolts = mb.lca_eolt(item['bbu_rru_pcb_kg'], 
                     item['bbu_rru_aluminium_kg'], item['copper_antenna_kg'], 
@@ -231,20 +245,24 @@ def run_uq_processing_emission(users):
                     item['iron_antenna_kg'], item['steel_antenna_kg'], 
                     item['steel_tower_kg'], item['aluminium_frame_kg'], 
                     item['steel_pole_kg'], item['machine_steel_kg'], 
-                    item['basic_aluminium_device_kg'], item['metals_factor_kgco2e'], 
+                    item['basic_aluminium_device_kg'], 
+                    item['metals_factor_kgco2e'], 
                     item['plastics_factor_kgco2e'])
 
         aluminium_eolt_ghg = (lca_eolts['aluminium_ghg'])
         steel_iron_eolt_ghg = (lca_eolts['steel_iron_ghg'])
         plastics_eolt_ghg = (lca_eolts['plastics_ghg'])
         other_metals_eolt_ghg = (lca_eolts['other_metals_ghg'])
+
         total_eolt_ghg = (aluminium_eolt_ghg + steel_iron_eolt_ghg 
                          + plastics_eolt_ghg + other_metals_eolt_ghg)
+        total_eolt_ghg = mb.phase_emission_ghg(item['cell_generation'], 
+                            total_eolt_ghg, base_station_number)
         
         total_emissions_ghg_kg = (total_mfg_ghg + total_trans_ghg_kg 
-                                  + total_construction_ghg 
-                                  + total_operations_ghg + total_eolt_ghg)
-
+                        + total_construction_ghg + total_operations_ghg 
+                        + total_eolt_ghg) 
+        
         results.append({
             'cell_generation' : item['cell_generation'],
             'aluminium_mfg_ghg_kg' : aluminium_mfg_ghg,
@@ -261,7 +279,13 @@ def run_uq_processing_emission(users):
             'total_construction_ghg_kg' : total_construction_ghg,
             'total_operations_ghg_kg' : total_operations_ghg,
             'total_eolt_ghg_kg' : total_eolt_ghg,
-            'total_emissions_ghg_kg' : total_emissions_ghg_kg
+            'total_emissions_ghg_kg' : total_emissions_ghg_kg,
+            'total_poor_unconnected' : item['total_poor_unconnected'],
+            'mean_poor_connected' : item['mean_poor_connected'],
+            'no_of_4g_base_stations' : item['no_of_4g_base_stations'],
+            'no_of_5g_base_stations' : item['no_of_5g_base_stations'],
+            'assessment_period' : item['assessment_period'],
+            'decile' : item['decile']
         })
 
         df = pd.DataFrame.from_dict(results)
@@ -282,10 +306,10 @@ def run_uq_processing_emission(users):
 if __name__ == '__main__':
 
     print('Running mobile broadband capacity model')
-    run_uq_processing_capacity()
+    #run_uq_processing_capacity()
 
     print('Running mobile broadband cost model')
-    run_uq_processing_cost()
+    #run_uq_processing_cost()
 
     print('Running mobile broadband emissions model')
-    run_uq_processing_emission(20000)
+    run_uq_processing_emission()

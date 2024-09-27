@@ -798,3 +798,37 @@ def lca_eolt(pcb_emissions_kg, alu_bbu_rru_kg, cu_antenna_kg, alu_antenna_kg,
 
 
     return eolt_emission_dict
+
+
+def phase_emission_ghg(cell_generation, emission_type_value, base_station_list):
+    """
+    This function calculates the total phase GHG emissions based on the cellular 
+    generation technology
+
+    Parameters
+    ----------
+    cell_generation : string.
+        Cellphone generation technology.
+    emission_type_value : float.
+        Total LCA phase emissions value.
+    base_station_list : list.
+        List containing the number of base station emissions.
+
+    Returns
+    -------
+    phase_emission_kg : float
+        Phase emission value based on the cellular generation
+    """
+
+    for base_station in base_station_list:
+
+        if cell_generation == '4G':
+
+            phase_emission_kg = emission_type_value * base_station_list[0]
+            
+        else:
+
+            phase_emission_kg = emission_type_value * base_station_list[1]
+            
+
+    return phase_emission_kg
