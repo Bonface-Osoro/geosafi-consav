@@ -6,8 +6,6 @@ import warnings
 import pandas as pd
 import geopandas as gpd
 from shapely.wkt import loads
-from shapely.ops import unary_union
-from shapely.geometry import MultiPolygon, Polygon
 import geosafi_consav.mobile as mb
 from geosafi_consav.preprocessing import (convert_multipolygon_to_polygon, 
                                           population_decile)
@@ -87,4 +85,44 @@ def process_africa_results():
     path_out = os.path.join(folder_out, filename)
     df2.to_csv(path_out, index = False)
 
-process_africa_results()
+
+    return None
+
+
+def model_data():
+    """
+    This function calculates the summary statistics of the African poverty and 
+    connectivity results needed in the capacity, cost and emission model.
+    """
+    print('Generating decile summary statistics')
+
+    pop_data = os.path.join(DATA_SSA, 'SSA_to_be_served_population.csv')
+    df = pd.read_csv(pop_data)
+
+    df = df.groupby(['decile']).agg(total_population = ('population', 'sum'),
+        total_poor_unconnected = ('poor_unconnected', 'sum'), total_area_sqkm = 
+        ('area', 'sum'), total_max_distance_km = ('max_distance_km', 'sum'), 
+        mean_poor_connected = ('poor_unconnected', 'mean'), mean_area_sqkm = 
+        ('area', 'mean'), mean_distance_km = ('max_distance_km', 'mean')
+        ).reset_index()
+    coverage_area_4g_base_station = math.pi * 20 ** 2
+    coverage_area_5g_base_station = math.pi * 4 ** 2
+
+    df['no_of_4g_base_stations'] = round(df['mean_area_sqkm'] / 
+                                         coverage_area_4g_base_station)
+    df.loc[df['no_of_4g_base_stations'] == 0, 'no_of_4g_base_stations'] = 1
+    df['no_of_5g_base_stations'] = round(df['mean_area_sqkm'] / 
+                                         coverage_area_5g_base_station)
+
+    filename = 'SSA_decile_summary_stats.csv'
+    folder_out = os.path.join(DATA_SSA)
+
+    if not os.path.exists(folder_out):
+
+        os.makedirs(folder_out)
+    
+    path_out = os.path.join(folder_out, filename)
+    df.to_csv(path_out, index = False)
+
+
+    return None
