@@ -284,6 +284,7 @@ def run_uq_processing_emission():
             'mean_poor_connected' : item['mean_poor_connected'],
             'no_of_4g_base_stations' : item['no_of_4g_base_stations'],
             'no_of_5g_base_stations' : item['no_of_5g_base_stations'],
+            'social_carbon_cost_usd' : item['social_carbon_cost_usd'],
             'assessment_period' : item['assessment_period'],
             'decile' : item['decile']
         })

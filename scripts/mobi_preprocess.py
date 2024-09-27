@@ -430,6 +430,7 @@ def multigeneration_cell_emissions(i, mobile_params):
             'cpe_kwh' : cpe_kwh,
             'base_station_power_kwh' : base_station_power_kwh,
             'assessment_period' : mobile_params['assessment_period'],
+            'social_carbon_cost_usd' : mobile_params['social_carbon_cost_usd'],
             'decile' : decile,
         })
 
