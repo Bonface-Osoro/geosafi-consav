@@ -126,3 +126,64 @@ def model_data():
 
 
     return None
+
+
+def decile_per_user_metrics():
+    """
+    This function calculates the per user metrics for each decile.
+    """
+    print('Generating per user metrics')
+
+    pop_data = os.path.join(CELL_RESULTS, 'mobile_emission_results.csv')
+    df = pd.read_csv(pop_data)
+    
+    ################### Per user emissions #####################
+    df['per_user_mfg_ghg_kg'] = (df['total_mfg_ghg'] / 
+                                 df['total_poor_unconnected'])
+    
+    df['per_user_trans_ghg_kg'] = (df['total_trans_ghg_kg'] / 
+                                 df['total_poor_unconnected'])
+    
+    df['per_user_construct_ghg_kg'] = (df['total_construction_ghg_kg'] / 
+                                 df['total_poor_unconnected'])
+    
+    df['per_user_ops_ghg_kg'] = (df['total_operations_ghg_kg'] / 
+                                 df['total_poor_unconnected'])
+
+    df['per_user_eolt_ghg_kg'] = (df['total_eolt_ghg_kg'] / 
+                                 df['total_poor_unconnected'])
+    
+    df['per_user_ghg_kg'] = (df['total_emissions_ghg_kg'] / 
+                                 df['total_poor_unconnected'])
+    
+    df = pd.melt(df, id_vars = ['cell_generation', 'decile', 
+         'assessment_period', 'per_user_ghg_kg'], value_vars = 
+         ['per_user_mfg_ghg_kg', 'per_user_trans_ghg_kg', 
+          'per_user_construct_ghg_kg', 'per_user_ops_ghg_kg', 
+          'per_user_eolt_ghg_kg'], var_name = 'lca_phase', value_name = 
+          'phase_per_user_kg')
+    
+    df['annualized_per_user_ghg'] = (df['per_user_ghg_kg'] / 
+                                     df['assessment_period'])
+    
+    df['annualized_phase_per_user_kg'] = (df['phase_per_user_kg'] 
+                                          / df['assessment_period'])
+
+    df = df[['cell_generation', 'decile', 'assessment_period', 'lca_phase', 
+             'phase_per_user_kg', 'annualized_phase_per_user_kg', 
+             'per_user_ghg_kg', 'annualized_per_user_ghg']]
+
+    filename = 'SSA_decile_emissions.csv'
+    folder_out = os.path.join(DATA_SSA)
+
+    if not os.path.exists(folder_out):
+
+        os.makedirs(folder_out)
+    
+    path_out = os.path.join(folder_out, filename)
+    df.to_csv(path_out, index = False)
+
+    return None
+
+
+decile_per_user_metrics()
