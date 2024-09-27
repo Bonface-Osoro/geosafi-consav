@@ -808,21 +808,3 @@ png(path, units = "in", width = 9, height = 8, res = 300)
 print(satellite_coverage)
 dev.off()
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

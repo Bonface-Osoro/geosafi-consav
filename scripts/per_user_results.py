@@ -105,8 +105,8 @@ def model_data():
         mean_poor_connected = ('poor_unconnected', 'mean'), mean_area_sqkm = 
         ('area', 'mean'), mean_distance_km = ('max_distance_km', 'mean')
         ).reset_index()
-    coverage_area_4g_base_station = math.pi * 20 ** 2
-    coverage_area_5g_base_station = math.pi * 4 ** 2
+    coverage_area_4g_base_station = math.pi * 3 ** 2
+    coverage_area_5g_base_station = math.pi * 1.6 ** 2
 
     df['no_of_4g_base_stations'] = round(df['mean_area_sqkm'] / 
                                          coverage_area_4g_base_station)
@@ -156,9 +156,19 @@ def decile_per_user_metrics():
     df['per_user_ghg_kg'] = (df['total_emissions_ghg_kg'] / 
                                  df['total_poor_unconnected'])
     
+    df['scc_cost_usd'] = (df['total_emissions_ghg_kg'] / 1e3 
+                          * df['social_carbon_cost_usd'])
+    
+    df['per_user_scc_cost_usd'] = (df['scc_cost_usd'] 
+                                   / df['total_poor_unconnected'])
+    
+    df['annualized_per_user_scc_cost_usd'] = (df['per_user_scc_cost_usd'] 
+                                              / df['assessment_period'])
+    
     df = pd.melt(df, id_vars = ['cell_generation', 'decile', 
-         'assessment_period', 'per_user_ghg_kg'], value_vars = 
-         ['per_user_mfg_ghg_kg', 'per_user_trans_ghg_kg', 
+         'per_user_scc_cost_usd', 'annualized_per_user_scc_cost_usd',
+         'assessment_period', 'per_user_ghg_kg', 'total_emissions_ghg_kg'], 
+         value_vars = ['per_user_mfg_ghg_kg', 'per_user_trans_ghg_kg', 
           'per_user_construct_ghg_kg', 'per_user_ops_ghg_kg', 
           'per_user_eolt_ghg_kg'], var_name = 'lca_phase', value_name = 
           'phase_per_user_kg')
@@ -171,7 +181,9 @@ def decile_per_user_metrics():
 
     df = df[['cell_generation', 'decile', 'assessment_period', 'lca_phase', 
              'phase_per_user_kg', 'annualized_phase_per_user_kg', 
-             'per_user_ghg_kg', 'annualized_per_user_ghg']]
+             'per_user_ghg_kg', 'annualized_per_user_ghg', 
+             'total_emissions_ghg_kg', 'per_user_scc_cost_usd',
+             'annualized_per_user_scc_cost_usd']]
 
     filename = 'SSA_decile_emissions.csv'
     folder_out = os.path.join(DATA_SSA)
@@ -185,5 +197,5 @@ def decile_per_user_metrics():
 
     return None
 
-
+#model_data()
 decile_per_user_metrics()
