@@ -14,6 +14,14 @@ folder <- dirname(rstudioapi::getSourceEditorContext()$path)
 ##SSA per user Emissions ##
 ###########################
 data <- read.csv(file.path(folder, '..', 'results', 'SSA', 'SSA_decile_emissions.csv'))
+data$decile = factor(data$decile, levels = c('Decile 1', 'Decile 2', 'Decile 3', 
+   'Decile 4', 'Decile 5', 'Decile 6', 'Decile 7', 'Decile 8', 'Decile 9', 
+   'Decile 10'), labels = c('Decile 1 \n(>958 per km²)', 
+   'Decile 2 \n(456 - 957 per km²)', 'Decile 3 \n(273 - 455 per km²)', 
+   'Decile 4 \n(172 - 272 per km²)', 'Decile 5 \n(107 - 171 per km²)', 
+   'Decile 6 \n(64 - 106 per km²)', 'Decile 7 \n(40 - 63 per km²)', 
+   'Decile 8 \n(22 - 39 per km²)', 'Decile 9 \n(10 - 21 per km²)', 
+   'Decile 10 \n(<9 per km²)'))
 
 data <- data %>%
   mutate(phase_per_user_kg_trimmed = ifelse(per_user_ghg_kg > 
@@ -26,15 +34,6 @@ df <- data %>%
   summarize(mean_phase_per_user = mean(phase_per_user_kg_trimmed),
             sd_phase_per_user = sd(phase_per_user_kg_trimmed))
 
-df$decile = factor(df$decile, levels = c('Decile 1', 'Decile 2', 'Decile 3', 
-   'Decile 4', 'Decile 5', 'Decile 6', 'Decile 7', 'Decile 8', 'Decile 9', 
-   'Decile 10'), labels = c('Decile 1 \n(>958 per km²)', 
-   'Decile 2 \n(456 - 957 per km²)', 'Decile 3 \n(273 - 455 per km²)', 
-   'Decile 4 \n(172 - 272 per km²)', 'Decile 5 \n(107 - 171 per km²)', 
-   'Decile 6 \n(64 - 106 per km²)', 'Decile 7 \n(40 - 63 per km²)', 
-   'Decile 8 \n(22 - 39 per km²)', 'Decile 9 \n(10 - 21 per km²)', 
-   'Decile 10 \n(<9 per km²)'))
-
 per_user_ghgs <- ggplot(df, aes(x = factor(decile), y = mean_phase_per_user, 
                                 fill = factor(cell_generation))) +
   geom_bar(stat = "identity", position = "dodge") +
@@ -45,8 +44,6 @@ per_user_ghgs <- ggplot(df, aes(x = factor(decile), y = mean_phase_per_user,
   labs(colour = NULL, title = "Mobile broadband Greenhouse Gas (GHG) emissions", 
        subtitle = "(a) Per user GHG emissions categorized by cell generation and grouped by deciles.", 
        x = NULL, y = bquote("Emissions (kg CO"["2"] ~ " eq./user)")) + 
-  scale_y_continuous(labels = function(y)
-    format(y, scientific = FALSE), expand = c(0, 0)) + 
   theme(
     legend.position = 'bottom',
     axis.text.x = element_text(size = 10, angle = 15),
@@ -99,8 +96,6 @@ annualized_per_user <- ggplot(df, aes(x = factor(decile),
   labs(colour = NULL, title = " ", 
        subtitle = "(b) Annualized per user GHG emissions categorized by cell generation and grouped by deciles.", 
        x = NULL, y = bquote("Emissions (kg CO"["2"] ~ " eq./user)")) + 
-  scale_y_continuous(labels = function(y)
-       format(y, scientific = FALSE), expand = c(0, 0)) +
   theme(
     legend.position = 'bottom',
     axis.text.x = element_text(size = 10, angle = 15),
@@ -153,8 +148,6 @@ per_user_scc <- ggplot(df, aes(x = factor(decile),
   labs(colour = NULL, title = "Social Cost of Carbon (SCC)", 
        subtitle = "(c) SCC per user categorized by cell generation and grouped by deciles.", 
        x = NULL, y = "Per user \nSocial Carbon Cost (USD)") + 
-  scale_y_continuous(labels = function(y)
-    format(y, scientific = FALSE), expand = c(0, 0)) +
   theme(
     legend.position = 'bottom',
     axis.text.x = element_text(size = 10, angle = 15),
@@ -209,8 +202,6 @@ annualized_per_user_scc <- ggplot(df, aes(x = factor(decile),
   labs(colour = NULL, title = " ", 
        subtitle = "(d) Annualized SCC per user categorized by cell generation and grouped by deciles.", 
        x = NULL, y = bquote("Annualized \nSocial Carbon Cost (USD)")) + 
-  scale_y_continuous(labels = function(y)
-    format(y, scientific = FALSE), expand = c(0, 0)) +
   theme(
     legend.position = 'bottom',
     axis.text.x = element_text(size = 10, angle = 15),

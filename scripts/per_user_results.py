@@ -234,4 +234,39 @@ def decile_cost_per_user():
 
     return None
 
-decile_cost_per_user()
+
+def decile_capacity_per_user():
+    """
+    This function calculates the per user metrics for each decile.
+    """
+    print('Generating per user metrics')
+
+    pop_data = os.path.join(CELL_RESULTS, 'mobile_capacity_results.csv')
+    df = pd.read_csv(pop_data)
+    
+    ################### Per user costs #####################
+    
+    df['per_user_capacity_mbps'] = (df['base_station_capacity_mbps'] / 
+                                 df['total_poor_unconnected'])
+    
+    df['per_area_capacity_mbps'] = (df['base_station_capacity_mbps'] / 
+                                 df['mean_area_sqkm'])
+    
+    df = df[['cell_generation', 'decile', 'per_user_capacity_mbps', 
+             'per_area_capacity_mbps']]
+
+    filename = 'SSA_decile_capacity.csv'
+    folder_out = os.path.join(DATA_SSA)
+
+    if not os.path.exists(folder_out):
+
+        os.makedirs(folder_out)
+    
+    path_out = os.path.join(folder_out, filename)
+    df.to_csv(path_out, index = False)
+
+
+    return None
+
+
+decile_capacity_per_user()

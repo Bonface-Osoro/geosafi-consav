@@ -338,6 +338,42 @@ def calc_channel_capacity(spectral_efficiency, chn_bandwidth_mhz):
     return channel_capacity_mbps
 
 
+def base_station_capacity(cell_generation, capacity_value, base_station_list):
+    """
+    This function calculates the capacity based on the cellular generation 
+    technology
+
+    Parameters
+    ----------
+    cell_generation : string.
+        Cellphone generation technology.
+    capacity_value : float.
+        Capacity value.
+    base_station_list : list.
+        List containing the number of base station.
+
+    Returns
+    -------
+    base_station_capacity_mbps : float
+        Base station capacity
+    """
+
+    for base_station in base_station_list:
+
+        if cell_generation == '4G':
+
+            base_station_capacity_mbps = ((capacity_value * 
+                                           base_station_list[0]))
+            
+        else:
+
+            base_station_capacity_mbps = ((capacity_value * 
+                                           base_station_list[1]))
+            
+
+    return base_station_capacity_mbps
+
+
 ############################
 ######## COST MODEL ########
 ############################
@@ -519,10 +555,10 @@ def total_cost_ownership(total_capex, total_opex, discount_rate,
 
     return total_cost_ownership
 
+
 def base_station_tco(cell_generation, tco_value, base_station_list):
     """
-    This function calculates the total phase GHG emissions based on the cellular 
-    generation technology
+    This function calculates the TCO based on the cellular generation technology
 
     Parameters
     ----------

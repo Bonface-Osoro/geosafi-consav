@@ -39,6 +39,9 @@ def run_uq_processing_capacity():
 
     for item in tqdm(df, desc = "Processing uncertainty mobile results"):
 
+        base_station_number = [item['no_of_4g_base_stations'], 
+                               item['no_of_5g_base_stations']]
+        
         random_variation = mb.generate_log_normal_dist_value(
             item['frequency_mhz'], item['mu'], item['sigma'], 
             item['seed_value'], item['draws'])
@@ -71,6 +74,10 @@ def run_uq_processing_capacity():
         channel_capacity_mbps = (mb.calc_channel_capacity(
             spectral_efficiency_bpshz, item['channel_bandwidth_mhz']))
         
+        base_station_capacity_mbps = ((mb.base_station_tco(
+            item['cell_generation'], channel_capacity_mbps, base_station_number)
+            ) * item['antenna_sectors']) 
+        
         results.append({
             'cell_generation' : item['cell_generation'],
             'frequency_mhz' : item['frequency_mhz'],
@@ -83,7 +90,14 @@ def run_uq_processing_capacity():
             'network_load_perc' : item['network_load'],
             'cnr_db' : cnr_db,
             'spectral_efficiency_bpshz' : spectral_efficiency_bpshz,
-            'channel_capacity_mbps' : channel_capacity_mbps
+            'channel_capacity_mbps' : channel_capacity_mbps,
+            'base_station_capacity_mbps' : base_station_capacity_mbps,
+            'total_poor_unconnected' : item['total_poor_unconnected'],
+            'mean_poor_connected' : item['mean_poor_connected'],
+            'mean_area_sqkm' : item['mean_area_sqkm'],
+            'no_of_4g_base_stations' : item['no_of_4g_base_stations'],
+            'no_of_5g_base_stations' : item['no_of_5g_base_stations'],
+            'decile' : item['decile']
         })
 
         df = pd.DataFrame.from_dict(results)
@@ -320,10 +334,10 @@ def run_uq_processing_emission():
 if __name__ == '__main__':
 
     print('Running mobile broadband capacity model')
-    #run_uq_processing_capacity()
+    run_uq_processing_capacity()
 
     print('Running mobile broadband cost model')
-    run_uq_processing_cost()
+    #run_uq_processing_cost()
 
     print('Running mobile broadband emissions model')
     #run_uq_processing_emission()
