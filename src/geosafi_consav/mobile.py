@@ -519,6 +519,39 @@ def total_cost_ownership(total_capex, total_opex, discount_rate,
 
     return total_cost_ownership
 
+def base_station_tco(cell_generation, tco_value, base_station_list):
+    """
+    This function calculates the total phase GHG emissions based on the cellular 
+    generation technology
+
+    Parameters
+    ----------
+    cell_generation : string.
+        Cellphone generation technology.
+    tco_value : float.
+        TCO value.
+    base_station_list : list.
+        List containing the number of base station.
+
+    Returns
+    -------
+    base_station_tco_usd : float
+        Base station TCO
+    """
+
+    for base_station in base_station_list:
+
+        if cell_generation == '4G':
+
+            base_station_tco_usd = tco_value * base_station_list[0]
+            
+        else:
+
+            base_station_tco_usd = tco_value * base_station_list[1]
+            
+
+    return base_station_tco_usd
+
 
 #################################
 ######## EMISSIONS MODEL ########

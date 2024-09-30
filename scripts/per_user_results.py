@@ -128,7 +128,7 @@ def model_data():
     return None
 
 
-def decile_per_user_metrics():
+def decile_emissions_per_user():
     """
     This function calculates the per user metrics for each decile.
     """
@@ -197,5 +197,41 @@ def decile_per_user_metrics():
 
     return None
 
-#model_data()
-decile_per_user_metrics()
+
+def decile_cost_per_user():
+    """
+    This function calculates the per user metrics for each decile.
+    """
+    print('Generating per user metrics')
+
+    pop_data = os.path.join(CELL_RESULTS, 'mobile_cost_results.csv')
+    df = pd.read_csv(pop_data)
+    
+    ################### Per user costs #####################
+    
+    df['per_user_tco_usd'] = (df['total_base_station_tco_usd'] / 
+                                 df['total_poor_unconnected'])
+    
+    df['annualized_per_user_cost_usd'] = (df['per_user_tco_usd'] 
+                                          / df['assessment_years'])
+    
+    df['monthly_per_user_cost_usd'] = (df['annualized_per_user_cost_usd'] / 12)
+    
+
+    df = df[['cell_generation', 'decile', 'per_user_tco_usd', 
+             'annualized_per_user_cost_usd', 'monthly_per_user_cost_usd']]
+
+    filename = 'SSA_decile_costs.csv'
+    folder_out = os.path.join(DATA_SSA)
+
+    if not os.path.exists(folder_out):
+
+        os.makedirs(folder_out)
+    
+    path_out = os.path.join(folder_out, filename)
+    df.to_csv(path_out, index = False)
+
+
+    return None
+
+decile_cost_per_user()

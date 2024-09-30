@@ -117,6 +117,9 @@ def run_uq_processing_cost():
     results = []
 
     for item in tqdm(df, desc = "Processing uncertainty mobile cost results"):
+
+        base_station_number = [item['no_of_4g_base_stations'], 
+                               item['no_of_5g_base_stations']]
         
         equipment_cost_usd = mb.equipment_cost(item['sector_antenna_usd'],
                 item['remote_radio_unit_usd'], item['io_fronthaul_usd'],
@@ -140,6 +143,9 @@ def run_uq_processing_cost():
         total_cost_ownership = mb.total_cost_ownership(capex_cost_usd, 
                 opex_cost_usd, item['discount_rate'], item['assessment_years'])
         
+        total_base_station_tco = mb.base_station_tco(item['cell_generation'], 
+                            total_cost_ownership, base_station_number)
+        
         results.append({
             'cell_generation' : item['cell_generation'],
             'frequency_mhz' : item['frequency_mhz'],
@@ -147,7 +153,14 @@ def run_uq_processing_cost():
             'spectrum_cost_usd' : spectrum_cost_usd,
             'capex_cost_usd' : capex_cost_usd,
             'opex_cost_usd' : opex_cost_usd,
-            'total_cost_ownership' : total_cost_ownership
+            'total_cost_ownership' : total_cost_ownership,
+            'total_base_station_tco_usd' : total_base_station_tco,
+            'total_poor_unconnected' : item['total_poor_unconnected'],
+            'mean_poor_connected' : item['mean_poor_connected'],
+            'no_of_4g_base_stations' : item['no_of_4g_base_stations'],
+            'no_of_5g_base_stations' : item['no_of_5g_base_stations'],
+            'assessment_years' : item['assessment_years'],
+            'decile' : item['decile']
         })
 
         df = pd.DataFrame.from_dict(results)
@@ -310,7 +323,7 @@ if __name__ == '__main__':
     #run_uq_processing_capacity()
 
     print('Running mobile broadband cost model')
-    #run_uq_processing_cost()
+    run_uq_processing_cost()
 
     print('Running mobile broadband emissions model')
-    run_uq_processing_emission()
+    #run_uq_processing_emission()
