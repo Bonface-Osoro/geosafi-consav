@@ -49,7 +49,7 @@ poor_population_region <-
   geom_bar(stat = 'identity', position = position_dodge(0.9)) + coord_flip() + 
   geom_text(aes(label = formatC(signif(after_stat(y), 3), 
                                 digits = 3, format = "fg", flag = "#")),
-            size = 3.5, position = position_dodge(0.9),
+            size = 2, position = position_dodge(0.9),
             vjust = 0.5, hjust = -0.3) +
   labs(colour = NULL,
        title = 'SSA Population below poverty line.',
@@ -115,7 +115,7 @@ relative_region_poor_population <-
   ggplot(df,  aes(x = decile, y = perc, fill = poverty_range)) +
   geom_bar(stat = 'identity', position = position_dodge(0.9)) +  coord_flip() +
   geom_text(aes(label = formatC(signif(after_stat(y), 3), 
-                                digits = 3,format = 'fg', flag = '#')), size = 3.5,
+                                digits = 3,format = 'fg', flag = '#')), size = 2,
             position = position_dodge(0.9), vjust = 0.5, hjust = -0.1) +
   labs(colour = NULL, title = ' ',
        subtitle = '(b) Relative Population.', x = NULL,

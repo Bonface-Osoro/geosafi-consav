@@ -9,7 +9,7 @@ Even though fiber has been deployed in most parts of SSA, its installation is on
 
 Methodology
 ==============
-The method (see `Figure 1`) ..... 
+Integrated modeling method (see `Figure 1`). 
 
 ## Method Box
 
@@ -20,16 +20,10 @@ The method (see `Figure 1`) .....
 
 Results
 =======
-`Figure 2` shows the estimated number of uncovered population by 4G and living below the poverty line.
+`Figure 2` shows the estimated absolute and relative population living below the poverty line.
 #### Figure 2 Demand Results.
 <p align="center">
-  <img src="/docs/unconnect_poor_4G.png" />
-</p>
-
-In `Figure 3`, the quantitative results of the poor and uncovered population by regions are presented.
-#### Figure 3 Poverty and Connectivity Results.
-<p align="center">
-  <img src = "/docs/poverty_unconnected_region.png" />
+  <img src="/docs/poor_population.png" />
 </p>
 
 ## Required Data
