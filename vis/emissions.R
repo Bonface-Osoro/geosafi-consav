@@ -10,48 +10,235 @@ library("cowplot")
 
 suppressMessages(library(tidyverse))
 folder <- dirname(rstudioapi::getSourceEditorContext()$path)
-
-############################################
-##SSA per user Regions ##
-############################################
+###########################
+##SSA per user Emissions ##
+###########################
 data <- read.csv(file.path(folder, '..', 'results', 'SSA', 'SSA_decile_emissions.csv'))
+
 data <- data %>%
   mutate(phase_per_user_kg_trimmed = ifelse(per_user_ghg_kg > 
-         quantile(per_user_ghg_kg, 0.9), quantile(per_user_ghg_kg, 0.9),
-         ifelse(per_user_ghg_kg < quantile(per_user_ghg_kg, 0.1), 
-         quantile(per_user_ghg_kg, 0.1), per_user_ghg_kg)))
+         quantile(per_user_ghg_kg, 0.95), quantile(per_user_ghg_kg, 0.95),
+         ifelse(per_user_ghg_kg < quantile(per_user_ghg_kg, 0.05), 
+         quantile(per_user_ghg_kg, 0.05), per_user_ghg_kg)))
 
 df <- data %>%
   group_by(decile, cell_generation) %>%
   summarize(mean_phase_per_user = mean(phase_per_user_kg_trimmed),
             sd_phase_per_user = sd(phase_per_user_kg_trimmed))
 
-ggplot(df, aes(x = factor(decile), y = mean_phase_per_user, fill = factor(cell_generation))) +
+df$decile = factor(df$decile, levels = c('Decile 1', 'Decile 2', 'Decile 3', 
+   'Decile 4', 'Decile 5', 'Decile 6', 'Decile 7', 'Decile 8', 'Decile 9', 
+   'Decile 10'), labels = c('Decile 1 \n(>958 per km²)', 
+   'Decile 2 \n(456 - 957 per km²)', 'Decile 3 \n(273 - 455 per km²)', 
+   'Decile 4 \n(172 - 272 per km²)', 'Decile 5 \n(107 - 171 per km²)', 
+   'Decile 6 \n(64 - 106 per km²)', 'Decile 7 \n(40 - 63 per km²)', 
+   'Decile 8 \n(22 - 39 per km²)', 'Decile 9 \n(10 - 21 per km²)', 
+   'Decile 10 \n(<9 per km²)'))
+
+per_user_ghgs <- ggplot(df, aes(x = factor(decile), y = mean_phase_per_user, 
+                                fill = factor(cell_generation))) +
   geom_bar(stat = "identity", position = "dodge") +
   geom_errorbar(aes(ymin = mean_phase_per_user - sd_phase_per_user, 
                     ymax = mean_phase_per_user + sd_phase_per_user),
-                position = position_dodge(0.9), width = 0.2) + 
+                position = position_dodge(0.9), width = 0.2, size = 0.2) + 
   scale_fill_brewer(palette = "Spectral", direction = -1) + 
-  labs(colour = NULL, title = " ", subtitle = "(a) Emissions per user", x = NULL, 
-    y = bquote("Emissions (kg CO"["2"] ~ " eq./user)"),
-    fill = 'Cellular Generation') + scale_y_continuous(labels = function(y)
+  labs(colour = NULL, title = "Mobile broadband Greenhouse Gas (GHG) emissions", 
+       subtitle = "(a) Per user GHG emissions categorized by cell generation and grouped by deciles.", 
+       x = NULL, y = bquote("Emissions (kg CO"["2"] ~ " eq./user)")) + 
+  scale_y_continuous(labels = function(y)
     format(y, scientific = FALSE), expand = c(0, 0)) + 
-  theme(legend.position = 'bottom',
-    axis.text.x = element_text(size = 5),
+  theme(
+    legend.position = 'bottom',
+    axis.text.x = element_text(size = 10, angle = 15),
     panel.spacing = unit(0.6, "lines"),
-    plot.title = element_text(size = 11, face = 'bold'),
-    plot.subtitle = element_text(size = 10, face = 'bold'),
-    axis.text.y = element_text(size = 7),
-    axis.title.y = element_text(size = 7),
-    legend.title = element_text(size = 8),
-    legend.text = element_text(size = 7),
-    axis.title.x = element_text(size = 8)) +
+    plot.title = element_text(size = 15, face = "bold"),
+    plot.subtitle = element_text(size = 13),
+    axis.text.y = element_text(size = 10),
+    axis.title.y = element_text(size = 10),
+    legend.title = element_text(size = 10),
+    legend.text = element_text(size = 9),
+    axis.title.x = element_text(size = 10)) +
   expand_limits(y = 0) +
-  guides(fill = guide_legend(ncol = 5, title = 'Cellular Generation')) +
+  guides(fill = guide_legend(ncol = 5, title = 'Cell Generation')) +
   scale_x_discrete(expand = c(0, 0.15)) +
   scale_y_continuous(expand = c(0, 0),
-  labels = function(y) format(y, scientific = FALSE),limits = c(0, 299))
+  labels = function(y) format(y, scientific = FALSE),limits = c(0, 1499))
 
+######################################
+##SSA per user Annualized Emissions ##
+######################################
+data <- read.csv(file.path(folder, '..', 'results', 'SSA', 'SSA_decile_emissions.csv'))
+
+data <- data %>%
+  mutate(annualized_per_user_kg_trimmed = ifelse(annualized_per_user_ghg > 
+         quantile(annualized_per_user_ghg, 0.95), quantile(annualized_per_user_ghg, 0.95),
+         ifelse(annualized_per_user_ghg < quantile(annualized_per_user_ghg, 0.05), 
+         quantile(annualized_per_user_ghg, 0.05), annualized_per_user_ghg)))
+
+df <- data %>%
+  group_by(decile, cell_generation) %>%
+  summarize(mean_annualized_per_user = mean(annualized_per_user_kg_trimmed),
+            sd_annualized_per_user = sd(annualized_per_user_kg_trimmed))
+
+df$decile = factor(df$decile, levels = c('Decile 1', 'Decile 2', 'Decile 3', 
+    'Decile 4', 'Decile 5', 'Decile 6', 'Decile 7', 'Decile 8', 'Decile 9', 
+    'Decile 10'), labels = c('Decile 1 \n(>958 per km²)', 
+    'Decile 2 \n(456 - 957 per km²)', 'Decile 3 \n(273 - 455 per km²)', 
+    'Decile 4 \n(172 - 272 per km²)', 'Decile 5 \n(107 - 171 per km²)', 
+    'Decile 6 \n(64 - 106 per km²)', 'Decile 7 \n(40 - 63 per km²)', 
+    'Decile 8 \n(22 - 39 per km²)', 'Decile 9 \n(10 - 21 per km²)', 
+    'Decile 10 \n(<9 per km²)'))
+
+annualized_per_user <- ggplot(df, aes(x = factor(decile), 
+    y = mean_annualized_per_user, fill = factor(cell_generation))) +
+  geom_bar(stat = "identity", position = "dodge") +
+  geom_errorbar(aes(ymin = mean_annualized_per_user - sd_annualized_per_user, 
+       ymax = mean_annualized_per_user + sd_annualized_per_user),
+       position = position_dodge(0.9), width = 0.2, size = 0.2) + 
+  scale_fill_brewer(palette = "Spectral", direction = -1) + 
+  labs(colour = NULL, title = " ", 
+       subtitle = "(b) Annualized per user GHG emissions categorized by cell generation and grouped by deciles.", 
+       x = NULL, y = bquote("Emissions (kg CO"["2"] ~ " eq./user)")) + 
+  scale_y_continuous(labels = function(y)
+       format(y, scientific = FALSE), expand = c(0, 0)) +
+  theme(
+    legend.position = 'bottom',
+    axis.text.x = element_text(size = 10, angle = 15),
+    panel.spacing = unit(0.6, "lines"),
+    plot.title = element_text(size = 15, face = "bold"),
+    plot.subtitle = element_text(size = 13),
+    axis.text.y = element_text(size = 10),
+    axis.title.y = element_text(size = 10),
+    legend.title = element_text(size = 10),
+    legend.text = element_text(size = 9),
+    axis.title.x = element_text(size = 10)) +
+  expand_limits(y = 0) +
+  guides(fill = guide_legend(ncol = 5, title = 'Cell Generation')) +
+  scale_x_discrete(expand = c(0, 0.15)) +
+  scale_y_continuous(expand = c(0, 0),
+  labels = function(y) format(y, scientific = FALSE),limits = c(0, 150))
+
+#####################################
+##SSA per user Social Carbon Cost  ##
+#####################################
+data <- read.csv(file.path(folder, '..', 'results', 'SSA', 'SSA_decile_emissions.csv'))
+
+data <- data %>%
+  mutate(per_user_scc_trimmed = ifelse(per_user_scc_cost_usd > 
+         quantile(per_user_scc_cost_usd, 0.95), quantile(per_user_scc_cost_usd, 0.95),
+         ifelse(per_user_scc_cost_usd < quantile(per_user_scc_cost_usd, 0.05), 
+         quantile(per_user_scc_cost_usd, 0.05), per_user_scc_cost_usd)))
+
+df <- data %>%
+  group_by(decile, cell_generation) %>%
+  summarize(mean_per_user_scc = mean(per_user_scc_trimmed),
+            sd_annualized_per_user_scc = sd(per_user_scc_trimmed))
+
+df$decile = factor(df$decile, levels = c('Decile 1', 'Decile 2', 'Decile 3', 
+   'Decile 4', 'Decile 5', 'Decile 6', 'Decile 7', 'Decile 8', 'Decile 9', 
+   'Decile 10'), labels = c('Decile 1 \n(>958 per km²)', 
+   'Decile 2 \n(456 - 957 per km²)', 'Decile 3 \n(273 - 455 per km²)', 
+   'Decile 4 \n(172 - 272 per km²)', 'Decile 5 \n(107 - 171 per km²)', 
+   'Decile 6 \n(64 - 106 per km²)', 'Decile 7 \n(40 - 63 per km²)', 
+   'Decile 8 \n(22 - 39 per km²)', 'Decile 9 \n(10 - 21 per km²)', 
+   'Decile 10 \n(<9 per km²)'))
+
+per_user_scc <- ggplot(df, aes(x = factor(decile), 
+  y = mean_per_user_scc, fill = factor(cell_generation))) +
+  geom_bar(stat = "identity", position = "dodge") +
+  geom_errorbar(aes(ymin = mean_per_user_scc - sd_annualized_per_user_scc, 
+      ymax = mean_per_user_scc + sd_annualized_per_user_scc),
+      position = position_dodge(0.9), width = 0.2, size = 0.2) +
+  scale_fill_brewer(palette = "Spectral", direction = -1) + 
+  labs(colour = NULL, title = "Social Cost of Carbon (SCC)", 
+       subtitle = "(c) SCC per user categorized by cell generation and grouped by deciles.", 
+       x = NULL, y = "Per user \nSocial Carbon Cost (USD)") + 
+  scale_y_continuous(labels = function(y)
+    format(y, scientific = FALSE), expand = c(0, 0)) +
+  theme(
+    legend.position = 'bottom',
+    axis.text.x = element_text(size = 10, angle = 15),
+    panel.spacing = unit(0.6, "lines"),
+    plot.title = element_text(size = 15, face = "bold"),
+    plot.subtitle = element_text(size = 13),
+    axis.text.y = element_text(size = 10),
+    axis.title.y = element_text(size = 10),
+    legend.title = element_text(size = 10),
+    legend.text = element_text(size = 9),
+    axis.title.x = element_text(size = 10)) +
+  expand_limits(y = 0) +
+  guides(fill = guide_legend(ncol = 5, title = 'Cell Generation')) +
+  scale_x_discrete(expand = c(0, 0.15)) +
+  scale_y_continuous(expand = c(0, 0),
+  labels = function(y) format(y, scientific = FALSE),limits = c(0, 124))
+
+
+################################################
+##SSA Annualized per user Social Carbon Cost  ##
+################################################
+data <- read.csv(file.path(folder, '..', 'results', 'SSA', 'SSA_decile_emissions.csv'))
+
+data <- data %>%
+  mutate(annualized_per_user_scc_trimmed = ifelse(annualized_per_user_scc_cost_usd > 
+         quantile(annualized_per_user_scc_cost_usd, 0.95), quantile(annualized_per_user_scc_cost_usd, 0.95),
+         ifelse(annualized_per_user_scc_cost_usd < quantile(annualized_per_user_scc_cost_usd, 0.05), 
+         quantile(annualized_per_user_scc_cost_usd, 0.05), annualized_per_user_scc_cost_usd)))
+
+df <- data %>%
+  group_by(decile, cell_generation) %>%
+  summarize(mean_annualized_per_user_scc = mean(annualized_per_user_scc_trimmed),
+            sd_annualized_per_user_scc = sd(annualized_per_user_scc_trimmed))
+
+df$decile = factor(df$decile, levels = c('Decile 1', 'Decile 2', 'Decile 3', 
+    'Decile 4', 'Decile 5', 'Decile 6', 'Decile 7', 'Decile 8', 'Decile 9', 
+    'Decile 10'), labels = c('Decile 1 \n(>958 per km²)', 
+    'Decile 2 \n(456 - 957 per km²)', 'Decile 3 \n(273 - 455 per km²)', 
+    'Decile 4 \n(172 - 272 per km²)', 'Decile 5 \n(107 - 171 per km²)', 
+    'Decile 6 \n(64 - 106 per km²)', 'Decile 7 \n(40 - 63 per km²)', 
+    'Decile 8 \n(22 - 39 per km²)', 'Decile 9 \n(10 - 21 per km²)', 
+    'Decile 10 \n(<9 per km²)'))
+
+
+annualized_per_user_scc <- ggplot(df, aes(x = factor(decile), 
+    y = mean_annualized_per_user_scc, fill = factor(cell_generation))) +
+  geom_bar(stat = "identity", position = "dodge") +
+  geom_errorbar(aes(ymin = mean_annualized_per_user_scc - sd_annualized_per_user_scc, 
+     ymax = mean_annualized_per_user_scc + sd_annualized_per_user_scc),
+     position = position_dodge(0.9), width = 0.2, size = 0.2) +
+  scale_fill_brewer(palette = "Spectral", direction = -1) + 
+  labs(colour = NULL, title = " ", 
+       subtitle = "(d) Annualized SCC per user categorized by cell generation and grouped by deciles.", 
+       x = NULL, y = bquote("Annualized \nSocial Carbon Cost (USD)")) + 
+  scale_y_continuous(labels = function(y)
+    format(y, scientific = FALSE), expand = c(0, 0)) +
+  theme(
+    legend.position = 'bottom',
+    axis.text.x = element_text(size = 10, angle = 15),
+    panel.spacing = unit(0.6, "lines"),
+    plot.title = element_text(size = 15, face = "bold"),
+    plot.subtitle = element_text(size = 13),
+    axis.text.y = element_text(size = 10),
+    axis.title.y = element_text(size = 10),
+    legend.title = element_text(size = 10),
+    legend.text = element_text(size = 9),
+    axis.title.x = element_text(size = 10)) +
+  expand_limits(y = 0) +
+  guides(fill = guide_legend(ncol = 5, title = 'Cell Generation')) +
+  scale_x_discrete(expand = c(0, 0.15)) +
+  scale_y_continuous(expand = c(0, 0),
+  labels = function(y) format(y, scientific = FALSE),limits = c(0, 12.4))
+
+########################
+##PANEL USER EMISSIONS##
+########################
+aggregate_emissions <- ggarrange(per_user_ghgs, annualized_per_user, 
+   per_user_scc, annualized_per_user_scc, ncol = 1, nrow = 4, align = c('hv'),
+   common.legend = TRUE, legend='bottom') 
+
+path = file.path(folder, 'figures', 'aggregate_emissions.png')
+png(path, units="in", width=11, height=14, res=300)
+print(aggregate_emissions)
+dev.off()
 
 ################# FOR SUPPLEMENTARY SECTION ################################
 data <- read.csv(file.path(folder, '..', 'results', 'SSA', 'SSA_decile_emissions.csv'))
