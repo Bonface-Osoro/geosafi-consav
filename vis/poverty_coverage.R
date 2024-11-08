@@ -10,6 +10,8 @@ library("cowplot")
 
 suppressMessages(library(tidyverse))
 folder <- dirname(rstudioapi::getSourceEditorContext()$path)
+africa_data <- st_read(file.path(folder, '..', 'data', 'raw', 
+                    'Africa_Boundaries', 'SSA_combined_shapefile.shp'))
 
 ############################################
 ##SSA Absolute Poor Population by Regions ##
@@ -69,7 +71,7 @@ poor_population_region <-
         axis.title.x = element_text(size = 8)) +
   expand_limits(y = 0) +
   guides(fill = guide_legend(ncol = 5, title = 'Poverty Rate')) +
-  scale_fill_brewer(palette = "Spectral") +
+  scale_fill_viridis_d(direction = 1) +
   scale_x_discrete(expand = c(0, 0.15)) +
   scale_y_continuous(expand = c(0, 0),
   labels = function(y) format(y, scientific = FALSE),limits = c(0, 200))
@@ -132,7 +134,7 @@ relative_region_poor_population <-
         axis.title.x = element_text(size = 8)) +
   expand_limits(y = 0) +
   guides(fill = guide_legend(ncol = 5, title = 'Poverty Rate')) +
-  scale_fill_brewer(palette = "Spectral") +
+  scale_fill_viridis_d(direction = 1) +
   scale_x_discrete(expand = c(0, 0.15)) +
   scale_y_continuous(expand = c(0, 0), labels = function(y)
     format(y, scientific = FALSE), limits = c(0, 100)) 
@@ -173,9 +175,10 @@ merged_data$population_bin <- cut(merged_data$rel_pop, breaks = pop_bins,
     "41 - 50%", "51 - 60%", "61 - 70%", "71 - 80%", "81 - 90%", "Above 90%"))
 
 poverty_maps <- ggplot() + 
+  geom_sf(data = africa_data, fill = "seagreen", color = "black", linewidth = 0.01) +
   geom_sf(data = merged_data, aes(fill = population_bin), 
           linewidth = 0.001,) +
-  scale_fill_brewer(palette = "Spectral", direction = -1) +
+  scale_fill_viridis_d(direction = 1) +
   labs(title = "(c) Relative population below poverty line in SSA.",
        subtitle = "Aggregated by normalized sub-regional population and grouped by poverty rate.",
        fill = "Range") +
@@ -248,7 +251,7 @@ unconnected_population_geotype <-
   geom_bar(stat = 'identity', position = position_dodge(0.9)) + coord_flip() + 
   geom_text(aes(label = formatC(signif(after_stat(y), 3), 
                                 digits = 3, format = "fg", flag = "#")),
-            size = 3.5, position = position_dodge(0.9),
+            size = 2, position = position_dodge(0.9),
             vjust = 0.5, hjust = -0.3) +
   labs(colour = NULL,
        title = 'Uncovered population in SSA.',
@@ -268,7 +271,7 @@ unconnected_population_geotype <-
         axis.title.x = element_text(size = 8)) +
   expand_limits(y = 0) +
   guides(fill = guide_legend(ncol = 5, title = 'Mobile Technology')) +
-  scale_fill_brewer(palette = "Spectral") +
+  scale_fill_viridis_d(direction = 1) +
   scale_x_discrete(expand = c(0, 0.15)) +
   scale_y_continuous(expand = c(0, 0),
   labels = function(y) format(y, scientific = FALSE),limits = c(0, 149))
@@ -309,7 +312,7 @@ relative_geo_tech_uncovered_population <-
   ggplot(df,  aes(x = decile, y = perc, fill = technology)) +
   geom_bar(stat = 'identity', position = position_dodge(0.9)) +  coord_flip() +
   geom_text(aes(label = formatC(signif(after_stat(y), 3), 
-                                digits = 3,format = 'fg', flag = '#')), size = 3.5,
+                                digits = 3,format = 'fg', flag = '#')), size = 2,
             position = position_dodge(0.9), vjust = 0.5, hjust = -0.1)+
   labs(colour = NULL, title = ' ',
        subtitle = '(b) Relative population by deciles', x = NULL,
@@ -326,7 +329,7 @@ relative_geo_tech_uncovered_population <-
         axis.title.x = element_text(size = 8)) +
   expand_limits(y = 0) +
   guides(fill = guide_legend(ncol = 5, title = 'Mobile Phone Technology')) +
-  scale_fill_brewer(palette = "Spectral") +
+  scale_fill_viridis_d(direction = 1) +
   scale_x_discrete(expand = c(0, 0.15)) +
   scale_y_continuous(expand = c(0, 0), labels = function(y)
     format(y, scientific = FALSE), limits = c(0, 109))
@@ -334,7 +337,8 @@ relative_geo_tech_uncovered_population <-
 #################################################
 ##UNCONNECTED POPULATION BY CELLULAR TECHNOLOGY##
 #################################################
-africa_data <- st_read(file.path(folder, '..', 'data', 'raw', 'Africa_Boundaries', 'SSA_combined_shapefile.shp'))
+africa_data <- st_read(file.path(folder, '..', 'data', 'raw', 
+                            'Africa_Boundaries', 'SSA_combined_shapefile.shp'))
 africa_shp <- africa_data %>%
   select(GID_0, NAME_0, GID_1, GID_2, geometry)
 
@@ -368,8 +372,6 @@ merged_data <- merge(africa_shp, data, by = "GID_1")
 pop_bins <- c(-Inf, 10, 20, 30, 40, 50, 60, 
               70, 80, 90, Inf)
 
-#merged_data <- na.omit(merged_data, cols = "rel_pop")
-
 merged_data$population_bin <- cut(merged_data$rel_pop, breaks = pop_bins, 
    labels = c("Below 10%", "10 - 20%", "21 - 30%", "31 - 40%", 
    "41 - 50%", "51 - 60%", "61 - 70%", "71 - 80%", "81 - 90%", "Above 90%"))
@@ -377,7 +379,7 @@ merged_data$population_bin <- cut(merged_data$rel_pop, breaks = pop_bins,
 uncovered_technology <- ggplot() + 
   geom_sf(data = merged_data, aes(fill = population_bin), 
           linewidth = 0.001,) +
-  scale_fill_brewer(palette = "Spectral", direction = -1) +
+  scale_fill_viridis_d(direction = 1) +
   labs(title = "(e) Uncovered population in SSA.",
        subtitle = "Aggregated by normalized sub-regional population and grouped by mobile technology.",
        fill = "Population") +
@@ -415,7 +417,8 @@ dev.off()
 ################################
 ##CONNECTION AND POVERTY PLOTS##
 ################################
-africa_data <- st_read(file.path(folder, '..', 'data', 'raw', 'Africa_Boundaries', 'SSA_combined_shapefile.shp'))
+africa_data <- st_read(file.path(folder, '..', 'data', 'raw', 
+                          'Africa_Boundaries', 'SSA_combined_shapefile.shp'))
 africa_shp <- africa_data %>%
   select(GID_0, NAME_0, GID_1, GID_2, geometry)
 
@@ -459,10 +462,11 @@ merged_data$population_bin <- cut(merged_data$rel_pop, breaks = pop_bins,
    "41 - 50%", "51 - 60%", "61 - 70%", "71 - 80%", "81 - 90%", "Above 90%"))
 
 uncovered_2g_poor <- ggplot() + 
+  geom_sf(data = africa_data, fill = "palegreen3", color = "black", linewidth = 0.01) +
   geom_sf(data = merged_data, aes(fill = population_bin), 
           linewidth = 0.001,) +
-  scale_fill_brewer(palette = "Spectral", direction = -1) +
-  labs(title = "Uncovered and below poverty line population.",
+  scale_fill_viridis_d(direction = 1) +
+  labs(title = "Relative uncovered and below poverty line population expressed as a percentage of the total population.",
        subtitle = "(a) Uncovered by (2G).",
        fill = "Population") +
   theme(
@@ -516,9 +520,10 @@ merged_data$population_bin <- cut(merged_data$rel_pop, breaks = pop_bins,
    "41 - 50%", "51 - 60%", "61 - 70%", "71 - 80%", "81 - 90%", "Above 90%"))
 
 uncovered_3g_poor <- ggplot() + 
+  geom_sf(data = africa_data, fill = "olivedrab2", color = "black", linewidth = 0.01) +
   geom_sf(data = merged_data, aes(fill = population_bin), 
           linewidth = 0.001,) +
-  scale_fill_brewer(palette = "Spectral", direction = -1) +
+  scale_fill_viridis_d(direction = 1) +
   labs(title = ' ',
        subtitle = "(b) Uncovered by (3G).",
        fill = "Population") +
@@ -572,9 +577,10 @@ merged_data$population_bin <- cut(merged_data$rel_pop, breaks = pop_bins,
    "41 - 50%", "51 - 60%", "61 - 70%", "71 - 80%", "81 - 90%", "Above 90%"))
 
 uncovered_4g_poor <- ggplot() + 
+  geom_sf(data = africa_data, fill = "olivedrab2", color = "black", linewidth = 0.01) +
   geom_sf(data = merged_data, aes(fill = population_bin), 
           linewidth = 0.001,) +
-  scale_fill_brewer(palette = "Spectral", direction = -1) +
+  scale_fill_viridis_d(direction = 1) +
   labs(title =' ',
        subtitle = "(c) Uncovered by (4G).",
        fill = "Population") +
@@ -635,7 +641,7 @@ uncovered_poor_population <-
   geom_bar(stat = 'identity', position = position_dodge(0.9)) + coord_flip() + 
   geom_text(aes(label = formatC(signif(after_stat(y), 3), 
                                 digits = 3, format = "fg", flag = "#")),
-            size = 3, position = position_dodge(0.9),
+            size = 2, position = position_dodge(0.9),
             vjust = 0.5, hjust = -0.3) +
   labs(colour = NULL,
        title = 'Uncovered and population below poverty line.',
@@ -655,7 +661,7 @@ uncovered_poor_population <-
         axis.title.x = element_text(size = 8)) +
   expand_limits(y = 0) +
   guides(fill = guide_legend(ncol = 5, title = 'Mobile Technology')) +
-  scale_fill_brewer(palette = "Spectral") +
+  scale_fill_viridis_d(direction = 1) +
   scale_x_discrete(expand = c(0, 0.15)) +
   scale_y_continuous(expand = c(0, 0),
   labels = function(y) format(y, scientific = FALSE),limits = c(0, 12000)) + 
@@ -701,7 +707,7 @@ relative_uncovered_poor_population <-
   ggplot(df,  aes(x = decile, y = mean_perc, fill = technology)) +
   geom_bar(stat = 'identity', position = position_dodge(0.9)) +  coord_flip() +
   geom_text(aes(label = formatC(signif(after_stat(y), 3), 
-                                digits = 3,format = 'fg', flag = '#')), size = 3,
+                                digits = 3,format = 'fg', flag = '#')), size = 2,
             position = position_dodge(0.9), vjust = 0.5, hjust = -0.1) +
   labs(colour = NULL, title = ' ', subtitle = '(b) Relative population.', 
        x = NULL,
@@ -719,7 +725,7 @@ relative_uncovered_poor_population <-
         axis.title.x = element_text(size = 8)) +
   expand_limits(y = 0) +
   guides(fill = guide_legend(ncol = 5, title = 'Mobile Phone Technology')) +
-  scale_fill_brewer(palette = "Spectral") +
+  scale_fill_viridis_d(direction = 1) +
   scale_x_discrete(expand = c(0, 0.15)) +
   scale_y_continuous(expand = c(0, 0), labels = function(y)
     format(y, scientific = FALSE), limits = c(0, 109)) +
@@ -738,7 +744,7 @@ uncovered_poor <- ggarrange(uncovered_2g_poor,
    uncovered_3g_poor,
    uncovered_4g_poor,
    nrow = 3,
-   common.legend = FALSE, legend = 'bottom')
+   common.legend = TRUE, legend = 'bottom')
 
 path = file.path(folder, 'figures', 'poor_and_uncovered.png')
 png(path, units = "in", width = 9.5, height = 8, res = 300)
@@ -782,10 +788,10 @@ merged_data$capacity_bin <- cut(merged_data$sat_coverage, breaks = cap_bins,
              "35.1 - 45 Mbps", "45 - 50 Mbps", "Above 50 Mbps"))
 
 satellite_coverage <- ggplot() + 
-  geom_sf(data = africa_data, fill = "maroon", color = "black", linewidth = 0.01) +
+  geom_sf(data = africa_data, fill = "darkslateblue", color = "black", linewidth = 0.01) +
   geom_sf(data = merged_data, aes(fill = capacity_bin), 
           linewidth = 0.001,) +
-  scale_fill_brewer(palette = "Spectral") +
+  scale_fill_viridis_d(direction = 1) +
   labs(title ='(a) Average per user capacities',
        subtitle = "Estimated satellite capacity per user for population uncovered by 2G mobile signal and living below US$ 1.9 per day.",
        fill = "Capacity per User") +

@@ -130,7 +130,7 @@ capacity_per_user <- ggplot(df, aes(x = decile, y = mean, fill = cell_generation
   scale_fill_brewer(palette = "Spectral", direction = -1) + 
   labs(colour = NULL, title = "Mobile broadband capacity results", 
        subtitle = "(a) Per user capacity categorized by cell generation and grouped by deciles.", 
-       x = NULL, y = "Capacity (Mbps)") +
+       x = NULL, y = "Capacity (Mbps/user)") +
   theme(
     legend.position = 'bottom',
     axis.text.x = element_text(size = 10, angle = 15),
