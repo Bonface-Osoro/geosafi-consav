@@ -15,7 +15,7 @@ Integrated modeling method (see `Figure 1`).
 
 #### Figure 1 Proposed Method.
 <p align="center">
-  <img src="/docs/Method.png" />
+  <img src="/docs/method.png" />
 </p>
 
 Results

@@ -185,6 +185,7 @@ def decile_emissions_per_user():
              'total_emissions_ghg_kg', 'per_user_scc_cost_usd',
              'annualized_per_user_scc_cost_usd']]
 
+    df['technology'] = 'cellular'
     filename = 'SSA_decile_emissions.csv'
     folder_out = os.path.join(DATA_SSA)
 
@@ -221,6 +222,7 @@ def decile_cost_per_user():
     df = df[['cell_generation', 'decile', 'per_user_tco_usd', 
              'annualized_per_user_cost_usd', 'monthly_per_user_cost_usd']]
 
+    df['technology'] = 'cellular'
     filename = 'SSA_decile_costs.csv'
     folder_out = os.path.join(DATA_SSA)
 
@@ -255,6 +257,7 @@ def decile_capacity_per_user():
     df = df[['cell_generation', 'decile', 'per_user_capacity_mbps', 
              'per_area_capacity_mbps']]
 
+    df['technology'] = 'cellular'
     filename = 'SSA_decile_capacity.csv'
     folder_out = os.path.join(DATA_SSA)
 
@@ -269,4 +272,10 @@ def decile_capacity_per_user():
     return None
 
 
-decile_capacity_per_user()
+if __name__ == '__main__':
+
+    decile_capacity_per_user()
+
+    decile_cost_per_user()
+
+    decile_emissions_per_user()
