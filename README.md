@@ -23,7 +23,7 @@ Results
 `Figure 2` shows the estimated absolute and relative population living below the poverty line.
 #### Figure 2 Demand Results.
 <p align="center">
-  <img src="/docs/Poor_population.png" />
+  <img src="/docs/population.png" />
 </p>
 
 ## Required Data
