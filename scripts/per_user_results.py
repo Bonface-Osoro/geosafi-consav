@@ -219,8 +219,9 @@ def decile_cost_per_user():
     df['monthly_per_user_cost_usd'] = (df['annualized_per_user_cost_usd'] / 12)
     
 
-    df = df[['cell_generation', 'decile', 'per_user_tco_usd', 
-             'annualized_per_user_cost_usd', 'monthly_per_user_cost_usd']]
+    df = df[['cell_generation', 'decile', 'per_user_tco_usd',
+             'total_base_station_tco_usd', 'annualized_per_user_cost_usd', 
+             'monthly_per_user_cost_usd']]
 
     df['technology'] = 'cellular'
     filename = 'SSA_decile_costs.csv'
