@@ -380,7 +380,7 @@ uncovered_technology <- ggplot() +
   geom_sf(data = merged_data, aes(fill = population_bin), 
           linewidth = 0.001,) +
   scale_fill_viridis_d(direction = 1) +
-  labs(title = "(e) Uncovered population in SSA.",
+  labs(title = "(c) Uncovered population in SSA.",
        subtitle = "Aggregated by normalized sub-regional population and grouped by mobile technology.",
        fill = "Population") +
   theme(
