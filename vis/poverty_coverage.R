@@ -756,3 +756,93 @@ png(path, units = "in", width = 7, height = 9, res = 300)
 print(uncovered_poor)
 dev.off()
 
+africa_data <- st_read(file.path(folder, '..', 'data', 'raw', 
+                                 'Africa_Boundaries', 'SSA_combined_shapefile.shp'))
+
+#########################
+##SSA TOTAL POPULATION ##
+#########################
+data <- read.csv(file.path(folder, '..', 'results', 'SSA', 
+                           'SSA_decile_summary_stats.csv'))
+
+data$decile = factor(data$decile, levels = c('Decile 1', 'Decile 2', 'Decile 3', 
+    'Decile 4', 'Decile 5', 'Decile 6', 'Decile 7', 'Decile 8', 'Decile 9', 
+    'Decile 10'), labels = c('Decile 1 \n(>958 per km²)', 
+    'Decile 2 \n(456 - 957 per km²)', 'Decile 3 \n(273 - 455 per km²)', 
+    'Decile 4 \n(172 - 272 per km²)', 'Decile 5 \n(107 - 171 per km²)', 
+    'Decile 6 \n(64 - 106 per km²)', 'Decile 7 \n(40 - 63 per km²)', 
+    'Decile 8 \n(22 - 39 per km²)', 'Decile 9 \n(10 - 21 per km²)', 
+    'Decile 10 \n(<9 per km²)'))
+
+df <- data
+
+total_population <-
+  ggplot(df,  aes(x = decile, y = total_population/1e6, fill = decile)) +
+  geom_bar(stat = 'identity', position = position_dodge(0.9)) + 
+  geom_text(aes(label = formatC(signif(after_stat(y), 3), 
+      digits = 3, format = "fg", flag = "#")), size = 3, 
+      position = position_dodge(0.9), vjust = -0.2, hjust = 0.5) +
+  labs(colour = NULL,
+       title = 'SSA demand results.',
+       subtitle = '(A) Total population grouped by deciles',
+       x = NULL,
+       y = 'Total Population (in millions)',
+       fill = NULL) +
+  theme(legend.position = 'none',
+        axis.text.x = element_text(size = 8),
+        panel.spacing = unit(0.6, "lines"),
+        plot.title = element_text(size = 14, face = "bold"),
+        plot.subtitle = element_text(size = 14),
+        axis.text.y = element_text(size = 10),
+        axis.title.y = element_text(size = 12),
+        legend.title = element_text(size = 12),
+        legend.text = element_text(size = 12),
+        axis.title.x = element_text(size = 12)) +
+  expand_limits(y = 0) +
+  scale_fill_viridis_d(direction = 1) +
+  scale_x_discrete(expand = c(0, 0.15)) +
+  scale_y_continuous(expand = c(0, 0),
+  labels = function(y) format(y, scientific = FALSE),limits = c(0, 200))
+
+
+###################
+##SSA TOTAL AREA ##
+###################
+total_area <-
+  ggplot(df,  aes(x = decile, y = total_area_sqkm/1e6, fill = decile)) +
+  geom_bar(stat = 'identity', position = position_dodge(0.9)) + 
+  geom_text(aes(label = formatC(signif(after_stat(y), 3), 
+                                digits = 3, format = "fg", flag = "#")), size = 3, 
+            position = position_dodge(0.9), vjust = -0.2, hjust = 0.5) +
+  labs(colour = NULL,
+       title = ' ',
+       subtitle = '(B) Total area grouped by deciles',
+       x = NULL,
+       y = 'Total Area (million km²)',
+       fill = NULL) +
+  theme(legend.position = 'none',
+        axis.text.x = element_text(size = 8),
+        panel.spacing = unit(0.6, "lines"),
+        plot.title = element_text(size = 14, face = "bold"),
+        plot.subtitle = element_text(size = 14),
+        axis.text.y = element_text(size = 10),
+        axis.title.y = element_text(size = 12),
+        legend.title = element_text(size = 12),
+        legend.text = element_text(size = 12),
+        axis.title.x = element_text(size = 12)) +
+  expand_limits(y = 0) +
+  scale_fill_viridis_d(direction = 1) +
+  scale_x_discrete(expand = c(0, 0.15)) +
+  scale_y_continuous(expand = c(0, 0),
+  labels = function(y) format(y, scientific = FALSE),limits = c(0, 11))
+
+ssa_details <- ggarrange(total_population, total_area, nrow = 2, legend = 'none')
+
+path = file.path(folder, 'figures', 'ssa_details.png')
+png(path, units = "in", width = 11, height = 9, res = 300)
+print(ssa_details)
+dev.off()
+
+
+
+
