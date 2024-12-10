@@ -16,12 +16,12 @@ folder <- dirname(rstudioapi::getSourceEditorContext()$path)
 data <- read.csv(file.path(folder, '..', 'results', 'SSA', 'SSA_decile_emissions.csv'))
 data$decile = factor(data$decile, levels = c('Decile 1', 'Decile 2', 'Decile 3', 
    'Decile 4', 'Decile 5', 'Decile 6', 'Decile 7', 'Decile 8', 'Decile 9', 
-   'Decile 10'), labels = c('Decile 1 \n(>958 per km²)', 
-   'Decile 2 \n(456 - 957 per km²)', 'Decile 3 \n(273 - 455 per km²)', 
-   'Decile 4 \n(172 - 272 per km²)', 'Decile 5 \n(107 - 171 per km²)', 
-   'Decile 6 \n(64 - 106 per km²)', 'Decile 7 \n(40 - 63 per km²)', 
-   'Decile 8 \n(22 - 39 per km²)', 'Decile 9 \n(10 - 21 per km²)', 
-   'Decile 10 \n(<9 per km²)'))
+   'Decile 10'), labels = c('Decile 1 \n(>958 km²)', 
+  'Decile 2 \n(<957 km²)', 'Decile 3 \n(<455 km²)', 
+  'Decile 4 \n(<272 km²)', 'Decile 5 \n(<171 km²)', 
+  'Decile 6 \n(<106 km²)', 'Decile 7 \n(<63 km²)', 
+  'Decile 8 \n(<39 km²)', 'Decile 9 \n(<21 km²)', 
+  'Decile 10 \n(<9 km²)'))
 
 data <- data %>%
   mutate(phase_per_user_kg_trimmed = ifelse(per_user_ghg_kg > 
@@ -34,19 +34,26 @@ df <- data %>%
   summarize(mean_phase_per_user = mean(phase_per_user_kg_trimmed),
             sd_phase_per_user = sd(phase_per_user_kg_trimmed))
 
+label_totals <- df %>%
+  group_by(decile, cell_generation) %>%
+  summarize(mean_value = sum(mean_phase_per_user))
+
 per_user_ghgs <- ggplot(df, aes(x = factor(decile), y = mean_phase_per_user, 
                                 fill = factor(cell_generation))) +
   geom_bar(stat = "identity", position = "dodge") +
   geom_errorbar(aes(ymin = mean_phase_per_user - sd_phase_per_user, 
                     ymax = mean_phase_per_user + sd_phase_per_user),
                 position = position_dodge(0.9), width = 0.2, size = 0.2) + 
-  scale_fill_brewer(palette = "Spectral", direction = -1) + 
+  geom_text(aes(label = formatC(signif(after_stat(y), 4), 
+     digits = 2, format = "fg", flag = "#")), color = 'black', size = 3, position = 
+     position_dodge(0.9), vjust = -0.5, hjust = 0.5) +
+  scale_fill_viridis_d(direction = 1) + 
   labs(colour = NULL, title = "Mobile broadband Greenhouse Gas (GHG) emissions", 
-       subtitle = "(a) Per user GHG emissions categorized by cell generation and grouped by deciles.", 
+       subtitle = "(A) Per user GHG emissions categorized by cell generation and grouped by deciles.", 
        x = NULL, y = bquote("Emissions (kg CO"["2"] ~ " eq./user)")) + 
   theme(
     legend.position = 'bottom',
-    axis.text.x = element_text(size = 10, angle = 15),
+    axis.text.x = element_text(size = 10),
     panel.spacing = unit(0.6, "lines"),
     plot.title = element_text(size = 15, face = "bold"),
     plot.subtitle = element_text(size = 13),
@@ -56,10 +63,10 @@ per_user_ghgs <- ggplot(df, aes(x = factor(decile), y = mean_phase_per_user,
     legend.text = element_text(size = 9),
     axis.title.x = element_text(size = 10)) +
   expand_limits(y = 0) +
-  guides(fill = guide_legend(ncol = 5, title = 'Cell Generation')) +
+  guides(fill = guide_legend(ncol = 5, title = 'Mobile Technology')) +
   scale_x_discrete(expand = c(0, 0.15)) +
   scale_y_continuous(expand = c(0, 0),
-  labels = function(y) format(y, scientific = FALSE),limits = c(0, 1499))
+  labels = function(y) format(y, scientific = FALSE),limits = c(0, 1799))
 
 ######################################
 ##SSA per user Annualized Emissions ##
@@ -79,12 +86,12 @@ df <- data %>%
 
 df$decile = factor(df$decile, levels = c('Decile 1', 'Decile 2', 'Decile 3', 
     'Decile 4', 'Decile 5', 'Decile 6', 'Decile 7', 'Decile 8', 'Decile 9', 
-    'Decile 10'), labels = c('Decile 1 \n(>958 per km²)', 
-    'Decile 2 \n(456 - 957 per km²)', 'Decile 3 \n(273 - 455 per km²)', 
-    'Decile 4 \n(172 - 272 per km²)', 'Decile 5 \n(107 - 171 per km²)', 
-    'Decile 6 \n(64 - 106 per km²)', 'Decile 7 \n(40 - 63 per km²)', 
-    'Decile 8 \n(22 - 39 per km²)', 'Decile 9 \n(10 - 21 per km²)', 
-    'Decile 10 \n(<9 per km²)'))
+    'Decile 10'), labels = c('Decile 1 \n(>958 km²)', 
+   'Decile 2 \n(<957 km²)', 'Decile 3 \n(<455 km²)', 
+   'Decile 4 \n(<272 km²)', 'Decile 5 \n(<171 km²)', 
+   'Decile 6 \n(<106 km²)', 'Decile 7 \n(<63 km²)', 
+   'Decile 8 \n(<39 km²)', 'Decile 9 \n(<21 km²)', 
+   'Decile 10 \n(<9 km²)'))
 
 annualized_per_user <- ggplot(df, aes(x = factor(decile), 
     y = mean_annualized_per_user, fill = factor(cell_generation))) +
@@ -92,13 +99,16 @@ annualized_per_user <- ggplot(df, aes(x = factor(decile),
   geom_errorbar(aes(ymin = mean_annualized_per_user - sd_annualized_per_user, 
        ymax = mean_annualized_per_user + sd_annualized_per_user),
        position = position_dodge(0.9), width = 0.2, size = 0.2) + 
-  scale_fill_brewer(palette = "Spectral", direction = -1) + 
+  geom_text(aes(label = formatC(signif(after_stat(y), 4), 
+     digits = 2, format = "fg", flag = "#")), color = 'black', size = 3, position = 
+     position_dodge(0.9), vjust = -0.5, hjust = 0.5) +
+  scale_fill_viridis_d(direction = 1) + 
   labs(colour = NULL, title = " ", 
-       subtitle = "(b) Annualized per user GHG emissions categorized by cell generation and grouped by deciles.", 
+       subtitle = "(B) Annualized per user GHG emissions categorized by cell generation and grouped by deciles.", 
        x = NULL, y = bquote("Emissions (kg CO"["2"] ~ " eq./user)")) + 
   theme(
     legend.position = 'bottom',
-    axis.text.x = element_text(size = 10, angle = 15),
+    axis.text.x = element_text(size = 10),
     panel.spacing = unit(0.6, "lines"),
     plot.title = element_text(size = 15, face = "bold"),
     plot.subtitle = element_text(size = 13),
@@ -108,10 +118,10 @@ annualized_per_user <- ggplot(df, aes(x = factor(decile),
     legend.text = element_text(size = 9),
     axis.title.x = element_text(size = 10)) +
   expand_limits(y = 0) +
-  guides(fill = guide_legend(ncol = 5, title = 'Cell Generation')) +
+  guides(fill = guide_legend(ncol = 5, title = 'Mobile Technology')) +
   scale_x_discrete(expand = c(0, 0.15)) +
   scale_y_continuous(expand = c(0, 0),
-  labels = function(y) format(y, scientific = FALSE),limits = c(0, 150))
+  labels = function(y) format(y, scientific = FALSE),limits = c(0, 164))
 
 #####################################
 ##SSA per user Social Carbon Cost  ##
@@ -131,12 +141,12 @@ df <- data %>%
 
 df$decile = factor(df$decile, levels = c('Decile 1', 'Decile 2', 'Decile 3', 
    'Decile 4', 'Decile 5', 'Decile 6', 'Decile 7', 'Decile 8', 'Decile 9', 
-   'Decile 10'), labels = c('Decile 1 \n(>958 per km²)', 
-   'Decile 2 \n(456 - 957 per km²)', 'Decile 3 \n(273 - 455 per km²)', 
-   'Decile 4 \n(172 - 272 per km²)', 'Decile 5 \n(107 - 171 per km²)', 
-   'Decile 6 \n(64 - 106 per km²)', 'Decile 7 \n(40 - 63 per km²)', 
-   'Decile 8 \n(22 - 39 per km²)', 'Decile 9 \n(10 - 21 per km²)', 
-   'Decile 10 \n(<9 per km²)'))
+   'Decile 10'), labels = c('Decile 1 \n(>958 km²)', 
+  'Decile 2 \n(<957 km²)', 'Decile 3 \n(<455 km²)', 
+  'Decile 4 \n(<272 km²)', 'Decile 5 \n(<171 km²)', 
+  'Decile 6 \n(<106 km²)', 'Decile 7 \n(<63 km²)', 
+  'Decile 8 \n(<39 km²)', 'Decile 9 \n(<21 km²)', 
+  'Decile 10 \n(<9 km²)'))
 
 per_user_scc <- ggplot(df, aes(x = factor(decile), 
   y = mean_per_user_scc, fill = factor(cell_generation))) +
@@ -144,13 +154,16 @@ per_user_scc <- ggplot(df, aes(x = factor(decile),
   geom_errorbar(aes(ymin = mean_per_user_scc - sd_annualized_per_user_scc, 
       ymax = mean_per_user_scc + sd_annualized_per_user_scc),
       position = position_dodge(0.9), width = 0.2, size = 0.2) +
-  scale_fill_brewer(palette = "Spectral", direction = -1) + 
+  geom_text(aes(label = formatC(signif(after_stat(y), 4), 
+      digits = 2, format = "fg", flag = "#")), color = 'black', size = 3, position = 
+      position_dodge(0.9), vjust = -0.5, hjust = 0.5) +
+  scale_fill_viridis_d(direction = 1) + 
   labs(colour = NULL, title = "Social Cost of Carbon (SCC)", 
-       subtitle = "(c) SCC per user categorized by cell generation and grouped by deciles.", 
+       subtitle = "(C) SCC per user categorized by cell generation and grouped by deciles.", 
        x = NULL, y = "Per user \nSocial Carbon Cost (USD)") + 
   theme(
     legend.position = 'bottom',
-    axis.text.x = element_text(size = 10, angle = 15),
+    axis.text.x = element_text(size = 10),
     panel.spacing = unit(0.6, "lines"),
     plot.title = element_text(size = 15, face = "bold"),
     plot.subtitle = element_text(size = 13),
@@ -160,7 +173,7 @@ per_user_scc <- ggplot(df, aes(x = factor(decile),
     legend.text = element_text(size = 9),
     axis.title.x = element_text(size = 10)) +
   expand_limits(y = 0) +
-  guides(fill = guide_legend(ncol = 5, title = 'Cell Generation')) +
+  guides(fill = guide_legend(ncol = 5, title = 'Mobile Technology')) +
   scale_x_discrete(expand = c(0, 0.15)) +
   scale_y_continuous(expand = c(0, 0),
   labels = function(y) format(y, scientific = FALSE),limits = c(0, 124))
@@ -184,12 +197,12 @@ df <- data %>%
 
 df$decile = factor(df$decile, levels = c('Decile 1', 'Decile 2', 'Decile 3', 
     'Decile 4', 'Decile 5', 'Decile 6', 'Decile 7', 'Decile 8', 'Decile 9', 
-    'Decile 10'), labels = c('Decile 1 \n(>958 per km²)', 
-    'Decile 2 \n(456 - 957 per km²)', 'Decile 3 \n(273 - 455 per km²)', 
-    'Decile 4 \n(172 - 272 per km²)', 'Decile 5 \n(107 - 171 per km²)', 
-    'Decile 6 \n(64 - 106 per km²)', 'Decile 7 \n(40 - 63 per km²)', 
-    'Decile 8 \n(22 - 39 per km²)', 'Decile 9 \n(10 - 21 per km²)', 
-    'Decile 10 \n(<9 per km²)'))
+    'Decile 10'), labels = c('Decile 1 \n(>958 km²)', 
+   'Decile 2 \n(<957 km²)', 'Decile 3 \n(<455 km²)', 
+   'Decile 4 \n(<272 km²)', 'Decile 5 \n(<171 km²)', 
+   'Decile 6 \n(<106 km²)', 'Decile 7 \n(<63 km²)', 
+   'Decile 8 \n(<39 km²)', 'Decile 9 \n(<21 km²)', 
+   'Decile 10 \n(<9 km²)'))
 
 
 annualized_per_user_scc <- ggplot(df, aes(x = factor(decile), 
@@ -198,13 +211,16 @@ annualized_per_user_scc <- ggplot(df, aes(x = factor(decile),
   geom_errorbar(aes(ymin = mean_annualized_per_user_scc - sd_annualized_per_user_scc, 
      ymax = mean_annualized_per_user_scc + sd_annualized_per_user_scc),
      position = position_dodge(0.9), width = 0.2, size = 0.2) +
-  scale_fill_brewer(palette = "Spectral", direction = -1) + 
+  geom_text(aes(label = formatC(signif(after_stat(y), 4), 
+      digits = 2, format = "fg", flag = "#")), color = 'black', size = 3, position = 
+      position_dodge(0.9), vjust = -0.5, hjust = 0.5) +
+  scale_fill_viridis_d(direction = 1) + 
   labs(colour = NULL, title = " ", 
-       subtitle = "(d) Annualized SCC per user categorized by cell generation and grouped by deciles.", 
+       subtitle = "(D) Annualized SCC per user categorized by cell generation and grouped by deciles.", 
        x = NULL, y = bquote("Annualized \nSocial Carbon Cost (USD)")) + 
   theme(
     legend.position = 'bottom',
-    axis.text.x = element_text(size = 10, angle = 15),
+    axis.text.x = element_text(size = 10),
     panel.spacing = unit(0.6, "lines"),
     plot.title = element_text(size = 15, face = "bold"),
     plot.subtitle = element_text(size = 13),
@@ -214,7 +230,7 @@ annualized_per_user_scc <- ggplot(df, aes(x = factor(decile),
     legend.text = element_text(size = 9),
     axis.title.x = element_text(size = 10)) +
   expand_limits(y = 0) +
-  guides(fill = guide_legend(ncol = 5, title = 'Cell Generation')) +
+  guides(fill = guide_legend(ncol = 5, title = 'Mobile Technology')) +
   scale_x_discrete(expand = c(0, 0.15)) +
   scale_y_continuous(expand = c(0, 0),
   labels = function(y) format(y, scientific = FALSE),limits = c(0, 12.4))
@@ -227,7 +243,7 @@ aggregate_emissions <- ggarrange(per_user_ghgs, annualized_per_user,
    common.legend = TRUE, legend='bottom') 
 
 path = file.path(folder, 'figures', 'aggregate_emissions.png')
-png(path, units="in", width=11, height=14, res=300)
+png(path, units="in", width=9, height=11, res=300)
 print(aggregate_emissions)
 dev.off()
 
@@ -248,18 +264,6 @@ ggplot(df, aes(x = as.factor(decile), y = mean_ghgs, fill = cell_generation)) +
   geom_errorbar(aes(ymin = mean_ghgs - scaled_sd_ghgs, ymax = mean_ghgs + scaled_sd_ghgs),
                 width = 0.2, position = position_dodge(0.7)) +  # Error bars
   labs(x = "Decile", y = "Mean GHGs", title = "Mean GHGs by Decile and Cell Generation")
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

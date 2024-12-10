@@ -9,7 +9,7 @@ from shapely.wkt import loads
 import geosafi_consav.mobile as mb
 from geosafi_consav.preprocessing import (convert_multipolygon_to_polygon, 
                                           population_decile)
-from mobile_inputs import lut
+from inputs import maritime
 from tqdm import tqdm
 warnings.filterwarnings('ignore')
 pd.options.mode.chained_assignment = None 
@@ -31,7 +31,7 @@ def process_africa_results():
     print('Processing geospatial data')
 
     pop_data = os.path.join(DATA_SSA, 'SSA_area_population.csv')
-    connect_data = os.path.join(DATA_SSA, 'SSA_poor_unconnected.csv')
+    connect_data = os.path.join(DATA_SSA, 'SSA_poor_unconnected.csv') #HERE
 
     df = pd.read_csv(pop_data)
     df[['pop_density_sqkm', 'max_distance_km', 'decile_value', 'decile']] = ''
@@ -66,10 +66,18 @@ def process_africa_results():
                   'geometry'], axis = 1)
 
     df1 = pd.read_csv(connect_data)
+    df1['maritime_km'] = ''
+    for i in range(len(df1)):
+
+        df1['maritime_km'].loc[i] = mb.maritime_distance(df1['iso3'].loc[i], maritime)
+
     df1 = df1[df1['technology'] == '3G']
     df1 = df1[df1['poverty_range'] == 'GSAP2_poor']
     df1 = df1.drop(['region', 'technology', 'poverty_range', 'iso3'], axis = 1)
-    df1 = df1.groupby(['GID_1'])['poor_unconnected'].sum().reset_index()
+    #df1 = df1.groupby(['GID_1'])['poor_unconnected'].sum().reset_index()
+
+    df1 = df1.groupby(['GID_1']).agg(poor_unconnected = ('poor_unconnected', 'sum'),
+        maritime_km = ('maritime_km', 'mean')).reset_index()
 
     df2 = pd.merge(df1, df, on = 'GID_1', how = 'inner')
     df2['poor_unconnected'] = df2['poor_unconnected'].round(0) 
@@ -103,8 +111,8 @@ def model_data():
         total_poor_unconnected = ('poor_unconnected', 'sum'), total_area_sqkm = 
         ('area', 'sum'), total_max_distance_km = ('max_distance_km', 'sum'), 
         mean_poor_connected = ('poor_unconnected', 'mean'), mean_area_sqkm = 
-        ('area', 'mean'), mean_distance_km = ('max_distance_km', 'mean')
-        ).reset_index()
+        ('area', 'mean'), mean_distance_km = ('max_distance_km', 'mean'),
+        maritime_km = ('maritime_km', 'mean')).reset_index()
     coverage_area_4g_base_station = math.pi * 3 ** 2
     coverage_area_5g_base_station = math.pi * 1.6 ** 2
 

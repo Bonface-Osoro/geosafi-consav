@@ -599,7 +599,8 @@ def lca_manufacturing(pcb_emissions_kg, alu_bbu_rru_kg, cu_antenna_kg,
                       room_concrete_kg, room_steel_kg, basic_alu_kg,
                       pcb_carbon_factor, alu_carbon_factor, cu_carbon_factor, 
                       pvc_carbon_factor, fe_carbon_factor, steel_carbon_factor, 
-                      concrete_carbon_factor):
+                      concrete_carbon_factor, smartphone_ghg, ict_ghg,
+                      power_supply_ghg, battery_ghg, users):
     """
     This function calculates the total GHG emissions in the manufacturing 
     phase LCA of mobile broadband using carbon emission factors.
@@ -632,7 +633,16 @@ def lca_manufacturing(pcb_emissions_kg, alu_bbu_rru_kg, cu_antenna_kg,
         Mass of steel ribar used in building machine room.
     basic_alu_kg : float.
         Mass of aluminium used in all basic materials in the base station.
-
+    smartphones_ghg : float.
+        Unit carbon emission factor of smartphone
+    ict_ghg : float.
+        Unit carbon emission factor of ICT equipment
+    power_supply_ghg : float.
+        Unit carbon emission factor of power supply
+    battery_ghg : float.
+        Unit carbon emission factor of battery
+    users : int
+        The number of users. 
     pcb_carbon_factor, alu_carbon_factor, cu_carbon_factor, pvc_carbon_factor, 
     fe_carbon_factor, steel_carbon_factor, concrete_carbon_factor : float.
         Carbon emission factors sof PCB, alumnium, copper, PVC, iron, steel and
@@ -684,11 +694,20 @@ def lca_manufacturing(pcb_emissions_kg, alu_bbu_rru_kg, cu_antenna_kg,
 
     mfg_emission_dict['other_metals_ghg'] = cu_antenna_ghg
 
+    mfg_emission_dict['smartphones_ghg'] = smartphone_ghg * users * 4
+
+    mfg_emission_dict['ict_equipment_ghg'] = ict_ghg * users * 2 * 0.3
+
+    mfg_emission_dict['power_ghg'] = power_supply_ghg * users * 3
+
+    mfg_emission_dict['battery_ghg'] = battery_ghg * users
+
 
     return mfg_emission_dict
 
 
-def lca_transportation(distance_km, consumption_lt_per_km, diesel_factor_kgco2e):
+def lca_transportation(distance_km, consumption_lt_per_km, diesel_factor_kgco2e,
+                       maritime_km, container_ship_kgco2e):
     """
     This function calculates the total GHG emissions in the transportation 
     LCA phase of mobile broadband deployment.
@@ -701,6 +720,10 @@ def lca_transportation(distance_km, consumption_lt_per_km, diesel_factor_kgco2e)
         Fuel consumption of the vehicle per distance.
     diesel_factor_kgco2e : float.
         Carbon emission factor of diesel fuel.
+    maritime_km : float
+        Distance between the port of China and SSA country.
+    container_ship_kgco2e : float
+        Carbon emission factor of a container ship.
 
     Returns
     -------
@@ -709,9 +732,11 @@ def lca_transportation(distance_km, consumption_lt_per_km, diesel_factor_kgco2e)
     """
     trans_emission_dict = {}
 
-    trans_ghg = (distance_km * consumption_lt_per_km * diesel_factor_kgco2e)
+    maritime_ghg = maritime_km * container_ship_kgco2e
 
-    trans_emission_dict['trans_ghg_kg'] = trans_ghg
+    road_ghg = (distance_km * consumption_lt_per_km * diesel_factor_kgco2e)
+
+    trans_emission_dict['trans_ghg_kg'] = maritime_ghg + road_ghg
 
 
     return trans_emission_dict
@@ -748,8 +773,9 @@ def lca_construction(fuel_efficiency, machine_operating_hours,
     return construction_emission_dict
 
 
-def lca_operations(cpe_power_kwh, base_station_power_kwh, number_of_users, 
-                   electricity_kg_co2e):
+def lca_operations(smartphone_kg, ict_kg, base_band_unit_kwh, number_of_users, 
+                   radio_frequency_unit_kwh, epc_center_kwh, cell_generation, 
+                   number_epc_centers, electricity_kg_co2e, base_station_list):
     """
     This function calculates the total GHG emissions due to operation of the 
     fiber broadband
@@ -773,10 +799,30 @@ def lca_operations(cpe_power_kwh, base_station_power_kwh, number_of_users,
 
     operations_emission_dict = {}
 
-    per_user_power = cpe_power_kwh + (base_station_power_kwh / number_of_users)
-    operations_ghg_kg = (per_user_power * electricity_kg_co2e)
+    smartphone_kwh = smartphone_kg * number_of_users
 
-    operations_emission_dict['operations_ghg'] = operations_ghg_kg
+    ict_kwh = ict_kg * number_of_users * 0.3
+
+    end_user_device_kwh = smartphone_kwh + ict_kwh
+    
+    if cell_generation == '4G':
+
+        no_base_stations = base_station_list[0]
+        
+    else:
+
+        no_base_stations = base_station_list[1]
+       
+
+    base_station_kwh = ((base_band_unit_kwh + radio_frequency_unit_kwh) 
+                        * no_base_stations)
+
+    epc_kwh = epc_center_kwh * number_epc_centers
+
+    total_power_kwh = (end_user_device_kwh + base_station_kwh + epc_kwh)
+
+    operations_emission_dict['operations_ghg'] = (total_power_kwh 
+                                                * electricity_kg_co2e)
 
 
     return operations_emission_dict
@@ -901,3 +947,24 @@ def phase_emission_ghg(cell_generation, emission_type_value, base_station_list):
             
 
     return phase_emission_kg
+
+
+def maritime_distance(iso3, maritime_dict):
+    """
+    This function calculates the distance between the origin Port of China and 
+    any SSA country
+
+    Parameters
+    ----------
+    iso3 : string.
+        Country ISO3.
+    maritime_dict : dict
+        Dictionary containing ISO3 codes as keys and distances as values.
+
+    Returns
+    -------
+    distance_km : float
+        Distance between the two ports
+    """
+
+    return maritime_dict.get(iso3, None)

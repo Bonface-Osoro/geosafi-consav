@@ -208,6 +208,8 @@ def run_uq_processing_emission():
         print('Cannot locate uq_parameters_emission.csv')
 
     df = pd.read_csv(path)
+    df['number_epc_centers'] = ''
+    df['number_epc_centers'] = (df['mean_poor_connected'] * 1 / 150280)
     df = df.to_dict('records')
 
     results = []
@@ -227,7 +229,9 @@ def run_uq_processing_emission():
                     item['pcb_kg_co2e'], item['aluminium_kg_co2e'], 
                     item['copper_kg_co2e'], item['pvc_kg_co2e'], 
                     item['iron_kg_co2e'], item['steel_kg_co2e'], 
-                    item['concrete_kg_co2e'])
+                    item['concrete_kg_co2e'], item['smartphone_kg'],
+                    item['ict_equipment_kg'], item['power_supply_kg'],
+                    item['lithium_battery_kg'], item['mean_poor_connected'])
         
         aluminium_mfg_ghg = (lca_mfg['aluminium_ghg'])
         steel_iron_mfg_ghg = (lca_mfg['steel_iron_ghg'])
@@ -243,7 +247,9 @@ def run_uq_processing_emission():
         
         lca_trans = mb.lca_transportation(item['mean_distance_km'], 
                                           item['consumption_lt_per_km'], 
-                                          item['diesel_factor_kgco2e'])
+                                          item['diesel_factor_kgco2e'],
+                                          item['maritime_km'],
+                                          item['container_ship_kgco2e'])
         
         total_trans_ghg_kg = (lca_trans['trans_ghg_kg'])
         total_trans_ghg_kg = mb.phase_emission_ghg(item['cell_generation'], 
@@ -256,11 +262,16 @@ def run_uq_processing_emission():
         total_construction_ghg = (lca_constr['construction_ghg'])
         total_construction_ghg = mb.phase_emission_ghg(item['cell_generation'], 
                             total_construction_ghg, base_station_number)
-
-        lca_ops = mb.lca_operations(item['cpe_kwh'], 
-                                    item['base_station_power_kwh'], 
+        
+        lca_ops = mb.lca_operations(item['smartphone_kwh'], item['ict_kwh'],
+                                    item['base_band_unit_kwh'], 
                                     item['mean_poor_connected'], 
-                                    item['electricity_kg_co2e'])
+                                    item['radio_frequency_kwh'],
+                                    item['epc_center_kwh'], 
+                                    item['cell_generation'],
+                                    item['number_epc_centers'],
+                                    item['electricity_kg_co2e'],
+                                    base_station_number)
         
         total_operations_ghg = (lca_ops['operations_ghg'])
         total_operations_ghg = mb.phase_emission_ghg(item['cell_generation'], 
@@ -334,10 +345,10 @@ def run_uq_processing_emission():
 if __name__ == '__main__':
 
     print('Running mobile broadband capacity model')
-    run_uq_processing_capacity()
+    #run_uq_processing_capacity()
 
     print('Running mobile broadband cost model')
     #run_uq_processing_cost()
 
     print('Running mobile broadband emissions model')
-    #run_uq_processing_emission()
+    run_uq_processing_emission()

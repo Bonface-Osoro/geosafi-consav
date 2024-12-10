@@ -13,12 +13,12 @@ folder <- dirname(rstudioapi::getSourceEditorContext()$path)
 data <- read.csv(file.path(folder, '..', 'results', 'cellular', 'mobile_capacity_results.csv'))
 data$decile = factor(data$decile, levels = c('Decile 1', 'Decile 2', 'Decile 3', 
      'Decile 4', 'Decile 5', 'Decile 6', 'Decile 7', 'Decile 8', 'Decile 9', 
-     'Decile 10'), labels = c('Decile 1 \n(>958 per km²)', 
-     'Decile 2 \n(456 - 957 per km²)', 'Decile 3 \n(273 - 455 per km²)', 
-     'Decile 4 \n(172 - 272 per km²)', 'Decile 5 \n(107 - 171 per km²)', 
-     'Decile 6 \n(64 - 106 per km²)', 'Decile 7 \n(40 - 63 per km²)', 
-     'Decile 8 \n(22 - 39 per km²)', 'Decile 9 \n(10 - 21 per km²)', 
-     'Decile 10 \n(<9 per km²)'))
+     'Decile 10'), labels = c('Decile 1 \n(>958 km²)', 
+    'Decile 2 \n(<957 km²)', 'Decile 3 \n(<455 km²)', 
+    'Decile 4 \n(<272 km²)', 'Decile 5 \n(<171 km²)', 
+    'Decile 6 \n(<106 km²)', 'Decile 7 \n(<63 km²)', 
+    'Decile 8 \n(<39 km²)', 'Decile 9 \n(<21 km²)', 
+    'Decile 10 \n(<9 km²)'))
 
 ###############
 ## Path loss ##
@@ -32,10 +32,10 @@ df = data %>%
 
 path_loss <- ggplot(df, aes(trans_user_dist_km, mean, color = cell_generation)) +
   geom_line(position = position_dodge(width = 0.5), size = 0.7) +
-  labs(colour = 'Cell Generation', title = "Mobile Signal results.", 
-       subtitle = "(a) Path loss.", 
+  labs(colour = 'Mobile Technology', title = "Mobile Signal results.", 
+       subtitle = "(A) Path loss.", 
        x = NULL, y = "Path loss (dB)") + 
-  scale_color_brewer(palette = "Set1", direction = -1) +
+  scale_color_viridis_d(direction = 1) +
   theme(
     legend.position = 'bottom',
     axis.text.x = element_text(size = 10),
@@ -61,10 +61,10 @@ df = data %>%
 
 received_power <- ggplot(df, aes(trans_user_dist_km, mean, color = cell_generation)) +
   geom_line(position = position_dodge(width = 0.5), size = 0.7) +
-  labs(colour = 'Cell Generation', title = " ", 
-       subtitle = "(b) Received power.", 
+  labs(colour = 'Mobile Technology', title = " ", 
+       subtitle = "(B) Received power.", 
        x = NULL, y = "Received power (dB)") + 
-  scale_color_brewer(palette = "Set1", direction = -1) +
+  scale_color_viridis_d(direction = 1) +
   theme(
     legend.position = 'bottom',
     axis.text.x = element_text(size = 10),
@@ -89,10 +89,10 @@ df = data %>%
 
 cnr <- ggplot(df, aes(trans_user_dist_km, mean, color = cell_generation)) +
   geom_line(position = position_dodge(width = 0.5), size = 0.7) +
-  labs(colour = 'Cell Generation', title = " ", 
-       subtitle = "(c) Carrier-to-noise ratio.", 
+  labs(colour = 'Mobile Technology', title = " ", 
+       subtitle = "(C) Carrier-to-noise ratio.", 
        x = NULL, y = "Carrier-to-noise ratio (dB)") + 
-  scale_color_brewer(palette = "Set1", direction = -1) +
+  scale_color_viridis_d(direction = 1)  +
   theme(
     legend.position = 'bottom',
     axis.text.x = element_text(size = 10),
@@ -111,12 +111,12 @@ cnr <- ggplot(df, aes(trans_user_dist_km, mean, color = cell_generation)) +
 data <- read.csv(file.path(folder, '..', 'results', 'SSA', 'SSA_decile_capacity.csv'))
 data$decile = factor(data$decile, levels = c('Decile 1', 'Decile 2', 'Decile 3', 
      'Decile 4', 'Decile 5', 'Decile 6', 'Decile 7', 'Decile 8', 'Decile 9', 
-     'Decile 10'), labels = c('Decile 1 \n(>958 per km²)', 
-     'Decile 2 \n(456 - 957 per km²)', 'Decile 3 \n(273 - 455 per km²)', 
-     'Decile 4 \n(172 - 272 per km²)', 'Decile 5 \n(107 - 171 per km²)', 
-     'Decile 6 \n(64 - 106 per km²)', 'Decile 7 \n(40 - 63 per km²)', 
-     'Decile 8 \n(22 - 39 per km²)', 'Decile 9 \n(10 - 21 per km²)', 
-     'Decile 10 \n(<9 per km²)'))
+     'Decile 10'), labels = c('Decile 1 \n(>958 km²)', 
+    'Decile 2 \n(<957 km²)', 'Decile 3 \n(<455 km²)', 
+    'Decile 4 \n(<272 km²)', 'Decile 5 \n(<171 km²)', 
+    'Decile 6 \n(<106 km²)', 'Decile 7 \n(<63 km²)', 
+    'Decile 8 \n(<39 km²)', 'Decile 9 \n(<21 km²)', 
+    'Decile 10 \n(<9 km²)'))
 
 df = data %>%
   group_by(cell_generation, decile) %>%
@@ -127,13 +127,16 @@ capacity_per_user <- ggplot(df, aes(x = decile, y = mean, fill = cell_generation
   geom_bar(stat = "identity", position = position_dodge(), width = 0.9) +
   geom_errorbar(aes(ymin = mean - sd, ymax = mean + sd), width = .2,
                 position = position_dodge(.9), color = 'black',size = 0.2) + 
-  scale_fill_brewer(palette = "Spectral", direction = -1) + 
+  geom_text(aes(label = formatC(signif(after_stat(y), 4), 
+      digits = 2, format = "fg", flag = "#")), color = 'black', size = 3, position = 
+      position_dodge(0.9), vjust = -0.4, hjust = 1) +
+  scale_fill_viridis_d(direction = 1) +
   labs(colour = NULL, title = "Mobile broadband capacity results", 
-       subtitle = "(a) Per user capacity categorized by cell generation and grouped by deciles.", 
+       subtitle = "(A) Per user capacity categorized by cell generation and grouped by deciles.", 
        x = NULL, y = "Capacity (Mbps/user)") +
   theme(
     legend.position = 'bottom',
-    axis.text.x = element_text(size = 10, angle = 15),
+    axis.text.x = element_text(size = 10),
     panel.spacing = unit(0.6, "lines"),
     plot.title = element_text(size = 15, face = "bold"),
     plot.subtitle = element_text(size = 13),
@@ -143,7 +146,7 @@ capacity_per_user <- ggplot(df, aes(x = decile, y = mean, fill = cell_generation
     legend.text = element_text(size = 9),
     axis.title.x = element_text(size = 10)) +
   expand_limits(y = 0) +
-  guides(fill = guide_legend(ncol = 5, title = 'Cell Generation')) +
+  guides(fill = guide_legend(ncol = 5, title = 'Mobile Technology')) +
   scale_x_discrete(expand = c(0, 0.15)) +
   scale_y_continuous(expand = c(0, 0),
   labels = function(y) format(y, scientific = FALSE),limits = c(0, 0.6))
@@ -160,13 +163,16 @@ per_area_capacity <- ggplot(df, aes(x = decile, y = mean, fill = cell_generation
   geom_bar(stat = "identity", position = position_dodge(), width = 0.9) +
   geom_errorbar(aes(ymin = mean - sd, ymax = mean + sd), width = .2,
                 position = position_dodge(.9), color = 'black',size = 0.2) + 
-  scale_fill_brewer(palette = "Spectral", direction = -1) + 
+  geom_text(aes(label = formatC(signif(after_stat(y), 4), 
+      digits = 2, format = "fg", flag = "#")), color = 'black', size = 3, position = 
+      position_dodge(0.9), vjust = -0.4, hjust = 1) +
+  scale_fill_viridis_d(direction = 1) +
   labs(colour = NULL, title = " ", 
-       subtitle = "(b) Per area capacity categorized by cell generation and grouped by deciles.", 
+       subtitle = "(B) Per area capacity categorized by cell generation and grouped by deciles.", 
        x = NULL, y = "Capacity (Mbps per km²)") +
   theme(
     legend.position = 'bottom',
-    axis.text.x = element_text(size = 10, angle = 15),
+    axis.text.x = element_text(size = 10),
     panel.spacing = unit(0.6, "lines"),
     plot.title = element_text(size = 15, face = "bold"),
     plot.subtitle = element_text(size = 13),
@@ -176,7 +182,7 @@ per_area_capacity <- ggplot(df, aes(x = decile, y = mean, fill = cell_generation
     legend.text = element_text(size = 9),
     axis.title.x = element_text(size = 10)) +
   expand_limits(y = 0) +
-  guides(fill = guide_legend(ncol = 5, title = 'Cell Generation')) +
+  guides(fill = guide_legend(ncol = 5, title = 'Mobile Technology')) +
   scale_x_discrete(expand = c(0, 0.15)) +
   scale_y_continuous(expand = c(0, 0),
   labels = function(y) format(y, scientific = FALSE),limits = c(0, 199))
