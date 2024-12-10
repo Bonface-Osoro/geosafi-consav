@@ -377,6 +377,22 @@ def multigeneration_cell_emissions(i, mobile_params):
             mobile_params['basic_aluminium_device_low_kg'], 
             mobile_params['basic_aluminium_device_high_kg'])
         
+        smartphone_kg = random.randint(
+            mobile_params['smartphone_low_kg'], 
+            mobile_params['smartphone_high_kg'])
+
+        ict_equipment_kg = random.uniform(
+            mobile_params['ict_equipment_low_kg'], 
+            mobile_params['ict_equipment_high_kg'])
+        
+        power_supply_kg = random.uniform(
+            mobile_params['power_supply_low_kg'], 
+            mobile_params['power_supply_high_kg'])
+        
+        lithium_battery_kg = random.uniform(
+            mobile_params['lithium_battery_low_kg'], 
+            mobile_params['lithium_battery_high_kg'])
+
         consumption_lt_per_km = random.uniform(
             mobile_params['consumption_low_lt_per_km'], 
             mobile_params['consumption_high_lt_per_km'])
@@ -388,6 +404,21 @@ def multigeneration_cell_emissions(i, mobile_params):
         machine_operation_hrs = random.randint(
             mobile_params['machine_operation_low_hrs'], 
             mobile_params['machine_operation_high_hrs'])
+
+        smartphone_kwh = random.uniform(mobile_params['smartphone_low_kwh'], 
+            mobile_params['smartphone_high_kwh'])
+        
+        ict_kwh = random.uniform(mobile_params['ict_low_kwh'], 
+            mobile_params['ict_high_kwh'])
+        
+        base_band_unit_kwh = random.uniform(mobile_params['base_band_unit_low_kwh'], 
+            mobile_params['base_band_unit_high_kwh'])
+        
+        radio_frequency_kwh = random.uniform(mobile_params['radio_frequency_low_kwh'], 
+            mobile_params['radio_frequency_high_kwh'])
+        
+        epc_center_kwh = random.uniform(mobile_params['epc_center_low_kwh'], 
+            mobile_params['epc_center_high_kwh'])
         
         cpe_kwh = random.uniform(mobile_params['cpe_low_kwh'], 
             mobile_params['cpe_high_kwh'])
@@ -412,6 +443,10 @@ def multigeneration_cell_emissions(i, mobile_params):
             'machine_concrete_kg' : machine_concrete_kg,
             'machine_steel_kg' : machine_steel_kg,
             'basic_aluminium_device_kg' : basic_aluminium_device_kg,
+            'smartphone_kg' : smartphone_kg,
+            'ict_equipment_kg' : ict_equipment_kg,
+            'power_supply_kg' : power_supply_kg,
+            'lithium_battery_kg' : lithium_battery_kg,
             'pcb_kg_co2e' : mobile_params['pcb_kg_co2e'],
             'aluminium_kg_co2e' : mobile_params['aluminium_kg_co2e'],
             'copper_kg_co2e' : mobile_params['copper_kg_co2e'],
@@ -424,11 +459,17 @@ def multigeneration_cell_emissions(i, mobile_params):
             'plastics_factor_kgco2e' : mobile_params['plastics_factor_kgco2'],
             'metals_factor_kgco2e' : mobile_params['metals_factor_kgco2'],
             'diesel_factor_kgco2e' : mobile_params['diesel_factor_kgco2e'],
+            'container_ship_kgco2e' : mobile_params['container_ship_kgco2e'],
             'consumption_lt_per_km' : consumption_lt_per_km,
             'machine_fuel_eff_lt_per_hr' : machine_fuel_eff_lt_per_hr,
             'machine_operation_hrs' : machine_operation_hrs,
             'cpe_kwh' : cpe_kwh,
+            'smartphone_kwh' : smartphone_kwh,
+            'ict_kwh' : ict_kwh,
+            'base_band_unit_kwh' : base_band_unit_kwh,
             'base_station_power_kwh' : base_station_power_kwh,
+            'radio_frequency_kwh' : radio_frequency_kwh,
+            'epc_center_kwh' : epc_center_kwh,
             'assessment_period' : mobile_params['assessment_period'],
             'social_carbon_cost_usd' : mobile_params['social_carbon_cost_usd'],
             'decile' : decile,
@@ -488,10 +529,10 @@ if __name__ == '__main__':
     random.seed(10)
 
     print('Running uq_capacity_inputs_generator()')
-    uq_inputs_capacity(parameters)
+    #uq_inputs_capacity(parameters)
 
     print('Running uq_cost_inputs_generator()')
     #uq_inputs_costs(parameters)
 
     print('Running uq_inputs_emissions_generator()')
-    #uq_inputs_emissions(parameters)
+    uq_inputs_emissions(parameters)
