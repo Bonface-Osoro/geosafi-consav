@@ -43,8 +43,7 @@ df$decile = factor(df$decile, levels = c('Decile 1', 'Decile 2', 'Decile 3',
 df$poverty_range = factor(
   df$poverty_range,
   levels = c('GSAP2_poor', 'GSAP2_po_1', 'GSAP2_po_2'),
-  labels = c('Below $US 1.9', 'Below $US 3.2', 
-             'Below $US 5.5'))
+  labels = c('Below US$ 1.9', 'Below US$ 3.2', 'Below US$ 5.5'))
 
 poor_population_region <-
   ggplot(df,  aes(x = decile, y = poor_pop/1e6, fill = poverty_range)) +
@@ -55,7 +54,7 @@ poor_population_region <-
             vjust = 0.5, hjust = -0.3) +
   labs(colour = NULL,
        title = 'SSA Population below poverty line.',
-       subtitle = '(a) Absolute Population',
+       subtitle = '(A) Absolute Population',
        x = NULL,
        y = 'Poor Population (in millions)',
        fill = NULL) +
@@ -108,8 +107,7 @@ df$decile = factor(df$decile, levels = c('Decile 1', 'Decile 2', 'Decile 3',
 df$poverty_range = factor(
   df$poverty_range,
   levels = c('GSAP2_poor', 'GSAP2_po_1', 'GSAP2_po_2'),
-  labels = c('Below $US 1.9', 'Below $US 3.2', 
-             'Below $US 5.5'))
+  labels = c('Below US$ 1.9', 'Below US$ 3.2', 'Below US$ 5.5'))
 
 df$perc = (df$poor_pop / df$total_pop) * 100
 
@@ -120,7 +118,7 @@ relative_region_poor_population <-
                                 digits = 3,format = 'fg', flag = '#')), size = 2,
             position = position_dodge(0.9), vjust = 0.5, hjust = -0.1) +
   labs(colour = NULL, title = ' ',
-       subtitle = '(b) Relative Population.', x = NULL,
+       subtitle = '(B) Relative Population.', x = NULL,
        y = 'Percentage of Population (%)', fill = NULL) +
   theme(legend.position = 'bottom',
         axis.text.x = element_text(size = 5),
@@ -161,7 +159,7 @@ data$rel_pop = (data$poor_pops / data$total_pops) * 100
 data$poverty_range = factor(
   data$poverty_range,
   levels = c('GSAP2_poor', 'GSAP2_po_1', 'GSAP2_po_2'),
-  labels = c('Below $US 1.9', 'Below $US 3.2', 'Below $US 5.5'))
+  labels = c('Below US$ 1.9', 'Below US$ 3.2', 'Below US$ 5.5'))
 
 merged_data <- merge(africa_shp, data, by = "GID_1")
 
@@ -179,7 +177,7 @@ poverty_maps <- ggplot() +
   geom_sf(data = merged_data, aes(fill = population_bin), 
           linewidth = 0.001,) +
   scale_fill_viridis_d(direction = 1) +
-  labs(title = "(c) Relative population below poverty line in SSA.",
+  labs(title = "(C) Relative population below poverty line in SSA.",
        subtitle = "Aggregated by normalized sub-regional population and grouped by poverty rate.",
        fill = "Range") +
   theme(
@@ -255,7 +253,7 @@ unconnected_population_geotype <-
             vjust = 0.5, hjust = -0.3) +
   labs(colour = NULL,
        title = 'Uncovered population in SSA.',
-       subtitle = '(a) Absolute population by deciles',
+       subtitle = '(A) Absolute population by deciles',
        x = NULL,
        y = 'Uncovered Population (in millions)',
        fill = NULL) +
@@ -315,7 +313,7 @@ relative_geo_tech_uncovered_population <-
                                 digits = 3,format = 'fg', flag = '#')), size = 2,
             position = position_dodge(0.9), vjust = 0.5, hjust = -0.1)+
   labs(colour = NULL, title = ' ',
-       subtitle = '(b) Relative population by deciles', x = NULL,
+       subtitle = '(B) Relative population by deciles', x = NULL,
        y = 'Percentage of Population (%)', fill = NULL) +
   theme(legend.position = 'bottom',
         axis.text.x = element_text(size = 5),
@@ -380,7 +378,7 @@ uncovered_technology <- ggplot() +
   geom_sf(data = merged_data, aes(fill = population_bin), 
           linewidth = 0.001,) +
   scale_fill_viridis_d(direction = 1) +
-  labs(title = "(c) Uncovered population in SSA.",
+  labs(title = "(C) Uncovered population in SSA.",
        subtitle = "Aggregated by normalized sub-regional population and grouped by mobile technology.",
        fill = "Population") +
   theme(
@@ -451,7 +449,7 @@ data = data %>%
 data$poverty_range = factor(
   data$poverty_range,
   levels = c('GSAP2_poor', 'GSAP2_po_1', 'GSAP2_po_2'),
-  labels = c('Below $US 1.9', 'Below $US 3.2', 'Below $US 5.5'))
+  labels = c('Below US$ 1.9', 'Below US$ 3.2', 'Below US$ 5.5'))
 
 merged_data <- merge(africa_shp, data, by = "GID_1")
 pop_bins <- c(-Inf, 10, 20, 30, 40, 50, 60, 
@@ -467,7 +465,7 @@ uncovered_2g_poor <- ggplot() +
           linewidth = 0.001,) +
   scale_fill_viridis_d(direction = 1) +
   labs(title = "Relative uncovered and below poverty line population expressed as a percentage of the total population.",
-       subtitle = "(a) Uncovered by (2G).",
+       subtitle = "(A) Uncovered by (2G).",
        fill = "Population") +
   theme(
     legend.position = 'bottom',
@@ -509,7 +507,7 @@ data = data %>%
 data$poverty_range = factor(
   data$poverty_range,
   levels = c('GSAP2_poor', 'GSAP2_po_1', 'GSAP2_po_2'),
-  labels = c('Below $US 1.9', 'Below $US 3.2', 'Below $US 5.5'))
+  labels = c('Below US$ 1.9', 'Below US$ 3.2', 'Below US$ 5.5'))
 
 merged_data <- merge(africa_shp, data, by = "GID_1")
 pop_bins <- c(-Inf, 10, 20, 30, 40, 50, 60, 
@@ -525,7 +523,7 @@ uncovered_3g_poor <- ggplot() +
           linewidth = 0.001,) +
   scale_fill_viridis_d(direction = 1) +
   labs(title = ' ',
-       subtitle = "(b) Uncovered by (3G).",
+       subtitle = "(B) Uncovered by (3G).",
        fill = "Population") +
   theme(
     legend.position = 'bottom',
@@ -566,7 +564,7 @@ data = data %>%
 data$poverty_range = factor(
   data$poverty_range,
   levels = c('GSAP2_poor', 'GSAP2_po_1', 'GSAP2_po_2'),
-  labels = c('Below $US 1.9', 'Below $US 3.2', 'Below $US 5.5'))
+  labels = c('Below US$ 1.9', 'Below US$ 3.2', 'Below US$ 5.5'))
 
 merged_data <- merge(africa_shp, data, by = "GID_1")
 pop_bins <- c(-Inf, 10, 20, 30, 40, 50, 60, 
@@ -582,7 +580,7 @@ uncovered_4g_poor <- ggplot() +
           linewidth = 0.001,) +
   scale_fill_viridis_d(direction = 1) +
   labs(title =' ',
-       subtitle = "(c) Uncovered by (4G).",
+       subtitle = "(C) Uncovered by (4G).",
        fill = "Population") +
   theme(
     legend.position = 'bottom',
@@ -625,7 +623,7 @@ df$technology = factor(
 df$poverty_range = factor(
   df$poverty_range,
   levels = c('GSAP2_poor', 'GSAP2_po_1', 'GSAP2_po_2'),
-  labels = c('Below $US 1.9', 'Below $US 3.2', 'Below $US 5.5'))
+  labels = c('Below US$ 1.9', 'Below US$ 3.2', 'Below US$ 5.5'))
 
 df$decile = factor(df$decile, levels = c('Decile 1', 'Decile 2', 'Decile 3', 
    'Decile 4', 'Decile 5', 'Decile 6', 'Decile 7', 'Decile 8', 'Decile 9', 
@@ -645,7 +643,7 @@ uncovered_poor_population <-
             vjust = 0.5, hjust = -0.3) +
   labs(colour = NULL,
        title = 'Uncovered and population below poverty line.',
-       subtitle = '(a) Absolute population.',
+       subtitle = '(A) Absolute population.',
        x = NULL,
        y = 'Uncovered and population below poverty line (`000`)',
        fill = NULL) +
@@ -692,7 +690,7 @@ df$technology = factor(
 df$poverty_range = factor(
   df$poverty_range,
   levels = c('GSAP2_poor', 'GSAP2_po_1', 'GSAP2_po_2'),
-  labels = c('Below $US 1.9', 'Below $US 3.2', 'Below $US 5.5'))
+  labels = c('Below US$ 1.9', 'Below US$ 3.2', 'Below US$ 5.5'))
 
 df$decile = factor(df$decile, levels = c('Decile 1', 'Decile 2', 'Decile 3', 
    'Decile 4', 'Decile 5', 'Decile 6', 'Decile 7', 'Decile 8', 'Decile 9', 

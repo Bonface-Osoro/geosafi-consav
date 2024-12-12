@@ -132,7 +132,7 @@ capacity_per_user <- ggplot(df, aes(x = decile, y = mean, fill = cell_generation
       position_dodge(0.9), vjust = -0.4, hjust = 1) +
   scale_fill_viridis_d(direction = 1) +
   labs(colour = NULL, title = "Mobile broadband capacity results", 
-       subtitle = "(A) Per user capacity categorized by cell generation and grouped by deciles.", 
+       subtitle = "(D) Per user capacity categorized by cell generation and grouped by deciles.", 
        x = NULL, y = "Capacity (Mbps/user)") +
   theme(
     legend.position = 'bottom',
@@ -168,7 +168,7 @@ per_area_capacity <- ggplot(df, aes(x = decile, y = mean, fill = cell_generation
       position_dodge(0.9), vjust = -0.4, hjust = 1) +
   scale_fill_viridis_d(direction = 1) +
   labs(colour = NULL, title = " ", 
-       subtitle = "(B) Per area capacity categorized by cell generation and grouped by deciles.", 
+       subtitle = "(E) Per area capacity categorized by cell generation and grouped by deciles.", 
        x = NULL, y = "Capacity (Mbps per km²)") +
   theme(
     legend.position = 'bottom',
