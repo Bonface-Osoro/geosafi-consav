@@ -773,7 +773,8 @@ def lca_construction(fuel_efficiency, machine_operating_hours,
     return construction_emission_dict
 
 
-def lca_operations(smartphone_kg, ict_kg, base_band_unit_kwh, number_of_users, 
+def lca_operations(smartphone_kg, ict_kg, base_band_unit_kwh, 
+                   remote_radio_unit_kwh, number_of_users, 
                    radio_frequency_unit_kwh, epc_center_kwh, cell_generation, 
                    number_epc_centers, electricity_kg_co2e, base_station_list):
     """
