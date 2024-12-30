@@ -20,7 +20,7 @@ BASE_PATH = CONFIG['file_locations']['base_path']
 CELL_RESULTS = os.path.join(BASE_PATH, '..', 'results', 'cellular')
 DATA_RESULTS = os.path.join(BASE_PATH, '..', 'results', 'final')
 DATA_SSA = os.path.join(BASE_PATH, '..', 'results', 'SSA')
-
+VALID = os.path.join(BASE_PATH, '..', 'validation')
 
 def process_africa_results():
 
@@ -31,7 +31,8 @@ def process_africa_results():
     print('Processing geospatial data')
 
     pop_data = os.path.join(DATA_SSA, 'SSA_area_population.csv')
-    connect_data = os.path.join(DATA_SSA, 'SSA_poor_unconnected.csv') #HERE
+    connect_data = os.path.join(DATA_SSA, 'SSA_poor_unconnected.csv') 
+    gni_data = os.path.join(VALID, 'monthly_broadband_costs.csv') 
 
     df = pd.read_csv(pop_data)
     df[['pop_density_sqkm', 'max_distance_km', 'decile_value', 'decile']] = ''
@@ -61,10 +62,14 @@ def process_africa_results():
     for i in range(len(df)):
 
         df['decile'].loc[i] = population_decile(df['decile_value'].loc[i])
-    
-    df = df.drop(['region', 'decile_value', 'latitude', 'longitude', 'iso3', 
-                  'geometry'], axis = 1)
 
+    gni = pd.read_csv(gni_data)
+    gni = gni[['code', 'cost_per_1GB']]
+    df = pd.merge(df, gni, left_on = 'iso3', right_on = 'code')
+
+    df = df.drop(['region', 'decile_value', 'latitude', 'longitude', 'iso3', 
+                  'code', 'geometry'], axis = 1)
+    
     df1 = pd.read_csv(connect_data)
     df1['maritime_km'] = ''
     for i in range(len(df1)):
@@ -112,7 +117,8 @@ def model_data():
         ('area', 'sum'), total_max_distance_km = ('max_distance_km', 'sum'), 
         mean_poor_connected = ('poor_unconnected', 'mean'), mean_area_sqkm = 
         ('area', 'mean'), mean_distance_km = ('max_distance_km', 'mean'),
-        maritime_km = ('maritime_km', 'mean')).reset_index()
+        maritime_km = ('maritime_km', 'mean'), gni = ('cost_per_1GB', 'mean')
+        ).reset_index()
     coverage_area_4g_base_station = math.pi * 3 ** 2
     coverage_area_5g_base_station = math.pi * 1.6 ** 2
 
@@ -225,11 +231,12 @@ def decile_cost_per_user():
                                           / df['assessment_years'])
     
     df['monthly_per_user_cost_usd'] = (df['annualized_per_user_cost_usd'] / 12)
-    
 
+    df['affordability_ratio'] = df['monthly_per_user_cost_usd'] / df['gni_usd']
+    
     df = df[['cell_generation', 'decile', 'per_user_tco_usd',
              'total_base_station_tco_usd', 'annualized_per_user_cost_usd', 
-             'monthly_per_user_cost_usd']]
+             'monthly_per_user_cost_usd', 'affordability_ratio', 'gni_usd']]
 
     df['technology'] = 'cellular'
     filename = 'SSA_decile_costs.csv'
@@ -258,13 +265,14 @@ def decile_capacity_per_user():
     ################### Per user costs #####################
     
     df['per_user_capacity_mbps'] = (df['base_station_capacity_mbps'] / 
-                                 df['total_poor_unconnected'])
+                                 (df['total_poor_unconnected'] * 
+                                  df['network_load_perc']))
     
     df['per_area_capacity_mbps'] = (df['base_station_capacity_mbps'] / 
                                  df['mean_area_sqkm'])
     
-    df = df[['cell_generation', 'decile', 'per_user_capacity_mbps', 
-             'per_area_capacity_mbps']]
+    df = df[['cell_generation', 'decile', 'network_load_perc', 
+             'per_user_capacity_mbps', 'per_area_capacity_mbps']]
 
     df['technology'] = 'cellular'
     filename = 'SSA_decile_capacity.csv'
@@ -282,9 +290,9 @@ def decile_capacity_per_user():
 
 
 if __name__ == '__main__':
-
-    decile_capacity_per_user()
+    
+    #decile_capacity_per_user()
 
     decile_cost_per_user()
 
-    decile_emissions_per_user()
+    #decile_emissions_per_user()

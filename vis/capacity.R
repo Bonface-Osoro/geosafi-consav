@@ -118,21 +118,25 @@ data$decile = factor(data$decile, levels = c('Decile 1', 'Decile 2', 'Decile 3',
     'Decile 8 \n(<39 km²)', 'Decile 9 \n(<21 km²)', 
     'Decile 10 \n(<9 km²)'))
 
+data$network_load_perc = factor(data$network_load_perc,
+    levels = c(0.25, 0.5, 0.75),
+    labels = c('Low (0.25%)', 'Baseline (50%)', 'High (75%)'))
+
 df = data %>%
-  group_by(cell_generation, decile) %>%
+  group_by(cell_generation, decile, network_load_perc) %>%
   summarize(mean = mean(per_user_capacity_mbps),
             sd = sd(per_user_capacity_mbps))
 
 capacity_per_user <- ggplot(df, aes(x = decile, y = mean, fill = cell_generation)) +
   geom_bar(stat = "identity", position = position_dodge(), width = 0.9) +
   geom_errorbar(aes(ymin = mean - sd, ymax = mean + sd), width = .2,
-                position = position_dodge(.9), color = 'black',size = 0.2) + 
+                position = position_dodge(.9), color = 'red',size = 0.2) + 
   geom_text(aes(label = formatC(signif(after_stat(y), 4), 
       digits = 2, format = "fg", flag = "#")), color = 'black', size = 3, position = 
       position_dodge(0.9), vjust = -0.4, hjust = 1) +
   scale_fill_viridis_d(direction = 1) +
   labs(colour = NULL, title = "Mobile broadband capacity results", 
-       subtitle = "(D) Per user capacity categorized by cell generation and grouped by deciles.", 
+       subtitle = "(D) Per user capacity categorized by cell generation, network load and grouped by deciles.", 
        x = NULL, y = "Capacity (Mbps/user)") +
   theme(
     legend.position = 'bottom',
@@ -144,32 +148,34 @@ capacity_per_user <- ggplot(df, aes(x = decile, y = mean, fill = cell_generation
     axis.title.y = element_text(size = 10),
     legend.title = element_text(size = 10),
     legend.text = element_text(size = 9),
+    strip.text = element_text(size = 11),
     axis.title.x = element_text(size = 10)) +
   expand_limits(y = 0) +
   guides(fill = guide_legend(ncol = 5, title = 'Mobile Technology')) +
   scale_x_discrete(expand = c(0, 0.15)) +
   scale_y_continuous(expand = c(0, 0),
-  labels = function(y) format(y, scientific = FALSE),limits = c(0, 0.6))
+  labels = function(y) format(y, scientific = FALSE),limits = c(0, 1250)) +
+  facet_wrap( ~ network_load_perc, nrow = 3)
 
 ####################################
 ## Base Station per Area Capacity ##
 ####################################
 df = data %>%
   group_by(cell_generation, decile) %>%
-  summarize(mean = mean(per_area_capacity_mbps),
-            sd = sd(per_area_capacity_mbps))
+  summarize(mean = mean(per_area_capacity_mbps/1e3),
+            sd = sd(per_area_capacity_mbps/1e3))
 
 per_area_capacity <- ggplot(df, aes(x = decile, y = mean, fill = cell_generation)) +
   geom_bar(stat = "identity", position = position_dodge(), width = 0.9) +
   geom_errorbar(aes(ymin = mean - sd, ymax = mean + sd), width = .2,
-                position = position_dodge(.9), color = 'black',size = 0.2) + 
+                position = position_dodge(.9), color = 'red',size = 0.2) + 
   geom_text(aes(label = formatC(signif(after_stat(y), 4), 
       digits = 2, format = "fg", flag = "#")), color = 'black', size = 3, position = 
       position_dodge(0.9), vjust = -0.4, hjust = 1) +
   scale_fill_viridis_d(direction = 1) +
   labs(colour = NULL, title = " ", 
        subtitle = "(E) Per area capacity categorized by cell generation and grouped by deciles.", 
-       x = NULL, y = "Capacity (Mbps per km²)") +
+       x = NULL, y = "Capacity (Gbps per km²)") +
   theme(
     legend.position = 'bottom',
     axis.text.x = element_text(size = 10),
@@ -195,7 +201,7 @@ aggregate_signals <- ggarrange(path_loss, received_power, cnr,
      common.legend = TRUE, legend='bottom') 
 
 aggregate_capacities <- ggarrange(aggregate_signals, capacity_per_user, 
-     per_area_capacity, nrow = 3, #align = c('hv'),
+     nrow = 2, heights = c(1, 3), #align = c('hv'),
      common.legend = TRUE, legend='bottom') 
 
 path = file.path(folder, 'figures', 'aggregate_capacities.png')

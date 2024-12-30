@@ -31,7 +31,7 @@ monthly_price <- ggplot(data = data) +
   geom_sf(aes(fill = cost_bin), linewidth = 0.02) + 
   scale_fill_viridis_d(na.value = "grey50",direction = -1,
       name = "Broadband GNI",
-      labels = function(x) ifelse(is.na(x), "Missing Data", x)) +
+      labels = function(x) ifelse(is.na(x), "No Data", x)) +
   labs(colour = NULL, 
        title = "Broadband price",
        subtitle = "Average cost of broadband service per month.") + 
@@ -52,14 +52,14 @@ monthly_price <- ggplot(data = data) +
 ##################################
 gni_bins <- c(-Inf, 3, 5, 10, 15, 20, 30, 40, 50, Inf)
 data$gni_bin <- cut(data$broadband_gni, breaks = gni_bins, labels = 
-                      c("Below 2", "2.1 - 5", "5.1 - 10", "10.1 - 15", 
-                        "15.1 - 20", "20.1 - 30", "30.1 - 40", "40.1 - 50", "Above 50"))
+    c("Below 2", "2.1 - 5", "5.1 - 10", "10.1 - 15", 
+    "15.1 - 20", "20.1 - 30", "30.1 - 40", "40.1 - 50", "Above 50"))
 
 gni_per_capita <- ggplot(data = data) +
   geom_sf(aes(fill = gni_bin), linewidth = 0.02) + 
   scale_fill_viridis_d(na.value = "grey50", 
      name = "Broadband GNI",
-     labels = function(x) ifelse(is.na(x), "Missing Data", x)) +
+     labels = function(x) ifelse(is.na(x), "No Data", x)) +
   labs(colour = NULL, 
        title = "Monthly broadband price",
        subtitle = "Expressed as a percentage of monthly GNI per capita.") + 
@@ -87,7 +87,7 @@ monthly_income <- ggplot(data = data) +
   geom_sf(aes(fill = income_bin), linewidth = 0.02) + 
   scale_fill_viridis_d(na.value = "grey50",
                     name = "Income (US$)",
-                    labels = function(x) ifelse(is.na(x), "Missing Data", x)) +
+                    labels = function(x) ifelse(is.na(x), "No Data", x)) +
   labs(colour = NULL, 
        title = "Income",
        subtitle = "Average monthly income in SSA countries.") + 
@@ -116,7 +116,7 @@ cost_GB <- ggplot(data = data) +
   geom_sf(aes(fill = gb_bin), linewidth = 0.02) + 
   scale_fill_viridis_d(na.value = "grey50",
                        name = "Income (US$)",
-                       labels = function(x) ifelse(is.na(x), "Missing Data", x)) +
+                       labels = function(x) ifelse(is.na(x), "No Data", x)) +
   labs(colour = NULL, 
        title = "Cost per GB",
        subtitle = "Average cost of broadband per gigabyte (GB).") + 
