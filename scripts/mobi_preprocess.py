@@ -103,6 +103,7 @@ def multigeneration_cell_capacity(i, mobile_params):
                     'building_penetration_loss_db' : (
                         mobile_params['building_penetration_loss_db']),
                     'antenna_sectors' : mobile_params['antenna_sectors'],
+                    'subcarriers' : mobile_params['subcarriers'],
                     'system_temperature_k' : mobile_params['system_temperature_k'],
                     'network_load' : network,
                     'decile' : decile
@@ -532,7 +533,7 @@ if __name__ == '__main__':
     #uq_inputs_capacity(parameters)
 
     print('Running uq_cost_inputs_generator()')
-    #uq_inputs_costs(parameters)
+    uq_inputs_costs(parameters)
 
     print('Running uq_inputs_emissions_generator()')
-    uq_inputs_emissions(parameters)
+    #uq_inputs_emissions(parameters)

@@ -74,9 +74,9 @@ def run_uq_processing_capacity():
         channel_capacity_mbps = (mb.calc_channel_capacity(
             spectral_efficiency_bpshz, item['channel_bandwidth_mhz']))
         
-        base_station_capacity_mbps = ((mb.base_station_tco(
+        base_station_capacity_mbps = ((mb.base_station(
             item['cell_generation'], channel_capacity_mbps, base_station_number)
-            ) * item['antenna_sectors']) 
+            ) * item['antenna_sectors']) * item['subcarriers']
         
         results.append({
             'cell_generation' : item['cell_generation'],
@@ -157,7 +157,7 @@ def run_uq_processing_cost():
         total_cost_ownership = mb.total_cost_ownership(capex_cost_usd, 
                 opex_cost_usd, item['discount_rate'], item['assessment_years'])
         
-        total_base_station_tco = mb.base_station_tco(item['cell_generation'], 
+        total_base_station_tco = mb.base_station(item['cell_generation'], 
                             total_cost_ownership, base_station_number)
         
         results.append({
@@ -171,6 +171,7 @@ def run_uq_processing_cost():
             'total_base_station_tco_usd' : total_base_station_tco,
             'total_poor_unconnected' : item['total_poor_unconnected'],
             'mean_poor_connected' : item['mean_poor_connected'],
+            'gni_usd' : item['gni'],
             'no_of_4g_base_stations' : item['no_of_4g_base_stations'],
             'no_of_5g_base_stations' : item['no_of_5g_base_stations'],
             'assessment_years' : item['assessment_years'],
@@ -348,7 +349,7 @@ if __name__ == '__main__':
     #run_uq_processing_capacity()
 
     print('Running mobile broadband cost model')
-    #run_uq_processing_cost()
+    run_uq_processing_cost()
 
     print('Running mobile broadband emissions model')
-    run_uq_processing_emission()
+    #run_uq_processing_emission()
