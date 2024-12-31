@@ -33,14 +33,14 @@ df = data %>%
 tco_per_user <- ggplot(df, aes(x = decile, y = mean, fill = cell_generation)) +
   geom_bar(stat = "identity", position = position_dodge(), width = 0.9) +
   geom_errorbar(aes(ymin = mean - sd, ymax = mean + sd), width = .2,
-    position = position_dodge(.9), color = 'black',size = 0.2) + 
+    position = position_dodge(.9), color = 'red',size = 0.2) + 
   geom_text(aes(label = formatC(signif(after_stat(y), 4), 
      digits = 2, format = "fg", flag = "#")), color = 'black', size = 3, position = 
      position_dodge(0.9), vjust = -0.4, hjust = 1) +
   scale_fill_viridis_d(direction = 1) + 
   labs(colour = NULL, title = "Mobile broadband Total Cost of Ownership (TCO)", 
        subtitle = "(A) Per user TCO categorized by cell generation and grouped by deciles.", 
-       x = NULL, y = "Costs (USD per user)") + 
+       x = NULL, y = "Costs (US$ per user)") + 
   theme(
     legend.position = 'bottom',
     axis.text.x = element_text(size = 10),
@@ -56,7 +56,7 @@ tco_per_user <- ggplot(df, aes(x = decile, y = mean, fill = cell_generation)) +
     guides(fill = guide_legend(ncol = 5, title = 'Mobile Technology')) +
     scale_x_discrete(expand = c(0, 0.15)) +
     scale_y_continuous(expand = c(0, 0),
-    labels = function(y) format(y, scientific = FALSE),limits = c(0, 2199))
+    labels = function(y) format(y, scientific = FALSE),limits = c(0, 3399))
 
 ########################################
 ## Annualized Total Cost of Ownership ##
@@ -71,14 +71,14 @@ anualized_tco_per_user <- ggplot(df, aes(x = decile, y = mean,
                                   fill = cell_generation)) +
   geom_bar(stat = "identity", position = position_dodge(), width = 0.9) +
   geom_errorbar(aes(ymin = mean - sd, ymax = mean + sd), width = .2,
-                position = position_dodge(.9), color = 'black',size = 0.2) + 
+                position = position_dodge(.9), color = 'red',size = 0.2) + 
   geom_text(aes(label = formatC(signif(after_stat(y), 4), 
       digits = 2, format = "fg", flag = "#")), color = 'black', size = 3, position = 
       position_dodge(0.9), vjust = -0.4, hjust = 1) +
   scale_fill_viridis_d(direction = 1) + 
   labs(colour = NULL, title = " ", 
        subtitle = "(B) Annualized per user TCO categorized by cell generation and grouped by deciles.", 
-       x = NULL, y = "Costs (USD per user)") + 
+       x = NULL, y = "Costs (US$ per user)") + 
   theme(
     legend.position = 'bottom',
     axis.text.x = element_text(size = 10),
@@ -94,7 +94,7 @@ anualized_tco_per_user <- ggplot(df, aes(x = decile, y = mean,
   guides(fill = guide_legend(ncol = 5, title = 'Mobile Technology')) +
   scale_x_discrete(expand = c(0, 0.15)) +
   scale_y_continuous(expand = c(0, 0),
-  labels = function(y) format(y, scientific = FALSE),limits = c(0, 229))
+  labels = function(y) format(y, scientific = FALSE),limits = c(0, 339))
 
 
 #####################################
@@ -109,14 +109,14 @@ df = data %>%
 monthly_tco_per_user <- ggplot(df, aes(x = decile, y = mean, fill = cell_generation)) +
   geom_bar(stat = "identity", position = position_dodge(), width = 0.9) +
   geom_errorbar(aes(ymin = mean - sd, ymax = mean + sd), width = .2,
-                position = position_dodge(.9), color = 'black',size = 0.2) + 
+                position = position_dodge(.9), color = 'red',size = 0.2) + 
   geom_text(aes(label = formatC(signif(after_stat(y), 4), 
      digits = 2, format = "fg", flag = "#")), color = 'black', size = 3, position = 
      position_dodge(0.9), vjust = -0.4, hjust = 1) +
   scale_fill_viridis_d(direction = 1) + 
   labs(colour = NULL, title = " ", 
        subtitle = "(C) Monthly per user TCO categorized by cell generation and grouped by deciles.", 
-       x = NULL, y = "Costs (USD per user)") + 
+       x = NULL, y = "Costs (US$ per user)") + 
   theme(
     legend.position = 'bottom',
     axis.text.x = element_text(size = 10),

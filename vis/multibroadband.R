@@ -301,19 +301,19 @@ per_user_scc <-
 sat_cost <- subset(
   read.csv(file.path(folder, '..', '..', 'saleos', 'results', 'SSA', 
                      'SSA_decile_cost.csv')), constellation == "Starlink")
-sat_cost <- sat_cost[, c("technology", "decile", "affordability_ratio")]
+sat_cost <- sat_cost[, c("technology", "decile", "percent_gni")]
 
 cell_cost <- subset(
   read.csv(file.path(folder, '..', 'results', 'SSA', 
                      'SSA_decile_costs.csv')), cell_generation == "4G")
 cell_cost <- cell_cost[, c("technology", "decile", 
-                           "affordability_ratio")]
+                           "percent_gni")]
 
 fib_cost <- subset(
   read.csv(file.path(folder, '..', '..', 'glassfiber', 'results', 'SSA', 
                      'SSA_fiber_cost_results.csv')), algorithm == "pcsf" & 
     strategy == "access")
-fib_cost <- fib_cost[, c("technology", "decile", "affordability_ratio")]
+fib_cost <- fib_cost[, c("technology", "decile", "percent_gni")]
 df1 <- rbind(sat_cost, cell_cost, fib_cost)
 
 df1$decile = factor(df1$decile, levels = c('Decile 1', 'Decile 2', 'Decile 3', 
@@ -327,8 +327,8 @@ df1$decile = factor(df1$decile, levels = c('Decile 1', 'Decile 2', 'Decile 3',
 
 df1 = df1 %>%
   group_by(technology, decile) %>%
-  summarize(mean = mean(affordability_ratio),
-            sd = sd(affordability_ratio))
+  summarize(mean = mean(percent_gni),
+            sd = sd(percent_gni))
 
 df1$technology <- factor(df1$technology,
    levels = c('fiber', 'cellular', 'satellite'),
@@ -344,27 +344,190 @@ affordability_cost <-
   geom_errorbar(aes(ymin = mean - sd, ymax = mean + sd), width = .1,
                 position = position_dodge(.9), color = 'red',size = 0.5) + 
   geom_text(aes(label = formatC(round(after_stat(y), 2), 
-    digits = 2, format = "fg", flag = "#")), color = 'black', size = 3, position = 
-    position_dodge(0.9), vjust = -0.2, hjust = 1) +
+      digits = 2, format = "fg", flag = "#")), color = 'black', size = 4, position = 
+      position_dodge(0.9), vjust = -0.2, hjust = 1) +
   scale_fill_viridis_d(direction = 1) + 
   labs(colour = NULL, title = "(A) Multibroadband Technology Affordability Comparison", 
-       subtitle = "Calculated by dividing user monthly cost by average monthly broadband price", 
+       subtitle = "Cost of broadband expressed as a percentage of average monthly GNI per capita", 
        x = "Population Density Decile (Population per km²)", 
        y = bquote("Cost ratio")) +
   theme(
     legend.position = 'bottom',
     axis.text.x = element_text(size = 11),
     panel.spacing = unit(0.6, "lines"),
-    plot.title = element_text(size = 14, face = "bold"),
-    plot.subtitle = element_text(size = 14),
-    axis.text.y = element_text(size = 10),
-    axis.title.y = element_text(size = 12),
+    plot.title = element_text(size = 16, face = "bold"),
+    plot.subtitle = element_text(size = 16),
+    axis.text.y = element_text(size = 12),
+    axis.title.y = element_text(size = 14),
     legend.title = element_text(size = 12),
     legend.text = element_text(size = 12),
     axis.title.x = element_text(size = 12)
   ) + expand_limits(y = 0) +
   guides(fill = guide_legend(ncol = 3, title = 'Technology')) +
   theme(strip.text = element_text(size = 14))
+
+##########################
+## MOBILE AFFORDABILITY ##
+##########################
+cell_cost <- subset(
+  read.csv(file.path(folder, '..', 'results', 'SSA', 
+                     'SSA_decile_costs.csv')))
+cell_cost = cell_cost %>%
+  group_by(cell_generation, decile) %>%
+  summarize(mean = mean(percent_gni),
+            sd = sd(percent_gni))
+
+cell_cost$decile = factor(cell_cost$decile, levels = c('Decile 1', 'Decile 2', 
+   'Decile 3', 'Decile 4', 'Decile 5', 'Decile 6', 'Decile 7', 'Decile 8', 
+   'Decile 9', 'Decile 10'), labels = c('Decile 1 \n(>958 km²)', 
+  'Decile 2 \n(<957 km²)', 'Decile 3 \n(<455 km²)', 
+  'Decile 4 \n(<272 km²)', 'Decile 5 \n(<171 km²)', 
+  'Decile 6 \n(<106 km²)', 'Decile 7 \n(<63 km²)', 
+  'Decile 8 \n(<39 km²)', 'Decile 9 \n(<21 km²)', 
+  'Decile 10 \n(<9 km²)'))
+
+cell_affordability <- ggplot(cell_cost, aes(x = decile, y = mean, fill = cell_generation)) +
+  geom_bar(stat = "identity", position = position_dodge(), width = 0.9) +
+  geom_errorbar(aes(ymin = mean - sd, ymax = mean + sd), width = .2,
+                position = position_dodge(.9), color = 'red',size = 0.2) + 
+  geom_text(aes(label = formatC(signif(after_stat(y), 4), 
+                                digits = 2, format = "fg", flag = "#")), color = 'black', size = 3, position = 
+              position_dodge(0.9), vjust = -0.4, hjust = 1) +
+  scale_fill_viridis_d(direction = 1) + 
+  labs(colour = NULL, title = "Broadband Affordability", 
+       subtitle = "(A) Mobile monthly broadband cost expressed as a percentage of average monthly GNI per capita.", 
+       x = NULL, y = "Percentage of \nmonthly GNI per capita (%)") + 
+  theme(
+    legend.position = 'bottom',
+    axis.text.x = element_text(size = 10),
+    panel.spacing = unit(0.6, "lines"),
+    plot.title = element_text(size = 15, face = "bold"),
+    plot.subtitle = element_text(size = 11),
+    axis.text.y = element_text(size = 10),
+    axis.title.y = element_text(size = 10),
+    legend.title = element_text(size = 10),
+    legend.text = element_text(size = 9),
+    axis.title.x = element_text(size = 10)) +
+  expand_limits(y = 0) +
+  guides(fill = guide_legend(ncol = 5, title = 'Mobile Technology')) +
+  scale_x_discrete(expand = c(0, 0.15)) +
+  scale_y_continuous(expand = c(0, 0),
+  labels = function(y) format(y, scientific = FALSE),limits = c(0, 44))
+
+#########################
+## FIBER AFFORDABILITY ##
+#########################
+fiber_cost <- subset(
+  read.csv(file.path(folder, '..', '..', 'glassfiber', 'results', 'SSA', 
+                     'SSA_fiber_cost_results.csv')), algorithm == "pcsf" & 
+    strategy == "access")
+
+cell_filtered <- cell_cost#[cell_cost$cell_generation == "4G", ]
+colnames(cell_filtered)[colnames(cell_filtered) == "mean"] <- "values"
+columns_to_drop <- c("sd")#, "cell_generation")
+cell_filtered <- cell_filtered[, !(colnames(cell_filtered) %in% columns_to_drop)]
+
+fiber_cost = fiber_cost %>%
+  group_by(algorithm, decile) %>%
+  summarize(mean = mean(percent_gni),
+            sd = sd(percent_gni))
+
+fiber_cost$decile = factor(fiber_cost$decile, levels = c('Decile 1', 'Decile 2', 
+  'Decile 3', 'Decile 4', 'Decile 5', 'Decile 6', 'Decile 7', 'Decile 8', 
+  'Decile 9', 'Decile 10'), labels = c('Decile 1 \n(>958 km²)', 
+  'Decile 2 \n(<957 km²)', 'Decile 3 \n(<455 km²)', 
+  'Decile 4 \n(<272 km²)', 'Decile 5 \n(<171 km²)', 
+  'Decile 6 \n(<106 km²)', 'Decile 7 \n(<63 km²)', 
+  'Decile 8 \n(<39 km²)', 'Decile 9 \n(<21 km²)', 
+  'Decile 10 \n(<9 km²)'))
+
+fiber_cost <- merge(fiber_cost, cell_filtered, by = "decile", all = TRUE)
+fiber_cost$percent_gni <- fiber_cost$values + fiber_cost$mean
+
+fiber_cost$cell_generation <- factor(fiber_cost$cell_generation,
+    levels = c('4G', '5G'),
+    labels = c('Fiber + 4G', 'Fiber + 5G'))
+
+fib_affordability <- ggplot(fiber_cost, aes(x = decile, y = percent_gni, 
+                                            fill = cell_generation)) +
+  geom_bar(stat = "identity", position = position_dodge(), width = 0.9) +
+  geom_errorbar(aes(ymin = percent_gni - sd, ymax = percent_gni + sd), width = .2,
+     position = position_dodge(.9), color = 'red',size = 0.2) + 
+  geom_text(aes(label = formatC(signif(after_stat(y), 4), 
+     digits = 2, format = "fg", flag = "#")), color = 'black', size = 3, position = 
+     position_dodge(0.9), vjust = -0.4, hjust = 1) +
+  scale_fill_viridis_d(direction = 1) + 
+  labs(colour = NULL, title = " ", 
+       subtitle = "(B) Fiber monthly broadband cost expressed as a percentage of average monthly GNI per capita.", 
+       x = NULL, y = "Percentage of \nmonthly GNI per capita (%)") + 
+  theme(
+    legend.position = 'bottom',
+    axis.text.x = element_text(size = 10),
+    panel.spacing = unit(0.6, "lines"),
+    plot.title = element_text(size = 15, face = "bold"),
+    plot.subtitle = element_text(size = 11),
+    axis.text.y = element_text(size = 10),
+    axis.title.y = element_text(size = 10),
+    legend.title = element_text(size = 10),
+    legend.text = element_text(size = 9),
+    axis.title.x = element_text(size = 10)) +
+  expand_limits(y = 0) +
+  guides(fill = guide_legend(ncol = 5, title = 'Last Mile Access')) +
+  scale_x_discrete(expand = c(0, 0.15)) +
+  scale_y_continuous(expand = c(0, 0),
+  labels = function(y) format(y, scientific = FALSE),limits = c(0, 44))
+
+#############################
+## SATELLITE AFFORDABILITY ##
+#############################
+sat_cost <- subset(
+  read.csv(file.path(folder, '..', '..', 'saleos', 'results', 'SSA', 
+                     'SSA_decile_cost.csv')), constellation != "GEO")
+sat_cost = sat_cost %>%
+  group_by(constellation, decile) %>%
+  summarize(mean = mean(percent_gni),
+            sd = sd(percent_gni))
+
+sat_cost$constellation <- factor(sat_cost$constellation,
+     levels = c('Starlink', 'OneWeb', 'Kuiper'),
+     labels = c('Starlink', 'OneWeb', 'Kuiper'))
+
+sat_cost$decile = factor(sat_cost$decile, levels = c('Decile 1', 'Decile 2', 
+  'Decile 3', 'Decile 4', 'Decile 5', 'Decile 6', 'Decile 7', 'Decile 8', 
+  'Decile 9', 'Decile 10'), labels = c('Decile 1 \n(>958 km²)', 
+  'Decile 2 \n(<957 km²)', 'Decile 3 \n(<455 km²)', 
+  'Decile 4 \n(<272 km²)', 'Decile 5 \n(<171 km²)', 
+  'Decile 6 \n(<106 km²)', 'Decile 7 \n(<63 km²)', 
+  'Decile 8 \n(<39 km²)', 'Decile 9 \n(<21 km²)', 
+  'Decile 10 \n(<9 km²)'))
+
+sat_affordability <- ggplot(sat_cost, aes(x = decile, y = mean, fill = constellation)) +
+  geom_bar(stat = "identity", position = position_dodge(), width = 0.9) +
+  geom_errorbar(aes(ymin = mean - sd, ymax = mean + sd), width = .2,
+                position = position_dodge(.9), color = 'red',size = 0.2) + 
+  geom_text(aes(label = formatC(signif(after_stat(y), 2), 
+     digits = 2, format = "fg", flag = "#")), color = 'black', size = 2.5, position = 
+     position_dodge(0.9), vjust = -0.4, hjust = 1) +
+  scale_fill_viridis_d(direction = 1) + 
+  labs(colour = NULL, title = " ", 
+       subtitle = "(C) Satellite monthly broadband cost expressed as a percentage of average monthly GNI per capita.", 
+       x = NULL, y = "Percentage of \nmonthly GNI per capita (%)") + 
+  theme(
+    legend.position = 'bottom',
+    axis.text.x = element_text(size = 10),
+    panel.spacing = unit(0.6, "lines"),
+    plot.title = element_text(size = 15, face = "bold"),
+    plot.subtitle = element_text(size = 11),
+    axis.text.y = element_text(size = 10),
+    axis.title.y = element_text(size = 10),
+    legend.title = element_text(size = 10),
+    legend.text = element_text(size = 9),
+    axis.title.x = element_text(size = 10)) +
+  expand_limits(y = 0) +
+  guides(fill = guide_legend(ncol = 5, title = 'Constellation')) +
+  scale_x_discrete(expand = c(0, 0.15)) +
+  scale_y_continuous(expand = c(0, 0),
+  labels = function(y) format(y, scientific = FALSE),limits = c(0, 44))
 
 #########################
 ## PANEL USER EMISSION ##
@@ -377,4 +540,21 @@ path = file.path(folder, 'figures', 'emissions_multibroadband.png')
 png(path, units="in", width=12, height=11, res=300)
 print(aggregate_emissions)
 dev.off()
+
+path = file.path(folder, 'figures', 'affordability_multibroadband.png')
+png(path, units="in", width=14, height=9, res=300)
+print(affordability_cost)
+dev.off()
+
+aggregate_affordability <- ggarrange(cell_affordability, 
+       fib_affordability, sat_affordability,
+        ncol = 1, nrow = 3, align = c('hv'),
+        common.legend = FALSE, legend='bottom')
+
+path = file.path(folder, 'figures', 'affordability_technologies.png')
+png(path, units="in", width=9, height=11, res=300)
+print(aggregate_affordability)
+dev.off()
+
+
 
