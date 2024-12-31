@@ -64,7 +64,8 @@ def process_africa_results():
         df['decile'].loc[i] = population_decile(df['decile_value'].loc[i])
 
     gni = pd.read_csv(gni_data)
-    gni = gni[['code', 'cost_per_1GB']]
+    gni = gni[['code', 'cost_per_1GB', 'monthly_GNI', 'cost_per_month_usd', 
+               'adoption_rate', 'arpu_usd']]
     df = pd.merge(df, gni, left_on = 'iso3', right_on = 'code')
 
     df = df.drop(['region', 'decile_value', 'latitude', 'longitude', 'iso3', 
@@ -117,8 +118,12 @@ def model_data():
         ('area', 'sum'), total_max_distance_km = ('max_distance_km', 'sum'), 
         mean_poor_connected = ('poor_unconnected', 'mean'), mean_area_sqkm = 
         ('area', 'mean'), mean_distance_km = ('max_distance_km', 'mean'),
-        maritime_km = ('maritime_km', 'mean'), gni = ('cost_per_1GB', 'mean')
-        ).reset_index()
+        maritime_km = ('maritime_km', 'mean'), 
+        cost_per_1GB_usd = ('cost_per_1GB', 'mean'),
+        monthly_income_usd = ('monthly_GNI', 'mean'), 
+        cost_per_month_usd = ('cost_per_month_usd', 'mean'), 
+        adoption_rate_perc = ('adoption_rate', 'mean'), 
+        arpu_usd = ('arpu_usd', 'mean')).reset_index()
     coverage_area_4g_base_station = math.pi * 3 ** 2
     coverage_area_5g_base_station = math.pi * 1.6 ** 2
 
@@ -224,19 +229,23 @@ def decile_cost_per_user():
     
     ################### Per user costs #####################
     
-    df['per_user_tco_usd'] = (df['total_base_station_tco_usd'] / 
-                                 df['total_poor_unconnected'])
+    df['per_user_tco_usd'] = ((df['total_base_station_tco_usd'] / 
+                                 df['total_poor_unconnected']) 
+                                 * df['adoption_rate_perc'])
     
     df['annualized_per_user_cost_usd'] = (df['per_user_tco_usd'] 
                                           / df['assessment_years'])
     
     df['monthly_per_user_cost_usd'] = (df['annualized_per_user_cost_usd'] / 12)
 
-    df['affordability_ratio'] = df['monthly_per_user_cost_usd'] / df['gni_usd']
+    df['monthly_price'] = (df['monthly_per_user_cost_usd']) 
+    
+    df['percent_gni'] = df['monthly_price'] / df['monthly_income_usd'] * 100
     
     df = df[['cell_generation', 'decile', 'per_user_tco_usd',
              'total_base_station_tco_usd', 'annualized_per_user_cost_usd', 
-             'monthly_per_user_cost_usd', 'affordability_ratio', 'gni_usd']]
+             'monthly_per_user_cost_usd', 'adoption_rate_perc', 'arpu_usd', 
+             'monthly_income_usd', 'percent_gni', 'monthly_price']]
 
     df['technology'] = 'cellular'
     filename = 'SSA_decile_costs.csv'
@@ -290,6 +299,10 @@ def decile_capacity_per_user():
 
 
 if __name__ == '__main__':
+
+    #process_africa_results()
+
+    #model_data()
     
     #decile_capacity_per_user()
 
