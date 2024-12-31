@@ -229,9 +229,9 @@ def decile_cost_per_user():
     
     ################### Per user costs #####################
     
-    df['per_user_tco_usd'] = ((df['total_base_station_tco_usd'] / 
-                                 df['total_poor_unconnected']) 
-                                 * df['adoption_rate_perc'])
+    df['per_user_tco_usd'] = (df['total_base_station_tco_usd'] / 
+                                 (df['total_poor_unconnected'] 
+                                 * (df['adoption_rate_perc'] / 100)))
     
     df['annualized_per_user_cost_usd'] = (df['per_user_tco_usd'] 
                                           / df['assessment_years'])
