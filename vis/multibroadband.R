@@ -295,6 +295,77 @@ per_user_scc <-
   guides(fill = guide_legend(ncol = 3, title = 'Technology')) +
   theme(strip.text = element_text(size = 14))
 
+###################################
+## MULTITECHNOLOGY AFFORDABILITY ##
+###################################
+sat_cost <- subset(
+  read.csv(file.path(folder, '..', '..', 'saleos', 'results', 'SSA', 
+                     'SSA_decile_cost.csv')), constellation == "Starlink")
+sat_cost <- sat_cost[, c("technology", "decile", "affordability_ratio")]
+
+cell_cost <- subset(
+  read.csv(file.path(folder, '..', 'results', 'SSA', 
+                     'SSA_decile_costs.csv')), cell_generation == "4G")
+cell_cost <- cell_cost[, c("technology", "decile", 
+                           "affordability_ratio")]
+
+fib_cost <- subset(
+  read.csv(file.path(folder, '..', '..', 'glassfiber', 'results', 'SSA', 
+                     'SSA_fiber_cost_results.csv')), algorithm == "pcsf" & 
+    strategy == "access")
+fib_cost <- fib_cost[, c("technology", "decile", "affordability_ratio")]
+df1 <- rbind(sat_cost, cell_cost, fib_cost)
+
+df1$decile = factor(df1$decile, levels = c('Decile 1', 'Decile 2', 'Decile 3', 
+   'Decile 4', 'Decile 5', 'Decile 6', 'Decile 7', 'Decile 8', 'Decile 9', 
+   'Decile 10'), labels = c('Decile 1 \n(>958 km²)', 
+  'Decile 2 \n(<957 km²)', 'Decile 3 \n(<455 km²)', 
+  'Decile 4 \n(<272 km²)', 'Decile 5 \n(<171 km²)', 
+  'Decile 6 \n(<106 km²)', 'Decile 7 \n(<63 km²)', 
+  'Decile 8 \n(<39 km²)', 'Decile 9 \n(<21 km²)', 
+  'Decile 10 \n(<9 km²)'))
+
+df1 = df1 %>%
+  group_by(technology, decile) %>%
+  summarize(mean = mean(affordability_ratio),
+            sd = sd(affordability_ratio))
+
+df1$technology <- factor(df1$technology,
+   levels = c('fiber', 'cellular', 'satellite'),
+   labels = c('Fixed Fiber', 'Mobile', 'Satellite'))
+
+label_totals <- df1 %>%
+  group_by(technology, decile) %>%
+  summarize(mean_value = sum(mean))
+
+affordability_cost <- 
+  ggplot(df1, aes(x = decile, y = mean, fill = technology)) +
+  geom_bar(stat = "identity", position = position_dodge(), width = 0.9) +
+  geom_errorbar(aes(ymin = mean - sd, ymax = mean + sd), width = .1,
+                position = position_dodge(.9), color = 'red',size = 0.5) + 
+  geom_text(aes(label = formatC(round(after_stat(y), 2), 
+    digits = 2, format = "fg", flag = "#")), color = 'black', size = 3, position = 
+    position_dodge(0.9), vjust = -0.2, hjust = 1) +
+  scale_fill_viridis_d(direction = 1) + 
+  labs(colour = NULL, title = "(A) Multibroadband Technology Affordability Comparison", 
+       subtitle = "Calculated by dividing user monthly cost by average monthly broadband price", 
+       x = "Population Density Decile (Population per km²)", 
+       y = bquote("Cost ratio")) +
+  theme(
+    legend.position = 'bottom',
+    axis.text.x = element_text(size = 11),
+    panel.spacing = unit(0.6, "lines"),
+    plot.title = element_text(size = 14, face = "bold"),
+    plot.subtitle = element_text(size = 14),
+    axis.text.y = element_text(size = 10),
+    axis.title.y = element_text(size = 12),
+    legend.title = element_text(size = 12),
+    legend.text = element_text(size = 12),
+    axis.title.x = element_text(size = 12)
+  ) + expand_limits(y = 0) +
+  guides(fill = guide_legend(ncol = 3, title = 'Technology')) +
+  theme(strip.text = element_text(size = 14))
+
 #########################
 ## PANEL USER EMISSION ##
 #########################

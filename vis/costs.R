@@ -103,8 +103,8 @@ anualized_tco_per_user <- ggplot(df, aes(x = decile, y = mean,
 
 df = data %>%
   group_by(cell_generation, decile) %>%
-  summarize(mean = mean(monthly_per_user_cost_usd),
-            sd = sd(monthly_per_user_cost_usd))
+  summarize(mean = mean(monthly_price),
+            sd = sd(monthly_price))
 
 monthly_tco_per_user <- ggplot(df, aes(x = decile, y = mean, fill = cell_generation)) +
   geom_bar(stat = "identity", position = position_dodge(), width = 0.9) +
@@ -132,7 +132,7 @@ monthly_tco_per_user <- ggplot(df, aes(x = decile, y = mean, fill = cell_generat
   guides(fill = guide_legend(ncol = 5, title = 'Mobile Technology')) +
   scale_x_discrete(expand = c(0, 0.15)) +
   scale_y_continuous(expand = c(0, 0),
-  labels = function(y) format(y, scientific = FALSE),limits = c(0, 19))
+  labels = function(y) format(y, scientific = FALSE),limits = c(0, 99))
 
 #####################
 ##PANEL USER COSTS ##
