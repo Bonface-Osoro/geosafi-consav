@@ -50,7 +50,7 @@ per_user_ghgs <- ggplot(df, aes(x = factor(decile), y = mean_phase_per_user,
   scale_fill_viridis_d(direction = 1) + 
   labs(colour = NULL, title = "Mobile broadband Greenhouse Gas (GHG) emissions", 
        subtitle = "(A) Per user GHG emissions categorized by cell generation and grouped by deciles.", 
-       x = NULL, y = bquote("Emissions (kg CO"["2"] ~ " eq./user)")) + 
+       x = NULL, y = bquote("Emissions (kg CO"["2"] ~ " e)")) + 
   theme(
     legend.position = 'bottom',
     axis.text.x = element_text(size = 10),
@@ -105,7 +105,7 @@ annualized_per_user <- ggplot(df, aes(x = factor(decile),
   scale_fill_viridis_d(direction = 1) + 
   labs(colour = NULL, title = " ", 
        subtitle = "(B) Annualized per user GHG emissions categorized by cell generation and grouped by deciles.", 
-       x = NULL, y = bquote("Emissions (kg CO"["2"] ~ " eq./user)")) + 
+       x = NULL, y = bquote("Emissions (kg CO"["2"] ~ " e)")) + 
   theme(
     legend.position = 'bottom',
     axis.text.x = element_text(size = 10),
@@ -160,7 +160,7 @@ per_user_scc <- ggplot(df, aes(x = factor(decile),
   scale_fill_viridis_d(direction = 1) + 
   labs(colour = NULL, title = "Social Cost of Carbon (SCC)", 
        subtitle = "(C) SCC per user categorized by cell generation and grouped by deciles.", 
-       x = NULL, y = "Per user \nSocial Carbon Cost (USD)") + 
+       x = NULL, y = "Per user \nSocial Carbon Cost (US$)") + 
   theme(
     legend.position = 'bottom',
     axis.text.x = element_text(size = 10),
@@ -217,7 +217,7 @@ annualized_per_user_scc <- ggplot(df, aes(x = factor(decile),
   scale_fill_viridis_d(direction = 1) + 
   labs(colour = NULL, title = " ", 
        subtitle = "(D) Annualized SCC per user categorized by cell generation and grouped by deciles.", 
-       x = NULL, y = bquote("Annualized \nSocial Carbon Cost (USD)")) + 
+       x = NULL, y = bquote("Annualized \nSocial Carbon Cost (US$)")) + 
   theme(
     legend.position = 'bottom',
     axis.text.x = element_text(size = 10),

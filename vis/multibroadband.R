@@ -224,7 +224,7 @@ per_user_emissions <-
   labs(colour = NULL, title = "(A) Multibroadband Technology Greenhouse Gas (GHG) emissions Reported Per User", 
        subtitle = "Annualized per user GHG emissions categorized by deciles and grouped by technology.", 
        x = "Population Density Decile (Population per km²)", 
-       y = bquote("Annualized emissions per user (kg CO"["2"] ~ " eq.)")) +
+       y = bquote("Annualized emissions per user (kg CO"["2"] ~ " e)")) +
   theme(
     legend.position = 'bottom',
     axis.text.x = element_text(size = 11),
@@ -347,10 +347,10 @@ affordability_cost <-
       digits = 2, format = "fg", flag = "#")), color = 'black', size = 4, position = 
       position_dodge(0.9), vjust = -0.2, hjust = 1) +
   scale_fill_viridis_d(direction = 1) + 
-  labs(colour = NULL, title = "(A) Multibroadband Technology Affordability Comparison", 
+  labs(colour = NULL, title = "Multibroadband Technology Affordability Comparison", 
        subtitle = "Cost of broadband expressed as a percentage of average monthly GNI per capita", 
        x = "Population Density Decile (Population per km²)", 
-       y = bquote("Cost ratio")) +
+       y = "Percentage of monthly GNI per capita (%)") +
   theme(
     legend.position = 'bottom',
     axis.text.x = element_text(size = 11),
@@ -364,7 +364,10 @@ affordability_cost <-
     axis.title.x = element_text(size = 12)
   ) + expand_limits(y = 0) +
   guides(fill = guide_legend(ncol = 3, title = 'Technology')) +
-  theme(strip.text = element_text(size = 14))
+  theme(strip.text = element_text(size = 14)) +
+  geom_vline(xintercept = 8.15, linetype = "dashed", color = "red", size = 0.5) +
+  annotate("text", x = 8.15, y = 12, label = "Above 2% of monthly GNI per capita", 
+           color = "red", size = 4, angle = 90, vjust = 1.4)
 
 ##########################
 ## MOBILE AFFORDABILITY ##
@@ -391,8 +394,8 @@ cell_affordability <- ggplot(cell_cost, aes(x = decile, y = mean, fill = cell_ge
   geom_errorbar(aes(ymin = mean - sd, ymax = mean + sd), width = .2,
                 position = position_dodge(.9), color = 'red',size = 0.2) + 
   geom_text(aes(label = formatC(signif(after_stat(y), 4), 
-                                digits = 2, format = "fg", flag = "#")), color = 'black', size = 3, position = 
-              position_dodge(0.9), vjust = -0.4, hjust = 1) +
+     digits = 2, format = "fg", flag = "#")), color = 'black', size = 3, position = 
+     position_dodge(0.9), vjust = -0.4, hjust = 1) +
   scale_fill_viridis_d(direction = 1) + 
   labs(colour = NULL, title = "Broadband Affordability", 
        subtitle = "(A) Mobile monthly broadband cost expressed as a percentage of average monthly GNI per capita.", 
@@ -412,7 +415,10 @@ cell_affordability <- ggplot(cell_cost, aes(x = decile, y = mean, fill = cell_ge
   guides(fill = guide_legend(ncol = 5, title = 'Mobile Technology')) +
   scale_x_discrete(expand = c(0, 0.15)) +
   scale_y_continuous(expand = c(0, 0),
-  labels = function(y) format(y, scientific = FALSE),limits = c(0, 44))
+  labels = function(y) format(y, scientific = FALSE),limits = c(0, 44)) +
+  geom_vline(xintercept = 8, linetype = "dashed", color = "red", size = 0.5) +
+  annotate("text", x = 8, y = 25, label = "Above 2% of monthly GNI per capita", 
+           color = "red", size = 2.5, angle = 90, vjust = 1.4)
 
 #########################
 ## FIBER AFFORDABILITY ##
@@ -475,7 +481,10 @@ fib_affordability <- ggplot(fiber_cost, aes(x = decile, y = percent_gni,
   guides(fill = guide_legend(ncol = 5, title = 'Last Mile Access')) +
   scale_x_discrete(expand = c(0, 0.15)) +
   scale_y_continuous(expand = c(0, 0),
-  labels = function(y) format(y, scientific = FALSE),limits = c(0, 44))
+  labels = function(y) format(y, scientific = FALSE),limits = c(0, 44)) +
+  geom_vline(xintercept = 7, linetype = "dashed", color = "red", size = 0.5) +
+  annotate("text", x = 7, y = 25, label = "Above 2% of monthly GNI per capita", 
+           color = "red", size = 2.5, angle = 90, vjust = 1.4)
 
 #############################
 ## SATELLITE AFFORDABILITY ##
@@ -527,7 +536,10 @@ sat_affordability <- ggplot(sat_cost, aes(x = decile, y = mean, fill = constella
   guides(fill = guide_legend(ncol = 5, title = 'Constellation')) +
   scale_x_discrete(expand = c(0, 0.15)) +
   scale_y_continuous(expand = c(0, 0),
-  labels = function(y) format(y, scientific = FALSE),limits = c(0, 44))
+  labels = function(y) format(y, scientific = FALSE),limits = c(0, 44))+
+  geom_vline(xintercept = 6.84, linetype = "dashed", color = "red", size = 0.5) +
+  annotate("text", x = 6.84, y = 25, label = "Above 2% of monthly GNI per capita", 
+           color = "red", size = 2.5, angle = 90, vjust = 1.4)
 
 #########################
 ## PANEL USER EMISSION ##
@@ -555,6 +567,52 @@ path = file.path(folder, 'figures', 'affordability_technologies.png')
 png(path, units="in", width=9, height=11, res=300)
 print(aggregate_affordability)
 dev.off()
+
+#########################
+## AFFORDABILITY  ##
+#########################
+africa_data <- st_read(file.path(folder, '..', '..', 'glassfiber', 'data', 'raw', 
+   'Africa_Boundaries', 'SSA_combined_shapefile.shp'))
+gid_pop <- read.csv(file.path(folder, '..', 'results', 'SSA', 
+                              'SSA_subregional_population_deciles.csv'))
+gid_pop <- gid_pop %>%
+  mutate(choice = case_when(
+    decile %in% c("Decile 10") ~ "Satellite",
+    decile %in% c("Decile 6", "Decile 7", "Decile 8", "Decile 9") ~ "Mobile",
+    decile %in% c("Decile 1", "Decile 2", "Decile 3", "Decile 4", "Decile 5") ~ "Fixed",
+    TRUE ~ NA_character_
+  ))
+merged_data <- merge(africa_data, gid_pop, by = "GID_2")
+
+affordability <- ggplot() + 
+  geom_sf(data = africa_data, fill = "darkslateblue", 
+          color = "black", linewidth = 0.01) +
+  geom_sf(data = merged_data, aes(fill = choice), 
+          linewidth = 0.001,) +
+  scale_fill_viridis_d(direction = 1) +
+  labs(title ='Broadband Technology Map',
+       subtitle = "Preferred broadband technology choice based on population density and affordability.",
+       fill = "Technology Choice") +
+  theme(
+    legend.position = 'bottom',
+    axis.text.x = element_text(size = 14),
+    panel.spacing = unit(0.6, "lines"),
+    plot.title = element_text(size = 18, face = "bold"),
+    plot.subtitle = element_text(size = 16),
+    axis.text.y = element_text(size = 14),
+    axis.title.y = element_text(size = 14),
+    legend.title = element_text(size = 14),
+    legend.text = element_text(size = 14),
+    axis.title.x = element_text(size = 14)) + 
+  guides(fill = guide_legend(nrow = 2)) + 
+  guides(fill = guide_legend(ncol = 5)) 
+
+path = file.path(folder, 'figures', 'preferred_technology_map.png')
+png(path, units = "in", width = 13, height = 13, res = 300)
+print(affordability)
+dev.off()
+
+
 
 
 
