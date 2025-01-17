@@ -707,7 +707,7 @@ relative_uncovered_poor_population <-
   geom_text(aes(label = formatC(signif(after_stat(y), 3), 
                                 digits = 3,format = 'fg', flag = '#')), size = 2,
             position = position_dodge(0.9), vjust = 0.5, hjust = -0.1) +
-  labs(colour = NULL, title = ' ', subtitle = '(b) Relative population.', 
+  labs(colour = NULL, title = ' ', subtitle = '(B) Relative population.', 
        x = NULL,
        y = 'Percentage of uncovered and population below poverty line (%)', 
        fill = NULL) +
