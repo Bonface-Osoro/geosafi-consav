@@ -55,7 +55,7 @@ per_user_capacity <-
   labs(colour = NULL, title = "(A) Multibroadband Technology Capacity Reported Per User", 
        subtitle = "Per user capacity categorized by deciles and grouped by technology.", 
        x = "Population Density Decile (Population per km²)", 
-       y = bquote("Average per user capacity (Mbps/user)")) +
+       y = bquote("Average per user capacity (Mbps)")) +
   theme(
     legend.position = 'bottom',
     axis.text.x = element_text(size = 11),
@@ -130,7 +130,7 @@ per_user_cost <-
   labs(colour = NULL, title = "(B) Multibroadband Technology Cost Reported Per User", 
        subtitle = "Annualized per user cost categorized by deciles and grouped by technology.", 
        x = "Population Density Decile (Population per km²)", 
-       y = bquote("Average per user cost (US$/user)")) +
+       y = bquote("Average per user cost (US$)")) +
   theme(
     legend.position = 'bottom',
     axis.text.x = element_text(size = 11),
