@@ -70,7 +70,7 @@ poor_population_region <-
         axis.title.x = element_text(size = 8)) +
   expand_limits(y = 0) +
   guides(fill = guide_legend(ncol = 5, title = 'Poverty Rate')) +
-  scale_fill_viridis_d(direction = 1) +
+  scale_fill_viridis_d(direction = -1) +
   scale_x_discrete(expand = c(0, 0.15)) +
   scale_y_continuous(expand = c(0, 0),
   labels = function(y) format(y, scientific = FALSE),limits = c(0, 200))
@@ -132,7 +132,7 @@ relative_region_poor_population <-
         axis.title.x = element_text(size = 8)) +
   expand_limits(y = 0) +
   guides(fill = guide_legend(ncol = 5, title = 'Poverty Rate')) +
-  scale_fill_viridis_d(direction = 1) +
+  scale_fill_viridis_d(direction = -1) +
   scale_x_discrete(expand = c(0, 0.15)) +
   scale_y_continuous(expand = c(0, 0), labels = function(y)
     format(y, scientific = FALSE), limits = c(0, 100)) 
@@ -176,7 +176,7 @@ poverty_maps <- ggplot() +
   geom_sf(data = africa_data, fill = "seagreen", color = "black", linewidth = 0.01) +
   geom_sf(data = merged_data, aes(fill = population_bin), 
           linewidth = 0.001,) +
-  scale_fill_viridis_d(direction = 1) +
+  scale_fill_viridis_d(direction = -1) +
   labs(title = "(C) Relative population below poverty line in SSA.",
        subtitle = "Aggregated by normalized sub-regional population and grouped by poverty rate.",
        fill = "Range") +
@@ -269,7 +269,7 @@ unconnected_population_geotype <-
         axis.title.x = element_text(size = 8)) +
   expand_limits(y = 0) +
   guides(fill = guide_legend(ncol = 5, title = 'Mobile Technology')) +
-  scale_fill_viridis_d(direction = 1) +
+  scale_fill_viridis_d(direction = -1) +
   scale_x_discrete(expand = c(0, 0.15)) +
   scale_y_continuous(expand = c(0, 0),
   labels = function(y) format(y, scientific = FALSE),limits = c(0, 149))
@@ -327,7 +327,7 @@ relative_geo_tech_uncovered_population <-
         axis.title.x = element_text(size = 8)) +
   expand_limits(y = 0) +
   guides(fill = guide_legend(ncol = 5, title = 'Mobile Phone Technology')) +
-  scale_fill_viridis_d(direction = 1) +
+  scale_fill_viridis_d(direction = -1) +
   scale_x_discrete(expand = c(0, 0.15)) +
   scale_y_continuous(expand = c(0, 0), labels = function(y)
     format(y, scientific = FALSE), limits = c(0, 109))
@@ -377,7 +377,7 @@ merged_data$population_bin <- cut(merged_data$rel_pop, breaks = pop_bins,
 uncovered_technology <- ggplot() + 
   geom_sf(data = merged_data, aes(fill = population_bin), 
           linewidth = 0.001,) +
-  scale_fill_viridis_d(direction = 1) +
+  scale_fill_viridis_d(direction = -1) +
   labs(title = "(C) Uncovered population in SSA.",
        subtitle = "Aggregated by normalized sub-regional population and grouped by mobile technology.",
        fill = "Population") +
@@ -463,7 +463,7 @@ uncovered_2g_poor <- ggplot() +
   geom_sf(data = africa_data, fill = "palegreen3", color = "black", linewidth = 0.01) +
   geom_sf(data = merged_data, aes(fill = population_bin), 
           linewidth = 0.001,) +
-  scale_fill_viridis_d(direction = 1) +
+  scale_fill_viridis_d(direction = -1) +
   labs(title = "Relative uncovered and below poverty line population expressed as a percentage of the total population.",
        subtitle = "(A) Uncovered by (2G).",
        fill = "Population") +
@@ -521,7 +521,7 @@ uncovered_3g_poor <- ggplot() +
   geom_sf(data = africa_data, fill = "olivedrab2", color = "black", linewidth = 0.01) +
   geom_sf(data = merged_data, aes(fill = population_bin), 
           linewidth = 0.001,) +
-  scale_fill_viridis_d(direction = 1) +
+  scale_fill_viridis_d(direction = -1) +
   labs(title = ' ',
        subtitle = "(B) Uncovered by (3G).",
        fill = "Population") +
@@ -578,7 +578,7 @@ uncovered_4g_poor <- ggplot() +
   geom_sf(data = africa_data, fill = "olivedrab2", color = "black", linewidth = 0.01) +
   geom_sf(data = merged_data, aes(fill = population_bin), 
           linewidth = 0.001,) +
-  scale_fill_viridis_d(direction = 1) +
+  scale_fill_viridis_d(direction = -1) +
   labs(title =' ',
        subtitle = "(C) Uncovered by (4G).",
        fill = "Population") +
@@ -659,7 +659,7 @@ uncovered_poor_population <-
         axis.title.x = element_text(size = 8)) +
   expand_limits(y = 0) +
   guides(fill = guide_legend(ncol = 5, title = 'Mobile Technology')) +
-  scale_fill_viridis_d(direction = 1) +
+  scale_fill_viridis_d(direction = -1) +
   scale_x_discrete(expand = c(0, 0.15)) +
   scale_y_continuous(expand = c(0, 0),
   labels = function(y) format(y, scientific = FALSE),limits = c(0, 12000)) + 
@@ -723,7 +723,7 @@ relative_uncovered_poor_population <-
         axis.title.x = element_text(size = 8)) +
   expand_limits(y = 0) +
   guides(fill = guide_legend(ncol = 5, title = 'Mobile Phone Technology')) +
-  scale_fill_viridis_d(direction = 1) +
+  scale_fill_viridis_d(direction = -1) +
   scale_x_discrete(expand = c(0, 0.15)) +
   scale_y_continuous(expand = c(0, 0), labels = function(y)
     format(y, scientific = FALSE), limits = c(0, 109)) +
@@ -775,16 +775,15 @@ data$decile = factor(data$decile, levels = c('Decile 1', 'Decile 2', 'Decile 3',
 df <- data
 
 total_population <-
-  ggplot(df,  aes(x = decile, y = total_population/1e6, fill = decile)) +
+  ggplot(df,  aes(x = decile, y = total_population/total_area_sqkm, fill = decile)) +
   geom_bar(stat = 'identity', position = position_dodge(0.9)) + 
-  geom_text(aes(label = formatC(signif(after_stat(y), 3), 
-      digits = 3, format = "fg", flag = "#")), size = 3, 
-      position = position_dodge(0.9), vjust = -0.2, hjust = 0.5) +
+  geom_text(aes(label = round(after_stat(y), 0)), size = 3, 
+            position = position_dodge(0.9), vjust = -0.2, hjust = 0.5) +
   labs(colour = NULL,
        title = 'SSA demand results.',
-       subtitle = '(A) Total population grouped by deciles',
+       subtitle = '(A) Population density of the geotypes',
        x = NULL,
-       y = 'Total Population (in millions)',
+       y = 'Population Density (persons per km²)',
        fill = NULL) +
   theme(legend.position = 'none',
         axis.text.x = element_text(size = 8),
@@ -800,7 +799,7 @@ total_population <-
   scale_fill_viridis_d(direction = 1) +
   scale_x_discrete(expand = c(0, 0.15)) +
   scale_y_continuous(expand = c(0, 0),
-  labels = function(y) format(y, scientific = FALSE),limits = c(0, 200))
+  labels = function(y) format(y, scientific = FALSE),limits = c(0, 2300))
 
 
 ###################
@@ -810,8 +809,8 @@ total_area <-
   ggplot(df,  aes(x = decile, y = total_area_sqkm/1e6, fill = decile)) +
   geom_bar(stat = 'identity', position = position_dodge(0.9)) + 
   geom_text(aes(label = formatC(signif(after_stat(y), 3), 
-                                digits = 3, format = "fg", flag = "#")), size = 3, 
-            position = position_dodge(0.9), vjust = -0.2, hjust = 0.5) +
+      digits = 3, format = "fg", flag = "#")), size = 3, 
+      position = position_dodge(0.9), vjust = -0.2, hjust = 0.5) +
   labs(colour = NULL,
        title = ' ',
        subtitle = '(B) Total area grouped by deciles',
@@ -829,7 +828,7 @@ total_area <-
         legend.text = element_text(size = 12),
         axis.title.x = element_text(size = 12)) +
   expand_limits(y = 0) +
-  scale_fill_viridis_d(direction = 1) +
+  scale_fill_viridis_d(direction = -1) +
   scale_x_discrete(expand = c(0, 0.15)) +
   scale_y_continuous(expand = c(0, 0),
   labels = function(y) format(y, scientific = FALSE),limits = c(0, 11))

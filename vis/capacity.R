@@ -35,7 +35,7 @@ path_loss <- ggplot(df, aes(trans_user_dist_km, mean, color = cell_generation)) 
   labs(colour = 'Mobile Technology', title = "Mobile Signal results.", 
        subtitle = "(A) Path loss.", 
        x = NULL, y = "Path loss (dB)") + 
-  scale_color_viridis_d(direction = 1) +
+  scale_color_viridis_d(direction = -1) +
   theme(
     legend.position = 'bottom',
     axis.text.x = element_text(size = 10),
@@ -64,7 +64,7 @@ received_power <- ggplot(df, aes(trans_user_dist_km, mean, color = cell_generati
   labs(colour = 'Mobile Technology', title = " ", 
        subtitle = "(B) Received power.", 
        x = NULL, y = "Received power (dB)") + 
-  scale_color_viridis_d(direction = 1) +
+  scale_color_viridis_d(direction = -1) +
   theme(
     legend.position = 'bottom',
     axis.text.x = element_text(size = 10),
@@ -92,7 +92,7 @@ cnr <- ggplot(df, aes(trans_user_dist_km, mean, color = cell_generation)) +
   labs(colour = 'Mobile Technology', title = " ", 
        subtitle = "(C) Carrier-to-noise ratio.", 
        x = NULL, y = "Carrier-to-noise ratio (dB)") + 
-  scale_color_viridis_d(direction = 1)  +
+  scale_color_viridis_d(direction = -1)  +
   theme(
     legend.position = 'bottom',
     axis.text.x = element_text(size = 10),
@@ -134,7 +134,7 @@ capacity_per_user <- ggplot(df, aes(x = decile, y = mean, fill = cell_generation
   geom_text(aes(label = formatC(signif(after_stat(y), 4), 
       digits = 2, format = "fg", flag = "#")), color = 'black', size = 3, position = 
       position_dodge(0.9), vjust = -0.4, hjust = 1) +
-  scale_fill_viridis_d(direction = 1) +
+  scale_fill_viridis_d(direction = -1) +
   labs(colour = NULL, title = "Mobile broadband capacity results", 
        subtitle = "(D) Per user capacity categorized by cell generation, network load and grouped by deciles.", 
        x = NULL, y = "Capacity (Mbps/user)") +
@@ -172,7 +172,7 @@ per_area_capacity <- ggplot(df, aes(x = decile, y = mean, fill = cell_generation
   geom_text(aes(label = formatC(signif(after_stat(y), 4), 
       digits = 2, format = "fg", flag = "#")), color = 'black', size = 3, position = 
       position_dodge(0.9), vjust = -0.4, hjust = 1) +
-  scale_fill_viridis_d(direction = 1) +
+  scale_fill_viridis_d(direction = -1) +
   labs(colour = NULL, title = " ", 
        subtitle = "(E) Per area capacity categorized by cell generation and grouped by deciles.", 
        x = NULL, y = "Capacity (Gbps per km²)") +

@@ -47,7 +47,7 @@ per_user_ghgs <- ggplot(df, aes(x = factor(decile), y = mean_phase_per_user,
   geom_text(aes(label = formatC(signif(after_stat(y), 4), 
      digits = 2, format = "fg", flag = "#")), color = 'black', size = 3, position = 
      position_dodge(0.9), vjust = -0.5, hjust = 0.5) +
-  scale_fill_viridis_d(direction = 1) + 
+  scale_fill_viridis_d(direction = -1) + 
   labs(colour = NULL, title = "Mobile broadband Greenhouse Gas (GHG) emissions", 
        subtitle = "(A) Per user GHG emissions categorized by cell generation and grouped by deciles.", 
        x = NULL, y = bquote("Emissions (kg CO"["2"] ~ " e)")) + 
@@ -102,7 +102,7 @@ annualized_per_user <- ggplot(df, aes(x = factor(decile),
   geom_text(aes(label = formatC(signif(after_stat(y), 4), 
      digits = 2, format = "fg", flag = "#")), color = 'black', size = 3, position = 
      position_dodge(0.9), vjust = -0.5, hjust = 0.5) +
-  scale_fill_viridis_d(direction = 1) + 
+  scale_fill_viridis_d(direction = -1) + 
   labs(colour = NULL, title = " ", 
        subtitle = "(B) Annualized per user GHG emissions categorized by cell generation and grouped by deciles.", 
        x = NULL, y = bquote("Emissions (kg CO"["2"] ~ " e)")) + 
@@ -121,7 +121,7 @@ annualized_per_user <- ggplot(df, aes(x = factor(decile),
   guides(fill = guide_legend(ncol = 5, title = 'Mobile Technology')) +
   scale_x_discrete(expand = c(0, 0.15)) +
   scale_y_continuous(expand = c(0, 0),
-  labels = function(y) format(y, scientific = FALSE),limits = c(0, 164))
+  labels = function(y) format(y, scientific = FALSE),limits = c(0, 174))
 
 #####################################
 ##SSA per user Social Carbon Cost  ##
@@ -157,7 +157,7 @@ per_user_scc <- ggplot(df, aes(x = factor(decile),
   geom_text(aes(label = formatC(signif(after_stat(y), 4), 
       digits = 2, format = "fg", flag = "#")), color = 'black', size = 3, position = 
       position_dodge(0.9), vjust = -0.5, hjust = 0.5) +
-  scale_fill_viridis_d(direction = 1) + 
+  scale_fill_viridis_d(direction = -1) + 
   labs(colour = NULL, title = "Social Cost of Carbon (SCC)", 
        subtitle = "(C) SCC per user categorized by cell generation and grouped by deciles.", 
        x = NULL, y = "Per user \nSocial Carbon Cost (US$)") + 
@@ -176,7 +176,7 @@ per_user_scc <- ggplot(df, aes(x = factor(decile),
   guides(fill = guide_legend(ncol = 5, title = 'Mobile Technology')) +
   scale_x_discrete(expand = c(0, 0.15)) +
   scale_y_continuous(expand = c(0, 0),
-  labels = function(y) format(y, scientific = FALSE),limits = c(0, 124))
+  labels = function(y) format(y, scientific = FALSE),limits = c(0, 134))
 
 
 ################################################
@@ -214,7 +214,7 @@ annualized_per_user_scc <- ggplot(df, aes(x = factor(decile),
   geom_text(aes(label = formatC(signif(after_stat(y), 4), 
       digits = 2, format = "fg", flag = "#")), color = 'black', size = 3, position = 
       position_dodge(0.9), vjust = -0.5, hjust = 0.5) +
-  scale_fill_viridis_d(direction = 1) + 
+  scale_fill_viridis_d(direction = -1) + 
   labs(colour = NULL, title = " ", 
        subtitle = "(D) Annualized SCC per user categorized by cell generation and grouped by deciles.", 
        x = NULL, y = bquote("Annualized \nSocial Carbon Cost (US$)")) + 
@@ -233,7 +233,7 @@ annualized_per_user_scc <- ggplot(df, aes(x = factor(decile),
   guides(fill = guide_legend(ncol = 5, title = 'Mobile Technology')) +
   scale_x_discrete(expand = c(0, 0.15)) +
   scale_y_continuous(expand = c(0, 0),
-  labels = function(y) format(y, scientific = FALSE),limits = c(0, 12.4))
+  labels = function(y) format(y, scientific = FALSE),limits = c(0, 14.4))
 
 ########################
 ##PANEL USER EMISSIONS##
