@@ -126,7 +126,7 @@ per_user_cost <-
   geom_text(aes(label = formatC(round(after_stat(y), 3), 
                                 digits = 2, format = "fg", flag = "#")), color = 'black', size = 3, position = 
               position_dodge(0.9), vjust = -0.2, hjust = 1) +
-  scale_fill_viridis_d(direction = 1) + 
+  scale_fill_viridis_d(direction = -1) + 
   labs(colour = NULL, title = "(B) Multibroadband Technology Cost Reported Per User", 
        subtitle = "Annualized per user cost categorized by deciles and grouped by technology.", 
        x = "Population Density Decile (Population per km²)", 
@@ -220,7 +220,7 @@ per_user_emissions <-
   geom_text(aes(label = formatC(round(after_stat(y), 3), 
                                 digits = 2, format = "fg", flag = "#")), color = 'black', size = 3, position = 
               position_dodge(0.9), vjust = -0.2, hjust = 1) +
-  scale_fill_viridis_d(direction = 1) + 
+  scale_fill_viridis_d(direction = -1) + 
   labs(colour = NULL, title = "(A) Multibroadband Technology Greenhouse Gas (GHG) emissions Reported Per User", 
        subtitle = "Annualized per user GHG emissions categorized by deciles and grouped by technology.", 
        x = "Population Density Decile (Population per km²)", 
@@ -275,7 +275,7 @@ per_user_scc <-
   geom_text(aes(label = formatC(round(after_stat(y), 3), 
        digits = 2, format = "fg", flag = "#")), color = 'black', size = 3, position = 
        position_dodge(0.9), vjust = -0.2, hjust = 1) +
-  scale_fill_viridis_d(direction = 1) + 
+  scale_fill_viridis_d(direction = -1) + 
   labs(colour = NULL, title = "(B) Multibroadband Technology Social Carbon Cost (SCC) Reported Per User", 
        subtitle = "Annualized per user SCC emissions categorized by deciles and grouped by technology.", 
        x = "Population Density Decile (Population per km²)", 
@@ -346,7 +346,7 @@ affordability_cost <-
   geom_text(aes(label = formatC(round(after_stat(y), 2), 
       digits = 2, format = "fg", flag = "#")), color = 'black', size = 4, position = 
       position_dodge(0.9), vjust = -0.2, hjust = 1) +
-  scale_fill_viridis_d(direction = 1) + 
+  scale_fill_viridis_d(direction = -1) + 
   labs(colour = NULL, title = "Multibroadband Technology Affordability Comparison", 
        subtitle = "Cost of broadband expressed as a percentage of average monthly GNI per capita", 
        x = "Population Density Decile (Population per km²)", 
