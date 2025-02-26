@@ -353,7 +353,7 @@ if __name__ == '__main__':
     #run_uq_processing_capacity()
 
     print('Running mobile broadband cost model')
-    run_uq_processing_cost()
+    #run_uq_processing_cost()
 
     print('Running mobile broadband emissions model')
-    #run_uq_processing_emission()
+    run_uq_processing_emission()

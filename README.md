@@ -20,10 +20,10 @@ Integrated modeling method (see `Figure 1`).
 
 Results
 =======
-`Figure 2` shows the estimated absolute and relative population living below the poverty line.
+`Figure 2` shows the sub-regions in Sub-Saharan Africa classified by the most appropriate and affordable broadband technology based on population density.
 #### Figure 2 Demand Results.
 <p align="center">
-  <img src="/docs/population.png" />
+  <img src="/docs/preferred_technology_map" />
 </p>
 
 ## Required Data
