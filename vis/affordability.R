@@ -12,12 +12,14 @@ folder <- dirname(rstudioapi::getSourceEditorContext()$path)
 
 africa_data <- st_read(file.path(folder, '..', 'data', 'raw', 
               'Africa_Boundaries', 'Africa_Countries.shp'))
+africa_data <- st_read(file.path(folder, '..', 'data', 'raw', 
+                                 'Africa_Boundaries', 'SSA_combined_shapefile.shp'))
 
 filename <- 'monthly_broadband_costs.csv'
 data <- read.csv(file.path(folder, "..", "data", "raw", filename), 
                  stringsAsFactors = FALSE)
 
-data <- africa_data %>% left_join(data, by = "ISO_3DIGIT")
+data <- africa_data %>% left_join(data, by = "GID_0")
 
 ##############################
 ## MONTHLY BROADBAND PRICE ###
@@ -28,7 +30,7 @@ data$cost_bin <- cut(data$cost_per_month_usd, breaks = cost_bins, labels =
    "40.1 - 50", "50.1 - 60", "60.1 - 80", "80.1 - 100", "Above 100"))
 
 monthly_price <- ggplot(data = data) +
-  geom_sf(aes(fill = cost_bin), linewidth = 0.02) + 
+  geom_sf(aes(fill = cost_bin), linewidth = 0.0001) + 
   scale_fill_viridis_d(na.value = "grey50",direction = -1,
       name = "Monthly Cost (US$)",
       labels = function(x) ifelse(is.na(x), "No Data", x)) +
@@ -49,9 +51,7 @@ monthly_price <- ggplot(data = data) +
   guides(fill = guide_legend(nrow = 2)) + 
   guides(fill = guide_legend(ncol = 5)) 
   guides(fill = guide_legend(title = "Monthly Cost (US$)", 
-         reverse = FALSE, ncol = 5)) +
-    annotation_scale(location = "bl", width_hint = 0.5) + 
-    coord_sf(crs = 4326) 
+         reverse = FALSE, ncol = 5)) 
 
 ##################################
 ## BROADBAND PRICE PER CAPITA  ###
@@ -62,23 +62,24 @@ data$gni_bin <- cut(data$broadband_gni, breaks = gni_bins, labels =
     "15.1 - 20", "20.1 - 30", "30.1 - 40", "40.1 - 50", "Above 50"))
 
 gni_per_capita <- ggplot(data = data) +
-  geom_sf(aes(fill = gni_bin), linewidth = 0.02) + 
-  scale_fill_viridis_d(na.value = "grey50", 
+  geom_sf(aes(fill = gni_bin), linewidth = 0.0001) + 
+  scale_fill_viridis_d(na.value = "grey50", direction = -1,
      name = "Broadband GNI",
      labels = function(x) ifelse(is.na(x), "No Data", x)) +
   labs(colour = NULL, 
        title = "Monthly broadband price",
        subtitle = "Expressed as a percentage of monthly GNI per capita.") + 
-  theme(    legend.position = 'bottom',
-            axis.text.x = element_text(size = 14),
-            panel.spacing = unit(0.6, "lines"),
-            plot.title = element_text(size = 18, face = "bold"),
-            plot.subtitle = element_text(size = 16),
-            axis.text.y = element_text(size = 14),
-            axis.title.y = element_text(size = 14),
-            legend.title = element_text(size = 14),
-            legend.text = element_text(size = 14),
-            axis.title.x = element_text(size = 14)) + 
+  theme(axis.title.y = element_text(size = 6),
+        axis.title = element_text(size = 12),
+        axis.text.x = element_text(size = 9),
+        axis.text.y = element_text(size = 9),
+        plot.subtitle = element_text(size = 14),
+        plot.title = element_text(size = 16, face = "bold"),
+        legend.position = "bottom",
+        legend.direction = "horizontal",
+        legend.title = element_text(size = 14),
+        legend.text = element_text(size = 12),
+        axis.title.x = element_text(size = 14)) + 
   guides(fill = guide_legend(nrow = 2)) + 
   guides(fill = guide_legend(ncol = 5)) 
   guides(fill = guide_legend(title = "Percentage (%)", 
@@ -95,8 +96,8 @@ data$income_bin <- cut(data$monthly_GNI, breaks = income_bins, labels =
     "451 - 550", "551 - 700", "701 - 900", "901 - 1000", "Above 1000"))
 
 monthly_income <- ggplot(data = data) +
-  geom_sf(aes(fill = income_bin), linewidth = 0.02) + 
-  scale_fill_viridis_d(na.value = "grey50",
+  geom_sf(aes(fill = income_bin), linewidth = 0.00001) + 
+  scale_fill_viridis_d(na.value = "grey50",direction = -1,
                     name = "Income (US$)",
                     labels = function(x) ifelse(is.na(x), "No Data", x)) +
   labs(colour = NULL, 
@@ -128,10 +129,10 @@ data$gb_bin <- cut(data$cost_per_1GB, breaks = gb_bins, labels =
     "5.1 - 6", "6.1 - 7", "7.1 - 9", "9.1 - 10", "Above 10"))
 
 cost_GB <- ggplot(data = data) +
-  geom_sf(aes(fill = gb_bin), linewidth = 0.02) + 
-  scale_fill_viridis_d(na.value = "grey50",
-                       name = "Income (US$)",
-                       labels = function(x) ifelse(is.na(x), "No Data", x)) +
+  geom_sf(aes(fill = gb_bin), linewidth = 0.0001) + 
+  scale_fill_viridis_d(na.value = "grey50",direction = -1,
+     name = "Cost per GB (US$)",
+     labels = function(x) ifelse(is.na(x), "No Data", x)) +
   labs(colour = NULL, 
        title = "Cost per GB",
        subtitle = "Average cost of broadband per gigabyte (GB).") + 
