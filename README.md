@@ -23,7 +23,7 @@ Results
 `Figure 2` shows the sub-regions in Sub-Saharan Africa classified by the most appropriate and affordable broadband technology based on population density.
 #### Figure 2 Demand Results.
 <p align="center">
-  <img src="/docs/preferred_technology_map" />
+  <img src="/docs/preferred_technology_map.png" />
 </p>
 
 ## Required Data
