@@ -14,19 +14,18 @@ mobile_demand <- ggplot(data = df, aes(x = `Actual Values`/1e6,
   y = `Model Values`/1e6)) + geom_point(size = 0.5, color = "black") +
   geom_smooth(method = "lm", color = "darkorange", size = 0.3, se = FALSE) +
   scale_fill_viridis_d(direction = 1) +
-    labs(title = "Model results' validation", 
-         subtitle = "(A) Demand", x = "Actual (millions)",
+    labs(title = "A", x = "Actual (millions)",
        y = "Model (millions)") +
   theme(legend.position = 'bottom',
-        axis.text.x = element_text(size = 7),
+        axis.text.x = element_text(size = 8),
         panel.spacing = unit(0.6, "lines"),
         plot.title = element_text(size = 11, face = "bold"),
         plot.subtitle = element_text(size = 9),
-        axis.text.y = element_text(size = 7),
-        axis.title.y = element_text(size = 7),
+        axis.text.y = element_text(size = 8),
+        axis.title.y = element_text(size = 9),
         legend.title = element_text(size = 7),
         legend.text = element_text(size = 9),
-        axis.title.x = element_text(size = 7))
+        axis.title.x = element_text(size = 9))
 
 ###################
 ##Capacity Model ##
@@ -38,18 +37,17 @@ mobile_capacity <- ggplot(data = df1, aes(x = `Actual Values`,
   y = `Model Values`)) + geom_point(size = 0.5, color = "black") +
   geom_smooth(method = "lm", color = "darkorange", size = 0.3, se = FALSE) +
   scale_fill_viridis_d(direction = 1) +
-  labs(title = " ", subtitle = "(B) Capacity", 
-    x = "Actual (Mbps)", y = "Model (Mbps)") +
+  labs(title = "B", x = "Actual (Mbps)", y = "Model (Mbps)") +
   theme(legend.position = 'bottom',
-        axis.text.x = element_text(size = 7),
+        axis.text.x = element_text(size = 8),
         panel.spacing = unit(0.6, "lines"),
         plot.title = element_text(size = 11, face = "bold"),
         plot.subtitle = element_text(size = 9),
-        axis.text.y = element_text(size = 7),
-        axis.title.y = element_text(size = 7),
+        axis.text.y = element_text(size = 8),
+        axis.title.y = element_text(size = 9),
         legend.title = element_text(size = 7),
         legend.text = element_text(size = 9),
-        axis.title.x = element_text(size = 7))
+        axis.title.x = element_text(size = 9))
 
 ################
 ## Cost Model ##
@@ -61,18 +59,17 @@ mobile_cost <- ggplot(data = df1, aes(x = `Actual Values`,
   y = `Model Values`)) + geom_point(size = 0.5, color = "black") +
   geom_smooth(method = "lm", color = "darkorange", size = 0.3, se = FALSE) +
   scale_fill_viridis_d(direction = 1) +
-  labs(title = " ", subtitle = "(C) Cost", 
-       x = "Actual (US$)", y = "Model (US$)") +
+  labs(title = "C", x = "Actual (US$)", y = "Model (US$)") +
   theme(legend.position = 'bottom',
-        axis.text.x = element_text(size = 7),
+        axis.text.x = element_text(size = 8),
         panel.spacing = unit(0.6, "lines"),
         plot.title = element_text(size = 11, face = "bold"),
         plot.subtitle = element_text(size = 9),
-        axis.text.y = element_text(size = 7),
-        axis.title.y = element_text(size = 7),
+        axis.text.y = element_text(size = 8),
+        axis.title.y = element_text(size = 9),
         legend.title = element_text(size = 7),
         legend.text = element_text(size = 9),
-        axis.title.x = element_text(size = 7))
+        axis.title.x = element_text(size = 9))
 
 #####################
 ## Emissions Model ##
@@ -84,19 +81,18 @@ mobile_emissions <- ggplot(data = df3, aes(x = `Actual Values`,
   y = `Model Values`)) + geom_point(size = 0.5, color = "black") +
   geom_smooth(method = "lm", color = "darkorange", size = 0.3, se = FALSE) +
   scale_fill_viridis_d(direction = 1) +
-  labs(title = " ", subtitle = "(D) Emissions", 
-       x = bquote("Actual (kg CO"["2"] ~ " eq.)"), 
+  labs(title = "D", x = bquote("Actual (kg CO"["2"] ~ " eq.)"), 
        y = bquote("Model (kg CO"["2"] ~ " eq.)")) +
   theme(legend.position = 'bottom',
-        axis.text.x = element_text(size = 7),
+        axis.text.x = element_text(size = 8),
         panel.spacing = unit(0.6, "lines"),
         plot.title = element_text(size = 11, face = "bold"),
         plot.subtitle = element_text(size = 9),
-        axis.text.y = element_text(size = 7),
-        axis.title.y = element_text(size = 7),
+        axis.text.y = element_text(size = 8),
+        axis.title.y = element_text(size = 9),
         legend.title = element_text(size = 7),
         legend.text = element_text(size = 9),
-        axis.title.x = element_text(size = 7))
+        axis.title.x = element_text(size = 9))
 
 ########################
 ##PANEL USER EMISSIONS##
@@ -110,8 +106,3 @@ path = file.path(folder, 'figures', 'model_validation.png')
 png(path, units="in", width=10, height=3.5, res=300)
 print(validations)
 dev.off()
-
-
-
-
-
