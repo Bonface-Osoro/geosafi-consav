@@ -32,8 +32,7 @@ df = data %>%
 
 path_loss <- ggplot(df, aes(trans_user_dist_km, mean, color = cell_generation)) +
   geom_line(position = position_dodge(width = 0.5), size = 0.7) +
-  labs(colour = 'Mobile Technology', title = "Mobile Signal results.", 
-       subtitle = "(A) Path loss.", 
+  labs(colour = 'Mobile Technology', title = "A", 
        x = NULL, y = "Path loss (dB)") + 
   scale_color_viridis_d(direction = -1) +
   theme(
@@ -61,8 +60,7 @@ df = data %>%
 
 received_power <- ggplot(df, aes(trans_user_dist_km, mean, color = cell_generation)) +
   geom_line(position = position_dodge(width = 0.5), size = 0.7) +
-  labs(colour = 'Mobile Technology', title = " ", 
-       subtitle = "(B) Received power.", 
+  labs(colour = 'Mobile Technology', title = "B",  
        x = NULL, y = "Received power (dB)") + 
   scale_color_viridis_d(direction = -1) +
   theme(
@@ -89,9 +87,8 @@ df = data %>%
 
 cnr <- ggplot(df, aes(trans_user_dist_km, mean, color = cell_generation)) +
   geom_line(position = position_dodge(width = 0.5), size = 0.7) +
-  labs(colour = 'Mobile Technology', title = " ", 
-       subtitle = "(C) Carrier-to-noise ratio.", 
-       x = NULL, y = "Carrier-to-noise ratio (dB)") + 
+  labs(colour = 'Mobile Technology', title = "C", 
+       x = NULL, y = "SINR (dB)") + 
   scale_color_viridis_d(direction = -1)  +
   theme(
     legend.position = 'bottom',
@@ -135,9 +132,7 @@ capacity_per_user <- ggplot(df, aes(x = decile, y = mean, fill = cell_generation
       digits = 2, format = "fg", flag = "#")), color = 'black', size = 3, position = 
       position_dodge(0.9), vjust = -0.4, hjust = 1) +
   scale_fill_viridis_d(direction = -1) +
-  labs(colour = NULL, title = "Mobile broadband capacity results", 
-       subtitle = "(D) Per user capacity categorized by cell generation, network load and grouped by deciles.", 
-       x = NULL, y = "Capacity (Mbps/user)") +
+  labs(colour = NULL, title = "D",x = NULL, y = "Capacity (Mbps/user)") +
   theme(
     legend.position = 'bottom',
     axis.text.x = element_text(size = 10),
@@ -205,6 +200,6 @@ aggregate_capacities <- ggarrange(aggregate_signals, capacity_per_user,
      common.legend = TRUE, legend='bottom') 
 
 path = file.path(folder, 'figures', 'aggregate_capacities.png')
-png(path, units="in", width=11, height=14, res=300)
+png(path, units="in", width=8, height=12, res=300)
 print(aggregate_capacities)
 dev.off()

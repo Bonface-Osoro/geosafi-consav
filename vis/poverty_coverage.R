@@ -50,24 +50,24 @@ poor_population_region <-
   geom_bar(stat = 'identity', position = position_dodge(0.9)) + coord_flip() + 
   geom_text(aes(label = formatC(signif(after_stat(y), 3), 
                                 digits = 3, format = "fg", flag = "#")),
-            size = 2, position = position_dodge(0.9),
+            size = 3, position = position_dodge(0.9),
             vjust = 0.5, hjust = -0.3) +
   labs(colour = NULL,
-       title = 'SSA Population below poverty line.',
-       subtitle = '(A) Absolute Population',
+       title = 'A',
+       subtitle = ' ',
        x = NULL,
        y = 'Poor Population (in millions)',
        fill = NULL) +
   theme(legend.position = 'bottom',
-        axis.text.x = element_text(size = 5),
+        axis.text.x = element_text(size = 7),
         panel.spacing = unit(0.6, "lines"),
         plot.title = element_text(size = 11, face = 'bold'),
         plot.subtitle = element_text(size = 10),
-        axis.text.y = element_text(size = 7),
-        axis.title.y = element_text(size = 7),
-        legend.title = element_text(size = 8),
-        legend.text = element_text(size = 7),
-        axis.title.x = element_text(size = 8)) +
+        axis.text.y = element_text(size = 9),
+        axis.title.y = element_text(size = 9),
+        legend.title = element_text(size = 10),
+        legend.text = element_text(size = 9),
+        axis.title.x = element_text(size = 9)) +
   expand_limits(y = 0) +
   guides(fill = guide_legend(ncol = 5, title = 'Poverty Rate')) +
   scale_fill_viridis_d(direction = -1) +
@@ -115,21 +115,21 @@ relative_region_poor_population <-
   ggplot(df,  aes(x = decile, y = perc, fill = poverty_range)) +
   geom_bar(stat = 'identity', position = position_dodge(0.9)) +  coord_flip() +
   geom_text(aes(label = formatC(signif(after_stat(y), 3), 
-                                digits = 3,format = 'fg', flag = '#')), size = 2,
+                                digits = 3,format = 'fg', flag = '#')), size = 3,
             position = position_dodge(0.9), vjust = 0.5, hjust = -0.1) +
-  labs(colour = NULL, title = ' ',
-       subtitle = '(B) Relative Population.', x = NULL,
+  labs(colour = NULL, title = 'B',
+       subtitle = ' ', x = NULL,
        y = 'Percentage of Population (%)', fill = NULL) +
   theme(legend.position = 'bottom',
-        axis.text.x = element_text(size = 5),
+        axis.text.x = element_text(size = 7),
         panel.spacing = unit(0.6, "lines"),
         plot.title = element_text(size = 11, face = 'bold'),
         plot.subtitle = element_text(size = 10),
-        axis.text.y = element_text(size = 7),
-        axis.title.y = element_text(size = 7),
-        legend.title = element_text(size = 6),
-        legend.text = element_text(size = 5),
-        axis.title.x = element_text(size = 8)) +
+        axis.text.y = element_text(size = 9),
+        axis.title.y = element_text(size = 9),
+        legend.title = element_text(size = 10),
+        legend.text = element_text(size = 9),
+        axis.title.x = element_text(size = 9)) +
   expand_limits(y = 0) +
   guides(fill = guide_legend(ncol = 5, title = 'Poverty Rate')) +
   scale_fill_viridis_d(direction = -1) +
@@ -177,22 +177,21 @@ poverty_maps <- ggplot() +
   geom_sf(data = merged_data, aes(fill = population_bin), 
           linewidth = 0.001,) +
   scale_fill_viridis_d(direction = -1) +
-  labs(title = "(C) Relative population below poverty line in SSA.",
-       subtitle = "Aggregated by normalized sub-regional population and grouped by poverty rate.",
+  labs(title = "C",
        fill = "Range") +
-  theme(
-    legend.position = 'bottom',
-    axis.text.x = element_text(size = 5),
-    panel.spacing = unit(0.6, "lines"),
-    plot.title = element_text(size = 11, face = "bold"),
-    plot.subtitle = element_text(size = 10),
-    axis.text.y = element_text(size = 6),
-    axis.title.y = element_markdown(size = 6),
-    legend.title = element_text(size = 7),
-    legend.text = element_text(size = 7)) + 
+  theme(legend.position = 'bottom',
+        axis.text.x = element_text(size = 7),
+        panel.spacing = unit(0.6, "lines"),
+        plot.title = element_text(size = 11, face = 'bold'),
+        plot.subtitle = element_text(size = 10),
+        axis.text.y = element_text(size = 9),
+        axis.title.y = element_text(size = 9),
+        legend.title = element_text(size = 10),
+        legend.text = element_text(size = 9),
+        axis.title.x = element_text(size = 9)) + 
   guides(fill = guide_legend(nrow = 2)) + 
   facet_wrap( ~ poverty_range, ncol = 4) +
-  guides(fill = guide_legend(ncol = 10))
+  guides(fill = guide_legend(ncol = 5))
 
 ###################################
 ##PANEL PLOTS FOR POOR POPULATION##
@@ -208,7 +207,7 @@ poor_panel_map <- ggarrange(poor_panel,
 
 
 path = file.path(folder, 'figures', 'poor_population.png')
-png(path, units = "in", width = 10.5, height = 9.5, res = 300)
+png(path, units = "in", width = 8.2, height = 9, res = 300)
 print(poor_panel_map)
 dev.off()
 
@@ -249,24 +248,23 @@ unconnected_population_geotype <-
   geom_bar(stat = 'identity', position = position_dodge(0.9)) + coord_flip() + 
   geom_text(aes(label = formatC(signif(after_stat(y), 3), 
                                 digits = 3, format = "fg", flag = "#")),
-            size = 2, position = position_dodge(0.9),
+            size = 3, position = position_dodge(0.9),
             vjust = 0.5, hjust = -0.3) +
   labs(colour = NULL,
-       title = 'Uncovered population in SSA.',
-       subtitle = '(A) Absolute population by deciles',
+       title = 'A',
        x = NULL,
        y = 'Uncovered Population (in millions)',
        fill = NULL) +
   theme(legend.position = 'bottom',
-        axis.text.x = element_text(size = 5),
+        axis.text.x = element_text(size = 7),
         panel.spacing = unit(0.6, "lines"),
-        plot.title = element_text(size = 9, face = "bold"),
-        plot.subtitle = element_text(size = 8),
-        axis.text.y = element_text(size = 7),
-        axis.title.y = element_text(size = 7),
-        legend.title = element_text(size = 8),
-        legend.text = element_text(size = 7),
-        axis.title.x = element_text(size = 8)) +
+        plot.title = element_text(size = 11, face = 'bold'),
+        plot.subtitle = element_text(size = 10),
+        axis.text.y = element_text(size = 9),
+        axis.title.y = element_text(size = 9),
+        legend.title = element_text(size = 10),
+        legend.text = element_text(size = 9),
+        axis.title.x = element_text(size = 9)) +
   expand_limits(y = 0) +
   guides(fill = guide_legend(ncol = 5, title = 'Mobile Technology')) +
   scale_fill_viridis_d(direction = -1) +
@@ -310,21 +308,21 @@ relative_geo_tech_uncovered_population <-
   ggplot(df,  aes(x = decile, y = perc, fill = technology)) +
   geom_bar(stat = 'identity', position = position_dodge(0.9)) +  coord_flip() +
   geom_text(aes(label = formatC(signif(after_stat(y), 3), 
-                                digits = 3,format = 'fg', flag = '#')), size = 2,
-            position = position_dodge(0.9), vjust = 0.5, hjust = -0.1)+
-  labs(colour = NULL, title = ' ',
-       subtitle = '(B) Relative population by deciles', x = NULL,
+      digits = 3,format = 'fg', flag = '#')), size = 3,
+      position = position_dodge(0.9), vjust = 0.5, hjust = -0.1)+
+  labs(colour = NULL, title = 'B',
+       subtitle = ' ', x = NULL,
        y = 'Percentage of Population (%)', fill = NULL) +
   theme(legend.position = 'bottom',
-        axis.text.x = element_text(size = 5),
+        axis.text.x = element_text(size = 7),
         panel.spacing = unit(0.6, "lines"),
         plot.title = element_text(size = 11, face = 'bold'),
-        plot.subtitle = element_text(size = 8),
-        axis.text.y = element_text(size = 7),
-        axis.title.y = element_text(size = 7),
-        legend.title = element_text(size = 6),
-        legend.text = element_text(size = 5),
-        axis.title.x = element_text(size = 8)) +
+        plot.subtitle = element_text(size = 10),
+        axis.text.y = element_text(size = 9),
+        axis.title.y = element_text(size = 9),
+        legend.title = element_text(size = 10),
+        legend.text = element_text(size = 9),
+        axis.title.x = element_text(size = 9)) +
   expand_limits(y = 0) +
   guides(fill = guide_legend(ncol = 5, title = 'Mobile Phone Technology')) +
   scale_fill_viridis_d(direction = -1) +
@@ -378,19 +376,18 @@ uncovered_technology <- ggplot() +
   geom_sf(data = merged_data, aes(fill = population_bin), 
           linewidth = 0.001,) +
   scale_fill_viridis_d(direction = -1) +
-  labs(title = "(C) Uncovered population in SSA.",
-       subtitle = "Aggregated by normalized sub-regional population and grouped by mobile technology.",
+  labs(title = "C",
        fill = "Population") +
-  theme(
-    legend.position = 'bottom',
-    axis.text.x = element_text(size = 5),
-    panel.spacing = unit(0.6, "lines"),
-    plot.title = element_text(size = 9, face = "bold"),
-    plot.subtitle = element_text(size = 8),
-    axis.text.y = element_text(size = 6),
-    axis.title.y = element_markdown(size = 6),
-    legend.title = element_text(size = 7),
-    legend.text = element_text(size = 7)) + 
+  theme(legend.position = 'bottom',
+        axis.text.x = element_text(size = 7),
+        panel.spacing = unit(0.6, "lines"),
+        plot.title = element_text(size = 11, face = 'bold'),
+        plot.subtitle = element_text(size = 10),
+        axis.text.y = element_text(size = 9),
+        axis.title.y = element_text(size = 9),
+        legend.title = element_text(size = 10),
+        legend.text = element_text(size = 9),
+        axis.title.x = element_text(size = 9)) + 
   guides(fill = guide_legend(nrow = 2)) + 
   facet_wrap( ~ technology, ncol = 4) +
   guides(fill = guide_legend(ncol = 5))
@@ -408,7 +405,7 @@ uncovered_panel_map <- ggarrange(uncovered_geotypes,
    common.legend = FALSE, legend='bottom')
 
 path = file.path(folder, 'figures', 'unconnect_2_3_4_G.png')
-png(path, units = "in", width = 10.5, height = 9.5, res = 300)
+png(path, units = "in", width = 8.5, height = 9.5, res = 300)
 print(uncovered_panel_map)
 dev.off()
 
@@ -464,19 +461,18 @@ uncovered_2g_poor <- ggplot() +
   geom_sf(data = merged_data, aes(fill = population_bin), 
           linewidth = 0.001,) +
   scale_fill_viridis_d(direction = -1) +
-  labs(title = "Relative uncovered and below poverty line population expressed as a percentage of the total population.",
-       subtitle = "(A) Uncovered by (2G).",
-       fill = "Population") +
-  theme(
-    legend.position = 'bottom',
-    axis.text.x = element_text(size = 5),
-    panel.spacing = unit(0.6, "lines"),
-    plot.title = element_text(size = 9, face = "bold"),
-    plot.subtitle = element_text(size = 8),
-    axis.text.y = element_text(size = 6),
-    axis.title.y = element_markdown(size = 6),
-    legend.title = element_text(size = 7),
-    legend.text = element_text(size = 7)) + 
+  labs(title = "A",
+       fill = "Relative percentage of \nuncovered and poor population") +
+  theme(legend.position = 'bottom',
+        axis.text.x = element_text(size = 7),
+        panel.spacing = unit(0.6, "lines"),
+        plot.title = element_text(size = 11, face = "bold"),
+        plot.subtitle = element_text(size = 8),
+        axis.text.y = element_text(size = 7),
+        axis.title.y = element_text(size = 8),
+        legend.title = element_text(size = 9),
+        legend.text = element_text(size = 8),
+        axis.title.x = element_text(size = 9)) + 
   guides(fill = guide_legend(nrow = 2)) + 
   facet_wrap( ~ poverty_range, ncol = 3) +
   guides(fill = guide_legend(ncol = 5))
@@ -522,19 +518,18 @@ uncovered_3g_poor <- ggplot() +
   geom_sf(data = merged_data, aes(fill = population_bin), 
           linewidth = 0.001,) +
   scale_fill_viridis_d(direction = -1) +
-  labs(title = ' ',
-       subtitle = "(B) Uncovered by (3G).",
-       fill = "Population") +
-  theme(
-    legend.position = 'bottom',
-    axis.text.x = element_text(size = 5),
-    panel.spacing = unit(0.6, "lines"),
-    plot.title = element_text(size = 9, face = "bold"),
-    plot.subtitle = element_text(size = 8),
-    axis.text.y = element_text(size = 6),
-    axis.title.y = element_markdown(size = 6),
-    legend.title = element_text(size = 7),
-    legend.text = element_text(size = 7)) + 
+  labs(title = 'B',
+       fill = "Relative percentage of \nuncovered and poor population") +
+  theme(legend.position = 'bottom',
+        axis.text.x = element_text(size = 7),
+        panel.spacing = unit(0.6, "lines"),
+        plot.title = element_text(size = 11, face = "bold"),
+        plot.subtitle = element_text(size = 8),
+        axis.text.y = element_text(size = 7),
+        axis.title.y = element_text(size = 8),
+        legend.title = element_text(size = 9),
+        legend.text = element_text(size = 8),
+        axis.title.x = element_text(size = 9)) + 
   guides(fill = guide_legend(nrow = 2)) + 
   facet_wrap( ~ poverty_range, ncol = 3) +
   guides(fill = guide_legend(ncol = 5))
@@ -579,19 +574,18 @@ uncovered_4g_poor <- ggplot() +
   geom_sf(data = merged_data, aes(fill = population_bin), 
           linewidth = 0.001,) +
   scale_fill_viridis_d(direction = -1) +
-  labs(title =' ',
-       subtitle = "(C) Uncovered by (4G).",
-       fill = "Population") +
-  theme(
-    legend.position = 'bottom',
-    axis.text.x = element_text(size = 5),
-    panel.spacing = unit(0.6, "lines"),
-    plot.title = element_text(size = 9, face = "bold"),
-    plot.subtitle = element_text(size = 8),
-    axis.text.y = element_text(size = 6),
-    axis.title.y = element_markdown(size = 6),
-    legend.title = element_text(size = 7),
-    legend.text = element_text(size = 7)) + 
+  labs(title ='C',
+       fill = "Relative percentage of \nuncovered and poor population") +
+  theme(legend.position = 'bottom',
+        axis.text.x = element_text(size = 7),
+        panel.spacing = unit(0.6, "lines"),
+        plot.title = element_text(size = 11, face = "bold"),
+        plot.subtitle = element_text(size = 8),
+        axis.text.y = element_text(size = 7),
+        axis.title.y = element_text(size = 8),
+        legend.title = element_text(size = 9),
+        legend.text = element_text(size = 8),
+        axis.title.x = element_text(size = 9)) + 
   guides(fill = guide_legend(nrow = 2)) + 
   facet_wrap( ~ poverty_range, ncol = 3) +
   guides(fill = guide_legend(ncol = 5))
@@ -639,31 +633,30 @@ uncovered_poor_population <-
   geom_bar(stat = 'identity', position = position_dodge(0.9)) + coord_flip() + 
   geom_text(aes(label = formatC(signif(after_stat(y), 3), 
                                 digits = 3, format = "fg", flag = "#")),
-            size = 2, position = position_dodge(0.9),
+            size = 3, position = position_dodge(0.9),
             vjust = 0.5, hjust = -0.3) +
   labs(colour = NULL,
-       title = 'Uncovered and population below poverty line.',
-       subtitle = '(A) Absolute population.',
+       title = 'A',
        x = NULL,
-       y = 'Uncovered and population below poverty line (`000`)',
+       y = 'Absolute population (`000`)',
        fill = NULL) +
   theme(legend.position = 'bottom',
-        axis.text.x = element_text(size = 5),
+        axis.text.x = element_text(size = 9),
         panel.spacing = unit(0.6, "lines"),
-        plot.title = element_text(size = 9, face = "bold"),
+        plot.title = element_text(size = 11, face = "bold"),
         plot.subtitle = element_text(size = 8),
-        axis.text.y = element_text(size = 7),
-        axis.title.y = element_text(size = 7),
-        legend.title = element_text(size = 8),
-        legend.text = element_text(size = 7),
-        axis.title.x = element_text(size = 8)) +
+        axis.text.y = element_text(size = 9),
+        axis.title.y = element_text(size = 8),
+        legend.title = element_text(size = 9),
+        legend.text = element_text(size = 8),
+        axis.title.x = element_text(size = 9)) +
   expand_limits(y = 0) +
   guides(fill = guide_legend(ncol = 5, title = 'Mobile Technology')) +
   scale_fill_viridis_d(direction = -1) +
   scale_x_discrete(expand = c(0, 0.15)) +
   scale_y_continuous(expand = c(0, 0),
   labels = function(y) format(y, scientific = FALSE),limits = c(0, 12000)) + 
-  facet_wrap( ~ poverty_range, ncol = 5) 
+  facet_wrap( ~ poverty_range, nrow = 3) 
 
 ##########################################################
 ##SSA Relative Uncovered and Poor Population by Regions ##
@@ -705,29 +698,29 @@ relative_uncovered_poor_population <-
   ggplot(df,  aes(x = decile, y = mean_perc, fill = technology)) +
   geom_bar(stat = 'identity', position = position_dodge(0.9)) +  coord_flip() +
   geom_text(aes(label = formatC(signif(after_stat(y), 3), 
-                                digits = 3,format = 'fg', flag = '#')), size = 2,
+                                digits = 3,format = 'fg', flag = '#')), size = 3,
             position = position_dodge(0.9), vjust = 0.5, hjust = -0.1) +
-  labs(colour = NULL, title = ' ', subtitle = '(B) Relative population.', 
+  labs(colour = NULL, title = 'B', 
        x = NULL,
-       y = 'Percentage of uncovered and population below poverty line (%)', 
+       y = 'Relative population (%)', 
        fill = NULL) +
   theme(legend.position = 'bottom',
-        axis.text.x = element_text(size = 5),
+        axis.text.x = element_text(size = 9),
         panel.spacing = unit(0.6, "lines"),
-        plot.title = element_text(size = 11),
+        plot.title = element_text(size = 11, face = "bold"),
         plot.subtitle = element_text(size = 8),
-        axis.text.y = element_text(size = 7),
-        axis.title.y = element_text(size = 7),
-        legend.title = element_text(size = 6),
-        legend.text = element_text(size = 5),
-        axis.title.x = element_text(size = 8)) +
+        axis.text.y = element_text(size = 9),
+        axis.title.y = element_text(size = 8),
+        legend.title = element_text(size = 10),
+        legend.text = element_text(size = 9),
+        axis.title.x = element_text(size = 9)) +
   expand_limits(y = 0) +
   guides(fill = guide_legend(ncol = 5, title = 'Mobile Phone Technology')) +
   scale_fill_viridis_d(direction = -1) +
   scale_x_discrete(expand = c(0, 0.15)) +
   scale_y_continuous(expand = c(0, 0), labels = function(y)
     format(y, scientific = FALSE), limits = c(0, 109)) +
-  facet_wrap( ~ poverty_range, ncol = 3) 
+  facet_wrap( ~ poverty_range, nrow = 3) 
 
 
 ####################################################
@@ -735,7 +728,7 @@ relative_uncovered_poor_population <-
 ####################################################
 relative_poor <- ggarrange(uncovered_poor_population,
   relative_uncovered_poor_population,
-  nrow = 2,
+  ncol = 2,
   common.legend = TRUE, legend = 'bottom')
 
 uncovered_poor <- ggarrange(uncovered_2g_poor,
@@ -745,12 +738,12 @@ uncovered_poor <- ggarrange(uncovered_2g_poor,
    common.legend = TRUE, legend = 'bottom')
 
 path = file.path(folder, 'figures', 'poor_and_uncovered.png')
-png(path, units = "in", width = 9.5, height = 8, res = 300)
+png(path, units = "in", width = 9, height = 12, res = 300)
 print(relative_poor)
 dev.off()
 
 path = file.path(folder, 'figures', 'poor_and_uncovered_maps.png')
-png(path, units = "in", width = 7, height = 9, res = 300)
+png(path, units = "in", width = 7.5, height = 9, res = 300)
 print(uncovered_poor)
 dev.off()
 
@@ -776,21 +769,20 @@ df <- data
 
 total_population <-
   ggplot(df,  aes(x = decile, y = total_population/total_area_sqkm, fill = decile)) +
-  geom_bar(stat = 'identity', position = position_dodge(0.9)) + 
-  geom_text(aes(label = round(after_stat(y), 0)), size = 3, 
-            position = position_dodge(0.9), vjust = -0.2, hjust = 0.5) +
+  geom_bar(stat = 'identity', position = position_dodge(0.9)) + coord_flip() +
+  geom_text(aes(label = round(after_stat(y), 0)), size = 4, 
+            position = position_dodge(0.9), vjust = 0.5, hjust = -0.2) +
   labs(colour = NULL,
-       title = 'SSA demand results.',
-       subtitle = '(A) Population density of the geotypes',
+       title = 'A',
        x = NULL,
        y = 'Population Density (persons per km²)',
        fill = NULL) +
   theme(legend.position = 'none',
-        axis.text.x = element_text(size = 8),
+        axis.text.x = element_text(size = 12),
         panel.spacing = unit(0.6, "lines"),
         plot.title = element_text(size = 14, face = "bold"),
         plot.subtitle = element_text(size = 14),
-        axis.text.y = element_text(size = 10),
+        axis.text.y = element_text(size = 12),
         axis.title.y = element_text(size = 12),
         legend.title = element_text(size = 12),
         legend.text = element_text(size = 12),
@@ -807,22 +799,21 @@ total_population <-
 ###################
 total_area <-
   ggplot(df,  aes(x = decile, y = total_area_sqkm/1e6, fill = decile)) +
-  geom_bar(stat = 'identity', position = position_dodge(0.9)) + 
+  geom_bar(stat = 'identity', position = position_dodge(0.9)) + coord_flip() +
   geom_text(aes(label = formatC(signif(after_stat(y), 3), 
-      digits = 3, format = "fg", flag = "#")), size = 3, 
-      position = position_dodge(0.9), vjust = -0.2, hjust = 0.5) +
+      digits = 3, format = "fg", flag = "#")), size = 4, 
+      position = position_dodge(0.9), vjust = 0.5, hjust = -0.2) +
   labs(colour = NULL,
-       title = ' ',
-       subtitle = '(B) Total area grouped by deciles',
+       title = 'B',
        x = NULL,
        y = 'Total Area (million km²)',
        fill = NULL) +
   theme(legend.position = 'none',
-        axis.text.x = element_text(size = 8),
+        axis.text.x = element_text(size = 12),
         panel.spacing = unit(0.6, "lines"),
         plot.title = element_text(size = 14, face = "bold"),
         plot.subtitle = element_text(size = 14),
-        axis.text.y = element_text(size = 10),
+        axis.text.y = element_text(size = 12),
         axis.title.y = element_text(size = 12),
         legend.title = element_text(size = 12),
         legend.text = element_text(size = 12),
@@ -836,7 +827,7 @@ total_area <-
 ssa_details <- ggarrange(total_population, total_area, nrow = 2, legend = 'none')
 
 path = file.path(folder, 'figures', 'ssa_details.png')
-png(path, units = "in", width = 11, height = 9, res = 300)
+png(path, units = "in", width = 10, height = 11, res = 300)
 print(ssa_details)
 dev.off()
 

@@ -38,8 +38,7 @@ tco_per_user <- ggplot(df, aes(x = decile, y = mean, fill = cell_generation)) +
      digits = 2, format = "fg", flag = "#")), color = 'black', size = 3, position = 
      position_dodge(0.9), vjust = -0.4, hjust = 1) +
   scale_fill_viridis_d(direction = -1) + 
-  labs(colour = NULL, title = "Mobile broadband Total Cost of Ownership (TCO)", 
-       subtitle = "(A) Per user TCO categorized by cell generation and grouped by deciles.", 
+  labs(colour = NULL, title = "A", 
        x = NULL, y = "Costs (US$ per user)") + 
   theme(
     legend.position = 'bottom',
@@ -76,9 +75,7 @@ anualized_tco_per_user <- ggplot(df, aes(x = decile, y = mean,
       digits = 2, format = "fg", flag = "#")), color = 'black', size = 3, position = 
       position_dodge(0.9), vjust = -0.4, hjust = 1) +
   scale_fill_viridis_d(direction = -1) + 
-  labs(colour = NULL, title = " ", 
-       subtitle = "(B) Annualized per user TCO categorized by cell generation and grouped by deciles.", 
-       x = NULL, y = "Costs (US$ per user)") + 
+  labs(colour = NULL, title = "B", x = NULL, y = "Costs (US$ per user)") + 
   theme(
     legend.position = 'bottom',
     axis.text.x = element_text(size = 10),
@@ -114,9 +111,7 @@ monthly_tco_per_user <- ggplot(df, aes(x = decile, y = mean, fill = cell_generat
      digits = 2, format = "fg", flag = "#")), color = 'black', size = 3, position = 
      position_dodge(0.9), vjust = -0.4, hjust = 1) +
   scale_fill_viridis_d(direction = -1) + 
-  labs(colour = NULL, title = " ", 
-       subtitle = "(C) Monthly per user TCO categorized by cell generation and grouped by deciles.", 
-       x = NULL, y = "Costs (US$ per user)") + 
+  labs(colour = NULL, title = "C", x = NULL, y = "Costs (US$ per user)") + 
   theme(
     legend.position = 'bottom',
     axis.text.x = element_text(size = 10),

@@ -4,22 +4,28 @@ library(tidyr)
 library(sf)
 library(ggpubr)
 library(ggspatial)
+library(grid)
+library(osmdata)
+library(prettymapr)
 
 # Get relative path of fold containing this code
 # Import data
 suppressMessages(library(tidyverse))
 folder <- dirname(rstudioapi::getSourceEditorContext()$path)
 
-africa_data <- st_read(file.path(folder, '..', 'data', 'raw', 
+ssa_borders <- st_read(file.path(folder, '..', 'data', 'raw', 
               'Africa_Boundaries', 'Africa_Countries.shp'))
 africa_data <- st_read(file.path(folder, '..', 'data', 'raw', 
-                                 'Africa_Boundaries', 'SSA_combined_shapefile.shp'))
+     'Africa_Boundaries', 'SSA_combined_shapefile.shp'))
 
 filename <- 'monthly_broadband_costs.csv'
 data <- read.csv(file.path(folder, "..", "data", "raw", filename), 
                  stringsAsFactors = FALSE)
 
 data <- africa_data %>% left_join(data, by = "GID_0")
+
+continent <- st_read(file.path(folder, '..', 'data', 'raw', 
+    'continent', 'Africa_Boundaries.shp'))
 
 ##############################
 ## MONTHLY BROADBAND PRICE ###
@@ -30,12 +36,13 @@ data$cost_bin <- cut(data$cost_per_month_usd, breaks = cost_bins, labels =
    "40.1 - 50", "50.1 - 60", "60.1 - 80", "80.1 - 100", "Above 100"))
 
 monthly_price <- ggplot(data = data) +
-  geom_sf(aes(fill = cost_bin), linewidth = 0.0001) + 
+  geom_sf(aes(fill = cost_bin), linewidth = 0.00001) + 
+  geom_sf(data = ssa_borders, color = "grey40", fill = NA, size = 0.005) +
   scale_fill_viridis_d(na.value = "grey50",direction = -1,
       name = "Monthly Cost (US$)",
       labels = function(x) ifelse(is.na(x), "No Data", x)) +
   labs(colour = NULL, 
-       title = "Broadband price",
+       title = "Broadband price in Sub-Saharan Africa",
        subtitle = "Average cost of broadband service per month.") + 
   theme(axis.title.y = element_text(size = 6),
         axis.title = element_text(size = 12),
@@ -67,7 +74,7 @@ gni_per_capita <- ggplot(data = data) +
      name = "Broadband GNI",
      labels = function(x) ifelse(is.na(x), "No Data", x)) +
   labs(colour = NULL, 
-       title = "Monthly broadband price",
+       title = "Monthly broadband price in Sub-Saharan Africa",
        subtitle = "Expressed as a percentage of monthly GNI per capita.") + 
   theme(axis.title.y = element_text(size = 6),
         axis.title = element_text(size = 12),
@@ -96,13 +103,13 @@ data$income_bin <- cut(data$monthly_GNI, breaks = income_bins, labels =
     "451 - 550", "551 - 700", "701 - 900", "901 - 1000", "Above 1000"))
 
 monthly_income <- ggplot(data = data) +
+  annotation_map_tile(type = "osm", zoom = 4) +
   geom_sf(aes(fill = income_bin), linewidth = 0.00001) + 
+  geom_sf(data = ssa_borders, color = "grey40", fill = NA, size = 0.005) +
   scale_fill_viridis_d(na.value = "grey50",direction = -1,
                     name = "Income (US$)",
                     labels = function(x) ifelse(is.na(x), "No Data", x)) +
-  labs(colour = NULL, 
-       title = "Income",
-       subtitle = "Average monthly income in SSA countries.") + 
+  labs(colour = NULL) + 
   theme(axis.title.y = element_text(size = 6),
         axis.title = element_text(size = 12),
         axis.text.x = element_text(size = 9),
@@ -119,6 +126,24 @@ monthly_income <- ggplot(data = data) +
   guides(fill = guide_legend(title = "Income (US$)", reverse = FALSE, ncol = 5)) +
   coord_sf(crs = 4326) 
 
+inset_map <- ggplot() +
+  geom_sf(data = continent, fill = "white", color = "black", lwd = 0.05) + 
+  coord_sf(crs = 4326) + 
+  theme_void() 
+
+inset_grob <- ggplotGrob(inset_map)
+frame_grob <- rectGrob(gp = gpar(col = "black", fill = NA, lwd = 1))
+
+monthly_income_with_inset <- monthly_income + 
+  annotation_custom(grob = inset_grob, 
+                    xmin = -15, xmax = 0, ymin = -35, ymax = -5) +  
+  annotation_custom(grob = frame_grob, 
+                    xmin = -15, xmax = 0, ymin = -28, ymax = -8)
+
+path = file.path(folder, 'figures', 'monthly_income.png')
+png(path, units = "in", width = 8, height = 8, res = 300)
+print(monthly_income_with_inset)
+dev.off()
 
 ##################
 ## COST PER GB ###
@@ -128,14 +153,13 @@ data$gb_bin <- cut(data$cost_per_1GB, breaks = gb_bins, labels =
     c("Below 2", "2.1 - 3", "3.1 - 4", "4.1 - 5",
     "5.1 - 6", "6.1 - 7", "7.1 - 9", "9.1 - 10", "Above 10"))
 
-cost_GB <- ggplot(data = data) +
-  geom_sf(aes(fill = gb_bin), linewidth = 0.0001) + 
+cost_GB <- ggplot(data = data) + annotation_map_tile(type = "osm", zoom = 4) +
+  geom_sf(aes(fill = gb_bin), linewidth = 0.000001) + 
+  geom_sf(data = ssa_borders, color = "grey40", fill = NA, size = 0.005) +
   scale_fill_viridis_d(na.value = "grey50",direction = -1,
      name = "Cost per GB (US$)",
      labels = function(x) ifelse(is.na(x), "No Data", x)) +
-  labs(colour = NULL, 
-       title = "Cost per GB",
-       subtitle = "Average cost of broadband per gigabyte (GB).") + 
+  labs(colour = NULL) + 
   theme(axis.title.y = element_text(size = 6),
         axis.title = element_text(size = 12),
         axis.text.x = element_text(size = 9),
@@ -153,28 +177,23 @@ cost_GB <- ggplot(data = data) +
          reverse = FALSE, ncol = 5)) +
     annotation_scale(location = "bl", width_hint = 0.5) + 
     coord_sf(crs = 4326) 
+  
+inset_map <- ggplot() +
+  geom_sf(data = continent, fill = "white", color = "black", lwd = 0.05) + 
+  coord_sf(crs = 4326) + 
+  theme_void() 
 
+inset_grob <- ggplotGrob(inset_map)
+frame_grob <- rectGrob(gp = gpar(col = "black", fill = NA, lwd = 1))
 
-path = file.path(folder, 'figures', 'monthly_income.png')
-png(path, units = "in", width = 13, height = 13, res = 300)
-print(monthly_income)
-dev.off()
-
-path = file.path(folder, 'figures', 'broadband_price.png')
-png(path, units = "in", width = 13, height = 13, res = 300)
-print(monthly_price)
-dev.off()
-
-path = file.path(folder, 'figures', 'broadband_price_gni.png')
-png(path, units = "in", width = 13, height = 13, res = 300)
-print(gni_per_capita)
-dev.off()
+monthly_cost_with_inset <- cost_GB + 
+  annotation_custom(grob = inset_grob, 
+                    xmin = -15, xmax = 0, ymin = -35, ymax = -5) +  
+  annotation_custom(grob = frame_grob, 
+                    xmin = -15, xmax = 0, ymin = -28, ymax = -8)
 
 path = file.path(folder, 'figures', 'broadband_cost_GB.png')
-png(path, units = "in", width = 13, height = 13, res = 300)
-print(cost_GB)
+png(path, units = "in", width = 8, height = 8, res = 300)
+print(monthly_cost_with_inset)
 dev.off()
-
-
-
 
