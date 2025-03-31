@@ -69,7 +69,9 @@ per_user_capacity <-
     legend.title = element_text(size = 12),
     legend.text = element_text(size = 12),
     axis.title.x = element_text(size = 12)
-  ) + expand_limits(y = 0) +
+  ) + scale_x_discrete(expand = c(0, 0.15)) +
+  scale_y_continuous(expand = c(0, 0),
+  labels = function(y) format(y, scientific = FALSE),limits = c(0, 59))
   guides(fill = guide_legend(ncol = 3, title = 'Technology')) +
   theme(strip.text = element_text(size = 14))
 
@@ -143,7 +145,9 @@ per_user_cost <-
     legend.title = element_text(size = 12),
     legend.text = element_text(size = 12),
     axis.title.x = element_text(size = 12)
-  ) + expand_limits(y = 0) +
+  ) + scale_x_discrete(expand = c(0, 0.15)) +
+  scale_y_continuous(expand = c(0, 0),
+  labels = function(y) format(y, scientific = FALSE),limits = c(0, 1399))
   guides(fill = guide_legend(ncol = 3, title = 'Technology')) +
   theme(strip.text = element_text(size = 14))
 
@@ -548,7 +552,6 @@ sat_affordability <- ggplot(sat_cost, aes(x = decile, y = mean, fill = constella
     legend.title = element_text(size = 10),
     legend.text = element_text(size = 9),
     axis.title.x = element_text(size = 10)) +
-  expand_limits(y = 0) +
   guides(fill = guide_legend(ncol = 5, title = 'Constellation')) +
   scale_x_discrete(expand = c(0, 0.15)) +
   scale_y_continuous(expand = c(0, 0),
