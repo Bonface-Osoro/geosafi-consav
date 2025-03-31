@@ -81,8 +81,8 @@ mobile_emissions <- ggplot(data = df3, aes(x = `Actual Values`,
   y = `Model Values`)) + geom_point(size = 0.5, color = "black") +
   geom_smooth(method = "lm", color = "darkorange", size = 0.3, se = FALSE) +
   scale_fill_viridis_d(direction = 1) +
-  labs(title = "D", x = bquote("Actual (kg CO"["2"] ~ " eq.)"), 
-       y = bquote("Model (kg CO"["2"] ~ " eq.)")) +
+  labs(title = "D", x = bquote("Actual (kg CO"["2"] ~ " e)"), 
+       y = bquote("Model (kg CO"["2"] ~ " e)")) +
   theme(legend.position = 'bottom',
         axis.text.x = element_text(size = 8),
         panel.spacing = unit(0.6, "lines"),
