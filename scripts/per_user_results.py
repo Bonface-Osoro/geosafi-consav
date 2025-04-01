@@ -121,17 +121,8 @@ def model_data():
         maritime_km = ('maritime_km', 'mean'), 
         cost_per_1GB_usd = ('cost_per_1GB', 'mean'),
         monthly_income_usd = ('monthly_GNI', 'mean'), 
-        cost_per_month_usd = ('cost_per_month_usd', 'mean'), 
-        adoption_rate_perc = ('adoption_rate', 'mean'), 
+        cost_per_month_usd = ('cost_per_month_usd', 'mean'),  
         arpu_usd = ('arpu_usd', 'mean')).reset_index()
-    coverage_area_4g_base_station = math.pi * 3 ** 2
-    coverage_area_5g_base_station = math.pi * 1.6 ** 2
-
-    df['no_of_4g_base_stations'] = round(df['mean_area_sqkm'] / 
-                                         coverage_area_4g_base_station)
-    df.loc[df['no_of_4g_base_stations'] == 0, 'no_of_4g_base_stations'] = 1
-    df['no_of_5g_base_stations'] = round(df['mean_area_sqkm'] / 
-                                         coverage_area_5g_base_station)
 
     filename = 'SSA_decile_summary_stats.csv'
     folder_out = os.path.join(DATA_SSA)
@@ -302,10 +293,10 @@ if __name__ == '__main__':
 
     #process_africa_results()
 
-    #model_data()
+    model_data()
     
     #decile_capacity_per_user()
 
-    decile_cost_per_user()
+    #decile_cost_per_user()
 
     #decile_emissions_per_user()

@@ -6,6 +6,7 @@ Written by Bonface Osoro & Ed Oughton.
 September 2024
 
 """
+import ast
 import configparser
 import os
 import random
@@ -20,9 +21,44 @@ CONFIG.read(os.path.join(os.path.dirname(__file__), 'script_config.ini'))
 BASE_PATH = CONFIG['file_locations']['base_path']
 DATA_RESULTS = os.path.join(BASE_PATH, '..', 'results')
 DATA_SSA = os.path.join(BASE_PATH, '..', 'results', 'SSA')
+DATA_raw = os.path.join(BASE_PATH, '..', 'data', 'raw')
 
 deciles = ['Decile 1', 'Decile 2', 'Decile 3', 'Decile 4', 'Decile 5',
            'Decile 6', 'Decile 7', 'Decile 8', 'Decile 9', 'Decile 10']
+
+
+def process_mobile_data():
+    """
+    Prepare mobile data including spectrum, Internet traffic, smartphone 
+    penetration for calculating capacity.
+    """    
+    ssa_mob_data = os.path.join(DATA_raw, 'mobi_data.csv')
+    df = pd.read_csv(ssa_mob_data)
+    df = df.loc[df['region'] == 'Sub-Saharan Africa']
+    df = df[['iso3', 'adoption_low', 'traffic_hour', 'spectrum_MHz']]
+    ssa_regions = os.path.join(DATA_SSA, 'SSA_subregional_population_deciles.csv')
+    df1 = pd.read_csv(ssa_regions)
+
+    df2 = pd.merge(df, df1, on = 'iso3', how = 'inner')
+    df2['frequency_MHz'] = df2.apply(select_frequency, axis = 1)
+
+    df2 = df2.groupby(['decile', 'frequency_MHz']).agg(smartphone_penetration = 
+        ('adoption_low', 'mean'), traffic_busy_hour=('traffic_hour', 'mean')
+        ).reset_index() 
+
+    filename = 'SSA_mobile_data.csv'
+    folder_out = os.path.join(DATA_RESULTS, 'cellular')
+
+    if not os.path.exists(folder_out):
+
+        os.makedirs(folder_out)
+
+    path_out = os.path.join(folder_out, filename)
+    df2.to_csv(path_out, index = False)
+
+
+    return None
+
 
 def multigeneration_cell_capacity(i, mobile_params):
     """
@@ -45,69 +81,77 @@ def multigeneration_cell_capacity(i, mobile_params):
 
     for decile in deciles:
 
-        for frequency in mobile_params['frequencies_mhz']:
 
-            for network in mobile_params['network_load']:
+        for demand in mobile_params['mean_monthly_demand_GB']:
 
-                trans_user_dist_km = random.randint(
-                    mobile_params['trans_user_dist_low_km'], 
-                    mobile_params['trans_user_dist_high_km'])
-                
-                transmitter_height_m = random.randint(
-                    mobile_params['transmitter_height_low_m'], 
-                    mobile_params['transmitter_height_high_m'])
-                
-                user_antenna_height_m = random.randint(
-                    mobile_params['user_antenna_height_low_m'], 
-                    mobile_params['user_antenna_height_high_m'])
-                
-                transmitter_power_dbm = random.randint(
-                    mobile_params['transmitter_power_low_dbm'], 
-                    mobile_params['transmitter_power_high_dbm'])
-                
-                trans_antenna_gain_dbi = random.randint(
-                    mobile_params['trans_antenna_gain_low_dbi'], 
-                    mobile_params['trans_antenna_gain_high_dbi'])
-                
-                user_antenna_gain_dbi = random.randint(
-                    mobile_params['user_antenna_gain_low_dbi'], 
-                    mobile_params['user_antenna_gain_high_dbi'])
-                
-                user_antenna_loss_db = random.randint(
-                    mobile_params['user_antenna_loss_low_db'], 
-                    mobile_params['user_antenna_loss_high_db'])
-                
-                interference_db = random.randint(
-                    mobile_params['interference_low_db'], 
-                    mobile_params['interference_high_db'])
 
+            transmitter_height_m = random.randint(
+                mobile_params['transmitter_height_low_m'], 
+                mobile_params['transmitter_height_high_m'])
+            
+            user_antenna_height_m = random.randint(
+                mobile_params['user_antenna_height_low_m'], 
+                mobile_params['user_antenna_height_high_m'])
+            
+            transmitter_power_dbm = random.randint(
+                mobile_params['transmitter_power_low_dbm'], 
+                mobile_params['transmitter_power_high_dbm'])
+            
+            trans_antenna_gain_dbi = random.randint(
+                mobile_params['trans_antenna_gain_low_dbi'], 
+                mobile_params['trans_antenna_gain_high_dbi'])
+            
+            user_antenna_gain_dbi = random.randint(
+                mobile_params['user_antenna_gain_low_dbi'], 
+                mobile_params['user_antenna_gain_high_dbi'])
+            
+            user_antenna_loss_db = random.randint(
+                mobile_params['user_antenna_loss_low_db'], 
+                mobile_params['user_antenna_loss_high_db'])
+            
+            interference_db = random.randint(
+                mobile_params['interference_low_db'], 
+                mobile_params['interference_high_db'])
+            
+            for _ in range(50):
                 
-                output.append({
-                    'iteration' : i,
-                    'mu' : mobile_params['mu'],
-                    'sigma' : mobile_params['sigma'],
-                    'seed_value' : mobile_params['seed_value'],
-                    'draws' : mobile_params['draws'],
-                    'cell_generation' : mobile_params['cell_generation'],
-                    'frequency_mhz' : frequency,
-                    'channel_bandwidth_mhz' : mobile_params['channel_bandwidth_mhz'],
-                    'transmitter_height_m' : transmitter_height_m,
-                    'trans_user_dist_km' : trans_user_dist_km,
-                    'user_antenna_height_m' : user_antenna_height_m,
-                    'transmitter_power_dbm' : transmitter_power_dbm,
-                    'trans_antenna_gain_dbi' : trans_antenna_gain_dbi,
-                    'user_antenna_gain_dbi' : user_antenna_gain_dbi,
-                    'user_antenna_loss_db' : user_antenna_loss_db,
-                    'interference_db' : interference_db,
-                    'shadow_fading_db' : mobile_params['shadow_fading_db'],
-                    'building_penetration_loss_db' : (
-                        mobile_params['building_penetration_loss_db']),
-                    'antenna_sectors' : mobile_params['antenna_sectors'],
-                    'subcarriers' : mobile_params['subcarriers'],
-                    'system_temperature_k' : mobile_params['system_temperature_k'],
-                    'network_load' : network,
-                    'decile' : decile
-                })
+                transmitter_x = random.uniform(0, mobile_params['grid_length'])
+                transmitter_y = random.uniform(0, mobile_params['grid_length'])
+                receiver_x = random.uniform(0, (mobile_params['grid_length'] + 5))
+                receiver_y = random.uniform(0, (mobile_params['grid_length'] + 5))
+                interceptor_x = random.uniform(0, mobile_params['grid_length'])
+                interceptor_y = random.uniform(0, mobile_params['grid_length'])
+       
+            output.append({
+                'transmitter_x': transmitter_x, 
+                'transmitter_y': transmitter_y,
+                'receiver_x': receiver_x,
+                'receiver_y': receiver_y,
+                'interference_x': interceptor_x,
+                'interference_y': interceptor_y,
+                'no_transmitters': mobile_params['transmitters'],
+                'iteration' : i,
+                'mu' : mobile_params['mu'],
+                'sigma' : mobile_params['sigma'],
+                'seed_value' : mobile_params['seed_value'],
+                'draws' : mobile_params['draws'],
+                'cell_generation' : mobile_params['cell_generation'],
+                'transmitter_height_m' : transmitter_height_m,
+                'user_antenna_height_m' : user_antenna_height_m,
+                'transmitter_power_dbm' : transmitter_power_dbm,
+                'trans_antenna_gain_dbi' : trans_antenna_gain_dbi,
+                'user_antenna_gain_dbi' : user_antenna_gain_dbi,
+                'user_antenna_loss_db' : user_antenna_loss_db,
+                'interference_db' : interference_db,
+                'shadow_fading_db' : mobile_params['shadow_fading_db'],
+                'building_penetration_loss_db' : (
+                    mobile_params['building_penetration_loss_db']),
+                'antenna_sectors' : mobile_params['antenna_sectors'],
+                'subcarriers' : mobile_params['subcarriers'],
+                'system_temperature_k' : mobile_params['system_temperature_k'],
+                'mean_monthly_demand_GB' : demand,
+                'decile' : decile
+            })
 
 
     return output
@@ -139,8 +183,11 @@ def uq_inputs_capacity(parameters):
     df = pd.DataFrame.from_dict(iterations)
 
     # Import user data
-    pop_path = os.path.join(DATA_SSA, 'SSA_decile_summary_stats.csv') 
-    df1 = pd.read_csv(pop_path)
+    mob_path = os.path.join(DATA_RESULTS, 'cellular', 'SSA_mobile_data.csv') 
+    pop_path = os.path.join(DATA_SSA, 'SSA_decile_summary_stats.csv')
+    df1 = pd.read_csv(mob_path)
+    df2 = pd.read_csv(pop_path)
+    df3 = pd.merge(df1, df2, on = 'decile')
 
     filename = 'uq_parameters_capacity.csv'
     folder_out = os.path.join(DATA_RESULTS, 'cellular')
@@ -149,7 +196,7 @@ def uq_inputs_capacity(parameters):
 
         os.makedirs(folder_out)
     
-    merged_df = pd.merge(df, df1, on = 'decile')
+    merged_df = pd.merge(df, df3, on = 'decile')
     path_out = os.path.join(folder_out, filename)
     merged_df.to_csv(path_out, index = False)
 
@@ -238,9 +285,9 @@ def multigeneration_cell_costs(i, mobile_params):
                     'sigma' : mobile_params['sigma'],
                     'seed_value' : mobile_params['seed_value'],
                     'draws' : mobile_params['draws'],
-                    'cell_generation' : mobile_params['cell_generation'],
-                    'frequency_mhz' : frequency,
-                    'channel_bandwidth_mhz' : mobile_params['channel_bandwidth_mhz'],
+                    #'cell_generation' : mobile_params['cell_generation'],
+                    #'frequency_mhz' : frequency,
+                    #'channel_bandwidth_mhz' : mobile_params['channel_bandwidth_mhz'],
                     'sector_antenna_usd' : sector_antenna,
                     'remote_radio_unit_usd' : remote_radio_unit,
                     'io_fronthaul_usd' : io_fronthaul,
@@ -295,7 +342,12 @@ def uq_inputs_costs(parameters):
 
     # Import user data
     pop_path = os.path.join(DATA_SSA, 'SSA_decile_summary_stats.csv') 
+    site_path = os.path.join(DATA_SSA, 'SSA_number_of_sites.csv')
     df1 = pd.read_csv(pop_path)
+    df2 = pd.read_csv(site_path)
+    df2 = df2[['cell_generation', 'frequency_mhz', 'channel_bandwidth_mhz', 
+               'number_of_sites', 'decile']]
+    df1 = pd.merge(df1, df2, on = 'decile')
 
     filename = 'uq_parameters_cost.csv'
     folder_out = os.path.join(DATA_RESULTS, 'cellular')
@@ -430,7 +482,6 @@ def multigeneration_cell_emissions(i, mobile_params):
         
         output.append({
             'iteration' : i,
-            'cell_generation' : mobile_params['cell_generation'],
             'bbu_rru_pcb_kg' : bbu_rru_pcb_kg,
             'bbu_rru_aluminium_kg' : bbu_rru_aluminium_kg,
             'copper_antenna_kg' : copper_antenna_kg,
@@ -508,6 +559,11 @@ def uq_inputs_emissions(parameters):
     # Import user data
     pop_path = os.path.join(DATA_SSA, 'SSA_decile_summary_stats.csv') 
     df1 = pd.read_csv(pop_path)
+    site_path = os.path.join(DATA_SSA, 'SSA_number_of_sites.csv')
+    df1 = pd.read_csv(pop_path)
+    df2 = pd.read_csv(site_path)
+    df2 = df2[['cell_generation', 'number_of_sites', 'decile']]
+    df1 = pd.merge(df1, df2, on = 'decile')
 
     filename = 'uq_parameters_emission.csv'
     folder_out = os.path.join(DATA_RESULTS, 'cellular')
@@ -524,10 +580,39 @@ def uq_inputs_emissions(parameters):
     return
 
 
+def select_frequency(row):
+    """
+    This is a helper function to select the frequency value from a list of 
+    frequency spectrum in a country based on the deciles
+    """
+    spectrum_list = (ast.literal_eval(row['spectrum_MHz']) if 
+                     isinstance(row['spectrum_MHz'], str) 
+                     else row['spectrum_MHz'])
+    
+    if isinstance(spectrum_list, list):
+          
+        if row['decile'] in ['Decile 10', 'Decile 9', 'Decile 8']:
+            
+            return min(spectrum_list)  
+        
+        elif row['decile'] in ['Decile 1', 'Decile 2', 'Decile 3']:
+            
+            return max(spectrum_list)  
+        
+        else:
+
+            return spectrum_list[0] 
+        
+    return None
+
+
 if __name__ == '__main__':
 
     print('Setting seed for consistent results')
     random.seed(10)
+
+    print('Preparing mobile data')
+    #process_mobile_data()
 
     print('Running uq_capacity_inputs_generator()')
     #uq_inputs_capacity(parameters)
@@ -536,4 +621,4 @@ if __name__ == '__main__':
     #uq_inputs_costs(parameters)
 
     print('Running uq_inputs_emissions_generator()')
-    #uq_inputs_emissions(parameters)
+    uq_inputs_emissions(parameters)
