@@ -26,7 +26,7 @@ SSA_DATA = os.path.join(BASE_PATH, '..', 'results', 'SSA')
 RAW_DATA = os.path.join(BASE_PATH, '..', 'data', 'raw', 'tower')
 
 
-def process_capacity_item(item, lut):
+def process_capacity_item(item):
     """
     Helper function to process each item in parallel.
     """
@@ -105,7 +105,6 @@ def process_capacity_item(item, lut):
         'decile' : item['decile']
     }
 
-
 def run_uq_processing_capacity_parallel():
     """
     Run the UQ inputs through the mobile broadband model in parallel.
@@ -113,9 +112,7 @@ def run_uq_processing_capacity_parallel():
     path = os.path.join(RESULTS, 'uq_parameters_capacity.csv') 
 
     if not os.path.exists(path):
-
         print('Cannot locate uq_parameters_capacity.csv')
-
         return
 
     df = pd.read_csv(path)
@@ -126,10 +123,10 @@ def run_uq_processing_capacity_parallel():
 
     with ThreadPoolExecutor() as executor:
     
-        futures = {executor.submit(process_capacity_item, item, lut): item for item in df}
+        futures = {executor.submit(process_capacity_item, item): item for item in df}
         
-        for future in tqdm(as_completed(futures), total = len(futures), 
-                           desc = "Processing uncertainty mobile results"):
+        for future in tqdm(as_completed(futures), total=len(futures), 
+                           desc="Processing uncertainty mobile results"):
             
             result = future.result()  
             results.append(result)
@@ -141,10 +138,11 @@ def run_uq_processing_capacity_parallel():
         os.makedirs(RESULTS)
 
     path_out = os.path.join(RESULTS, filename)
-    df_results.to_csv(path_out, index = False)
+    df_results.to_csv(path_out, index=False)
 
 
-    return
+    return None
+
 
 
 def network_dimension():
@@ -211,7 +209,7 @@ def network_dimension():
     return None
 
 
-def process_capacity_item(item):
+def process_cost_item(item):
     """
     Process a single item to compute various costs.
     This is the function that will be run in parallel for each item.
@@ -254,6 +252,7 @@ def process_capacity_item(item):
         'cost_per_month_usd': item['cost_per_month_usd'],
         'arpu_usd': item['arpu_usd'],
         'assessment_years': item['assessment_years'],
+        'adoption_rate' : item['adoption_rate'],
         'number_of_sites' : item['number_of_sites'],
         'decile': item['decile']}
 
@@ -277,7 +276,7 @@ def run_uq_processing_cost():
 
     with concurrent.futures.ThreadPoolExecutor() as executor:
         
-        results = list(tqdm(executor.map(process_capacity_item, df), 
+        results = list(tqdm(executor.map(process_cost_item, df), 
             desc="Processing uncertainty mobile cost results", total=len(df)))
 
     df_results = pd.DataFrame(results)
@@ -379,6 +378,7 @@ def process_emission_item(item):
     
     result = {
         'cell_generation': item['cell_generation'],
+        'frequency_mhz' : item['frequency_mhz'],
         'aluminium_mfg_ghg_kg': aluminium_mfg_ghg,
         'steel_iron_mfg_ghg_kg': steel_iron_mfg_ghg,
         'concrete_mfg_ghg_kg': concrete_mfg_ghg,
@@ -396,6 +396,7 @@ def process_emission_item(item):
         'total_emissions_ghg_kg': total_emissions_ghg_kg,
         'total_poor_unconnected': item['total_poor_unconnected'],
         'mean_poor_connected': item['mean_poor_connected'],
+        'social_carbon_cost_usd' : item['social_carbon_cost_usd'],
         'number_of_sites': item['number_of_sites'],
         'assessment_period': item['assessment_period'],
         'decile': item['decile']
@@ -440,12 +441,12 @@ def run_uq_processing_emission():
 if __name__ == '__main__':
 
     print('Running mobile broadband capacity model')
-    #run_uq_processing_capacity_parallel()
+    run_uq_processing_capacity_parallel()
 
-    #network_dimension()
+    network_dimension()
 
     print('Running mobile broadband cost model')
-    #run_uq_processing_cost()
+    run_uq_processing_cost()
 
     print('Running mobile broadband emissions model')
     run_uq_processing_emission()

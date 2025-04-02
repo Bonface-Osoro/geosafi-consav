@@ -103,41 +103,6 @@ def process_africa_results():
     return None
 
 
-def model_data():
-    """
-    This function calculates the summary statistics of the African poverty and 
-    connectivity results needed in the capacity, cost and emission model.
-    """
-    print('Generating decile summary statistics')
-
-    pop_data = os.path.join(DATA_SSA, 'SSA_to_be_served_population.csv')
-    df = pd.read_csv(pop_data)
-
-    df = df.groupby(['decile']).agg(total_population = ('population', 'sum'),
-        total_poor_unconnected = ('poor_unconnected', 'sum'), total_area_sqkm = 
-        ('area', 'sum'), total_max_distance_km = ('max_distance_km', 'sum'), 
-        mean_poor_connected = ('poor_unconnected', 'mean'), mean_area_sqkm = 
-        ('area', 'mean'), mean_distance_km = ('max_distance_km', 'mean'),
-        maritime_km = ('maritime_km', 'mean'), 
-        cost_per_1GB_usd = ('cost_per_1GB', 'mean'),
-        monthly_income_usd = ('monthly_GNI', 'mean'), 
-        cost_per_month_usd = ('cost_per_month_usd', 'mean'),  
-        arpu_usd = ('arpu_usd', 'mean')).reset_index()
-
-    filename = 'SSA_decile_summary_stats.csv'
-    folder_out = os.path.join(DATA_SSA)
-
-    if not os.path.exists(folder_out):
-
-        os.makedirs(folder_out)
-    
-    path_out = os.path.join(folder_out, filename)
-    df.to_csv(path_out, index = False)
-
-
-    return None
-
-
 def decile_emissions_per_user():
     """
     This function calculates the per user metrics for each decile.
@@ -175,8 +140,8 @@ def decile_emissions_per_user():
     df['annualized_per_user_scc_cost_usd'] = (df['per_user_scc_cost_usd'] 
                                               / df['assessment_period'])
     
-    df = pd.melt(df, id_vars = ['cell_generation', 'decile', 
-         'per_user_scc_cost_usd', 'annualized_per_user_scc_cost_usd',
+    df = pd.melt(df, id_vars = ['cell_generation', 'decile', 'frequency_mhz',
+         'per_user_scc_cost_usd', 'annualized_per_user_scc_cost_usd', 'scc_cost_usd',
          'assessment_period', 'per_user_ghg_kg', 'total_emissions_ghg_kg'], 
          value_vars = ['per_user_mfg_ghg_kg', 'per_user_trans_ghg_kg', 
           'per_user_construct_ghg_kg', 'per_user_ops_ghg_kg', 
@@ -189,9 +154,9 @@ def decile_emissions_per_user():
     df['annualized_phase_per_user_kg'] = (df['phase_per_user_kg'] 
                                           / df['assessment_period'])
 
-    df = df[['cell_generation', 'decile', 'assessment_period', 'lca_phase', 
-             'phase_per_user_kg', 'annualized_phase_per_user_kg', 
-             'per_user_ghg_kg', 'annualized_per_user_ghg', 
+    df = df[['cell_generation', 'decile', 'frequency_mhz', 'assessment_period', 
+             'lca_phase', 'phase_per_user_kg', 'annualized_phase_per_user_kg', 
+             'per_user_ghg_kg', 'annualized_per_user_ghg', 'scc_cost_usd',
              'total_emissions_ghg_kg', 'per_user_scc_cost_usd',
              'annualized_per_user_scc_cost_usd']]
 
@@ -222,7 +187,7 @@ def decile_cost_per_user():
     
     df['per_user_tco_usd'] = (df['total_base_station_tco_usd'] / 
                                  (df['total_poor_unconnected'] 
-                                 * (df['adoption_rate_perc'] / 100)))
+                                 * (df['adoption_rate'] / 100)))
     
     df['annualized_per_user_cost_usd'] = (df['per_user_tco_usd'] 
                                           / df['assessment_years'])
@@ -233,9 +198,9 @@ def decile_cost_per_user():
     
     df['percent_gni'] = df['monthly_price'] / df['monthly_income_usd'] * 100
     
-    df = df[['cell_generation', 'decile', 'per_user_tco_usd',
+    df = df[['cell_generation', 'decile', 'per_user_tco_usd', 'frequency_mhz',
              'total_base_station_tco_usd', 'annualized_per_user_cost_usd', 
-             'monthly_per_user_cost_usd', 'adoption_rate_perc', 'arpu_usd', 
+             'monthly_per_user_cost_usd', 'adoption_rate', 'arpu_usd', 
              'monthly_income_usd', 'percent_gni', 'monthly_price']]
 
     df['technology'] = 'cellular'
@@ -262,17 +227,13 @@ def decile_capacity_per_user():
     pop_data = os.path.join(CELL_RESULTS, 'mobile_capacity_results.csv')
     df = pd.read_csv(pop_data)
     
-    ################### Per user costs #####################
+    ################### Per user capacity #####################
     
-    df['per_user_capacity_mbps'] = (df['base_station_capacity_mbps'] / 
-                                 (df['total_poor_unconnected'] * 
-                                  df['network_load_perc']))
+    df['per_user_capacity_mbps'] = (df['spectral_efficiency_bpshz'] * 
+                                 df['channel_bandwidth_mhz'])
     
-    df['per_area_capacity_mbps'] = (df['base_station_capacity_mbps'] / 
-                                 df['mean_area_sqkm'])
-    
-    df = df[['cell_generation', 'decile', 'network_load_perc', 
-             'per_user_capacity_mbps', 'per_area_capacity_mbps']]
+    df = df[['cell_generation', 'frequency_mhz', 'intersite_distance_km',
+             'per_user_capacity_mbps', 'decile']]
 
     df['technology'] = 'cellular'
     filename = 'SSA_decile_capacity.csv'
@@ -292,11 +253,9 @@ def decile_capacity_per_user():
 if __name__ == '__main__':
 
     #process_africa_results()
-
-    model_data()
     
     #decile_capacity_per_user()
 
     #decile_cost_per_user()
 
-    #decile_emissions_per_user()
+    decile_emissions_per_user()

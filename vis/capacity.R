@@ -10,63 +10,11 @@ library("cowplot")
 suppressMessages(library(tidyverse))
 folder <- dirname(rstudioapi::getSourceEditorContext()$path)
 
-####################################
-## Base Station per Area Capacity ##
-####################################
-df = data %>%
-  group_by(cell_generation, decile) %>%
-  summarize(mean = mean(per_area_capacity_mbps/1e3),
-            sd = sd(per_area_capacity_mbps/1e3))
-
-per_area_capacity <- ggplot(df, aes(x = decile, y = mean, fill = cell_generation)) +
-  geom_bar(stat = "identity", position = position_dodge(), width = 0.9) +
-  geom_errorbar(aes(ymin = mean - sd, ymax = mean + sd), width = .2,
-                position = position_dodge(.9), color = 'red',size = 0.2) + 
-  geom_text(aes(label = formatC(signif(after_stat(y), 4), 
-      digits = 2, format = "fg", flag = "#")), color = 'black', size = 3, position = 
-      position_dodge(0.9), vjust = -0.4, hjust = 1) +
-  scale_fill_viridis_d(direction = -1) +
-  labs(colour = NULL, title = " ", 
-       subtitle = "(E) Per area capacity categorized by cell generation and grouped by deciles.", 
-       x = NULL, y = "Capacity (Gbps per km²)") +
-  theme(
-    legend.position = 'bottom',
-    axis.text.x = element_text(size = 10),
-    panel.spacing = unit(0.6, "lines"),
-    plot.title = element_text(size = 15, face = "bold"),
-    plot.subtitle = element_text(size = 13),
-    axis.text.y = element_text(size = 10),
-    axis.title.y = element_text(size = 10),
-    legend.title = element_text(size = 10),
-    legend.text = element_text(size = 9),
-    axis.title.x = element_text(size = 10)) +
-  expand_limits(y = 0) +
-  guides(fill = guide_legend(ncol = 5, title = 'Mobile Technology')) +
-  scale_x_discrete(expand = c(0, 0.15)) +
-  scale_y_continuous(expand = c(0, 0),
-  labels = function(y) format(y, scientific = FALSE),limits = c(0, 199))
-
-#########################
-## PANEL USER CAPACITY ##
-#########################
-aggregate_signals <- ggarrange(path_loss, received_power, cnr,
-     ncol = 3, #align = c('hv'),
-     common.legend = TRUE, legend='bottom') 
-
-aggregate_capacities <- ggarrange(aggregate_signals, capacity_per_user, 
-     nrow = 2, heights = c(1, 3), #align = c('hv'),
-     common.legend = TRUE, legend='bottom') 
-
-path = file.path(folder, 'figures', 'aggregate_capacities.png')
-png(path, units="in", width=8, height=12, res=300)
-print(aggregate_capacities)
-dev.off()
-
-
 ####################
 ## SIGNAL RESULTS ##
 ####################
-data <- read.csv(file.path(folder, '..', 'results', 'cellular', 'mobile_capacity_results.csv'))
+data <- read.csv(file.path(folder, '..', 'results', 'cellular', 
+                           'mobile_capacity_results.csv'))
 data <- data %>%
   filter(cell_generation == "4G" & frequency_mhz %in% c(700, 800, 1800,
                             2600, 3500, 5800))
@@ -219,7 +167,7 @@ spectral_efficiency <- ggplot(df4, aes(continuous, mean, color = frequency_mhz))
   geom_point(size = 0.3, position=position_dodge(0.5)) +
   labs( colour = NULL,
         title = "D",x = "Inter-Site Distance (km)",
-        y = "Spectral Efficiency (Bps/Hz)",
+        y = "Spectral Efficiency \n(Bps/Hz)",
         fill = "Frequency") + 
   scale_color_brewer(palette = "Dark2") +
   theme(legend.position = 'bottom',
@@ -237,7 +185,8 @@ spectral_efficiency <- ggplot(df4, aes(continuous, mean, color = frequency_mhz))
 #############################
 ## Spectral Efficiency PDF ##
 #############################
-data <- read.csv(file.path(folder, '..', 'results', 'cellular', 'mobile_capacity_results.csv'))
+data <- read.csv(file.path(folder, '..', 'results', 'cellular', 
+                           'mobile_capacity_results.csv'))
 data <- data %>%
   filter(cell_generation == "4G" & frequency_mhz %in% c(700, 800, 1800,
   2600, 3500, 5800))
@@ -267,15 +216,75 @@ theme(legend.position = 'bottom',
 guides(color = guide_legend(nrow = 2)) 
 
 
-signal_plots <- ggarrange(path_loss, Received_Power, sinr_db, spectral_pdf,
-                          nrow = 2, ncol = 2, 
-                          common.legend = TRUE, legend='bottom') 
+######################
+## CAPACITY RESULTS ##
+######################
+data <- read.csv(file.path(folder, '..', 'results', 'SSA', 'SSA_decile_capacity.csv'))
+data <- data %>%
+  filter(cell_generation == "4G" & frequency_mhz %in% c(700, 800, 1800,
+                                                        2600, 3500, 5800))
 
-path = file.path(folder, 'figures', 'signal_plots.png')
-png(path, units="in", width=7, height=7, res=300)
-print(signal_plots)
-dev.off()
+data$frequency_mhz = factor(
+  data$frequency_mhz,
+  levels = c(700, 800, 1800, 2600, 3500, 5800),
+  labels = c('0.7 GHz (5G)', '0.8 GHz (4G)', '1.8 GHz (4G)',
+             '2.6 GHz (4G)', '3.5 GHz (5G)', '5.8 GHz (5G)'))
 
+data$discrete <- cut(data$intersite_distance_km, seq(0,100,5))
+data$continuous = ""
+data$continuous[data$discrete == '(0,5]'] <- 2.5
+data$continuous[data$discrete == '(5,10]'] <- 7.5
+data$continuous[data$discrete == '(10,15]'] <- 12.5
+data$continuous[data$discrete == '(15,20]'] <- 17.5
+data$continuous[data$discrete == '(20,25]'] <- 22.5
+data$continuous[data$discrete == '(25,30]'] <- 27.5
+data$continuous[data$discrete == '(30,35]'] <- 32.5
+data$continuous[data$discrete == '(35,40]'] <- 37.5
+data$continuous[data$discrete == '(40,45]'] <- 42.5
+data$continuous[data$discrete == '(45,50]'] <- 52.5
+data$continuous[data$discrete == '(50,55]'] <- 57.5
+data$continuous[data$discrete == '(55,60]'] <- 62.5
+data$continuous[data$discrete == '(60,65]'] <- 67.5
+data$continuous[data$discrete == '(65,70]'] <- 72.5
+data$continuous[data$discrete == '(75,80]'] <- 77.5
+data$continuous[data$discrete == '(80,85]'] <- 82.5
+data$continuous[data$discrete == '(85,90]'] <- 87.5
+data$continuous[data$discrete == '(90,95]'] <- 92.5
+data$continuous[data$discrete == '(95,100]'] <- 97.5
+
+df = select(data, per_user_capacity_mbps, frequency_mhz, 
+            continuous)
+
+df$continuous = as.numeric(df$continuous)
+df = df %>%
+  group_by(frequency_mhz, continuous) %>%
+  summarise(
+    mean = mean(per_user_capacity_mbps),
+    sd = sd(per_user_capacity_mbps))
+
+#######################
+## Capacity per user ##
+#######################
+capacity_per_user <- ggplot(df, aes(continuous, mean, color = frequency_mhz)) + 
+  geom_line(position = position_dodge(width = 0.5), size = 0.5) + 
+  geom_point(size = 0.3, position=position_dodge(0.5)) +
+  labs( colour = NULL,
+        title = "F",x = "Inter-Site Distance (km)",
+        y = "Capacity per user (Mbps)",
+        fill = "Frequency") + 
+  scale_color_brewer(palette = "Dark2") +
+  theme(
+    legend.position = 'bottom',
+    axis.text.x = element_text(size = 10),
+    panel.spacing = unit(0.6, "lines"),
+    plot.title = element_text(size = 15, face = "bold"),
+    plot.subtitle = element_text(size = 13),
+    axis.text.y = element_text(size = 10),
+    axis.title.y = element_text(size = 10),
+    legend.title = element_text(size = 10),
+    legend.text = element_text(size = 9),
+    axis.title.x = element_text(size = 10)) +
+  guides(color = guide_legend(ncol = 6))
 
 #####################
 ## Number of Sites ##
@@ -326,11 +335,22 @@ number_of_sites <- ggplot(df, aes(x = decile, y = mean, fill = frequency_mhz)) +
   guides(fill = guide_legend(ncol = 5, title = 'Frequency')) +
   expand_limits(y = 0) +
   guides(fill = guide_legend(ncol = 5, title = 'Frequency')) +
-  scale_x_discrete(expand = c(0, 0)) +   # Remove the space in the x-axis
+  scale_x_discrete(expand = c(0, 0)) +   
   scale_y_continuous(expand = c(0, 0), 
   labels = function(y) format(y, scientific = FALSE), 
   limits = c(0, 750)) 
 
+#################
+## Panel Plots ##
+#################
+signal_plots <- ggarrange(path_loss, Received_Power, sinr_db, 
+    spectral_efficiency, spectral_pdf, capacity_per_user, nrow = 3, ncol = 2, 
+    common.legend = TRUE, legend='bottom') 
+
+path = file.path(folder, 'figures', 'signal_plots.png')
+png(path, units="in", width=7, height=8, res=300)
+print(signal_plots)
+dev.off()
 
 
 
