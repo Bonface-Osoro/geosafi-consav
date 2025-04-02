@@ -16,6 +16,40 @@ from collections import OrderedDict
 ################################
 ######## CAPACITY MODEL ########
 ################################
+def user_demand(mean_monthly_demand_GB, traffic_busy_hour, smartphone_penetration, 
+                mean_poor_connected, mean_area_sqkm):
+    """
+    This is a function for calculating the user demand based on future monthly 
+    traffic.
+
+    Parameters
+    ----------
+    mean_monthly_demand_GB : float
+        Future monthly traffic in GB.
+    traffic_busy_hour : float
+        Quantity of daily traffic taking place within the busiest hour of the day.
+    smartphone_penetration : float
+        Future smartphone penetration rate in percentage.
+    mean_poor_connected : float
+        Average number of unconnected population in a given statistical area.
+    mean_area_sqkm : float
+        Average area where the unconnected population lives in.
+        
+    Returns
+    -------
+    demand_density_mbps_sqkm : float
+        Traffic demand density per user at a given time in Mbps/km^2.
+
+    """
+    user_demand = (mean_monthly_demand_GB * 1000 * 8 * (1 / 30) 
+                   * (traffic_busy_hour / 100) * (1 / 3600))
+    
+    demand_density_mbps_sqkm = ((mean_poor_connected * (smartphone_penetration 
+                                / 100) * user_demand) / (mean_area_sqkm))
+
+
+    return demand_density_mbps_sqkm
+
 
 def generate_log_normal_dist_value(frequency, mu, sigma, seed_value, draws):
     """
@@ -118,6 +152,94 @@ def hk_city_correction_model(frequency_mhz, user_antenna_m):
     return correction_loss_db
 
 
+def calc_signal_path(transmitter_x, transmitter_y, receiver_x, receiver_y):
+    """
+    Calculate the Euclidean distance between the transmitter
+    and receiver.
+
+    Parameters
+    ----------
+    transmitter_x (float) : 
+        x coordinates of transmitter (km).
+    transmitter_y (float) : 
+        y coordinates of transmitter (km).
+    receiver_x (float) : 
+        x coordinates of receiver (km).
+    receiver_y (float) : 
+        y coordinates of receiver (km).
+
+    Returns
+    -------
+    distance : float
+        Distance in km.
+    """
+    x_term = (receiver_x - transmitter_x) ** 2
+    y_term = (receiver_y - transmitter_y) ** 2
+    distance = math.sqrt(x_term + y_term)
+
+    return distance
+
+
+def calc_interference_path(interference_x, interference_y, receiver_x, 
+                           receiver_y):
+    """
+    Calculates the Euclidean distance between the interfering site
+    and the user.
+
+    Parameters
+    ----------
+    interference_x (float) : 
+        x coordinates of interfering site (km).
+    interference_y (float) : 
+        y coordinates of interfering site (km).
+    receiver_x (float) : 
+        x coordinates of receiver (km).
+    receiver_y (float) : 
+        y coordinates of receiver (km).
+
+    Returns
+    -------
+    interference_user_distance : float
+        Interfering site to the user's distance in km.
+    """  
+    x_i_term = (interference_x - receiver_x) ** 2
+    y_i_term = (interference_y - receiver_y) ** 2 
+    interference_user_distance = math.sqrt(x_i_term + y_i_term)
+
+
+    return interference_user_distance
+
+
+def calc_intersite_distance(interference_x, interference_y, transmitter_x, 
+                            transmitter_y):
+    """
+    Calculates the Euclidean distance between the interfering site
+    and the transmitter.
+
+    Parameters
+    ----------
+    interference_x (float) : 
+        x coordinates of interfering site (km).
+    interference_y (float) : 
+        y coordinates of interfering site (km).
+    transmitter_x (float) : 
+        x coordinates of the transmitter (km).
+    transmitter_y (float) : 
+        y coordinates of transmitter (km).
+
+    Returns
+    -------
+    intersite_distance : float
+        Interfering site to the transmitter's distance in km.
+    """  
+    x_i_term = (interference_x - transmitter_x) ** 2
+    y_i_term = (interference_y - transmitter_y) ** 2 
+    intersite_distance = math.sqrt(x_i_term + y_i_term)
+
+
+    return intersite_distance
+
+
 def hk_path_loss_model(frequency_mhz, transmitter_height, user_antenna_m, 
                        trans_user_dist_km, i, random_variations):
     """
@@ -193,7 +315,34 @@ def calc_power_received(transmitter_power_db, transmitter_antenna_gain_db,
     return power_received_dbm
 
 
-def calc_noise(chn_bandwidth_mhz):
+def bandwidth(frequency_mhz):
+    """
+    This is a helper fucntion to calculate the channel bandwidth
+
+    Parameters
+    ----------
+    frequency_mhz : float.
+        Frequency spectrum in MHz
+
+    Returns
+    -------
+    chn_bandwidth_mhz : float
+        Channel bandwidth.
+    """
+
+    if frequency_mhz == 700 or frequency_mhz == 5800 or frequency_mhz == 3500:
+
+        chn_bandwidth_mhz = 40
+
+    else:
+
+        chn_bandwidth_mhz = 10
+
+
+    return chn_bandwidth_mhz
+
+
+def calc_noise(frequency_mhz, chn_bandwidth_mhz):
     """
     Estimates the thermal noise.
 
@@ -210,6 +359,14 @@ def calc_noise(chn_bandwidth_mhz):
     k = 1.38e-23 #Boltzmann's constant k = 1.38×10−23 joules per kelvin
     t = 294 #Temperature of the receiver system T0 in kelvins
 
+    if frequency_mhz == 5800 or frequency_mhz == 3500:
+
+        chn_bandwidth_mhz = 40
+
+    else:
+
+        chn_bandwidth_mhz = 10
+
     noise_db = (10 * (math.log10((k * t * 1000)))) + \
                 (10 * (math.log10(chn_bandwidth_mhz * 10 ** 6))) + 1.5
     
@@ -217,12 +374,12 @@ def calc_noise(chn_bandwidth_mhz):
     return noise_db
   
 
-def calc_cnr(received_power, noise, ue_gain, ue_losses, interference_db):
+def calc_sinr(received_power, noise, ue_gain, ue_losses, interference_db):
     """
-    Calculate the Carrier-to-Noise Ratio (CNR).
+    Calculate the Signal-to-Interference-plu-Noise ratio (SINR).
 
-    Returns
-    -------
+    Parameters
+    ----------
     received_power : float
         The received signal power at the receiver in dB.
     noise : float
@@ -236,13 +393,42 @@ def calc_cnr(received_power, noise, ue_gain, ue_losses, interference_db):
 
     Returns
     -------
-    cnr : float
-        Carrier-to-Noise Ratio (CNR) in dB.
+    sinr : float
+        Signal-to-Interference-plu-Noise ratio (SINR) in dB.
 
     """
-    cnr = ((received_power + ue_gain) - (noise + ue_losses + interference_db))
+    sinr = ((received_power + ue_gain) - (noise + ue_losses + interference_db))
 
-    return cnr
+    return sinr
+
+
+def calc_interference(received_power, noise, ue_gain, ue_losses):
+    """
+    Calculate the noise from interfering site.
+
+    Parameters
+    ----------
+    received_power : float
+        The received signal power at the receiver in dB.
+    noise : float
+        Received noise power spectral density in dBm.
+    ue_gain : float
+        User equipment antenna gain in dBi
+    ue_losses : float
+        User equipment antenna losses in dBi
+    interference_db : float
+        Interference noise power in db
+
+    Returns
+    -------
+    inteference : float
+        Interefernce dB.
+
+    """
+    inteference = ((received_power + ue_gain) - (noise + ue_losses))
+
+
+    return inteference
 
 
 def get_spectral_efficiency(lut, network_type, cnr_value):
@@ -306,7 +492,8 @@ def calc_maximum_distance(geometry):
     """
 
     centroid = geometry.centroid 
-    max_distance_km = max(centroid.distance(Point(point)) for point in geometry.exterior.coords)
+    max_distance_km = max(centroid.distance(Point(point)) for point in 
+                          geometry.exterior.coords)
     
 
     return max_distance_km
@@ -521,7 +708,7 @@ def opex_cost(site_rental, base_station_energy, staff_costs, antenna_upgrade,
 
 
 def total_cost_ownership(total_capex, total_opex, discount_rate, 
-                         assessment_period):
+                         assessment_period, number_of_sites):
     """
     Calculate the total cost of ownership(TCO) in US$:
 
@@ -535,6 +722,8 @@ def total_cost_ownership(total_capex, total_opex, discount_rate,
         discount rate.
     assessment_period : int.
         assessment period of the infrastructure.
+    number_of_sites : int
+        Total number of mobile stations
 
     Returns
     -------
@@ -552,42 +741,10 @@ def total_cost_ownership(total_capex, total_opex, discount_rate,
 
     total_cost_ownership = total_capex + sum(year_costs) + total_opex
 
+    total_cost_ownership = total_cost_ownership * number_of_sites
+
 
     return total_cost_ownership
-
-
-def base_station(cell_generation, metric_value, base_station_list):
-    """
-    This function calculates the base  station metric based on the cellular 
-    generation technology
-
-    Parameters
-    ----------
-    cell_generation : string.
-        Cellphone generation technology.
-    metric_value : float.
-        Metric value to be calculated eg capacity, TCO etc.
-    base_station_list : list.
-        List containing the number of base station.
-
-    Returns
-    -------
-    base_station_metric : float
-        Base station metric
-    """
-
-    for base_station in base_station_list:
-
-        if cell_generation == '4G':
-
-            base_station_metric = metric_value * base_station_list[0]
-            
-        else:
-
-            base_station_metric = metric_value * base_station_list[1]
-            
-
-    return base_station_metric
 
 
 #################################
@@ -775,9 +932,8 @@ def lca_construction(fuel_efficiency, machine_operating_hours,
 
 
 def lca_operations(smartphone_kg, ict_kg, base_band_unit_kwh, 
-                   remote_radio_unit_kwh, number_of_users, 
-                   radio_frequency_unit_kwh, epc_center_kwh, cell_generation, 
-                   number_epc_centers, electricity_kg_co2e, base_station_list):
+                   number_of_users, radio_frequency_unit_kwh, epc_center_kwh, 
+                   number_epc_centers, electricity_kg_co2e, number_of_sites):
     """
     This function calculates the total GHG emissions due to operation of the 
     fiber broadband
@@ -807,17 +963,8 @@ def lca_operations(smartphone_kg, ict_kg, base_band_unit_kwh,
 
     end_user_device_kwh = smartphone_kwh + ict_kwh
     
-    if cell_generation == '4G':
-
-        no_base_stations = base_station_list[0]
-        
-    else:
-
-        no_base_stations = base_station_list[1]
-       
-
     base_station_kwh = ((base_band_unit_kwh + radio_frequency_unit_kwh) 
-                        * no_base_stations)
+                        * number_of_sites)
 
     epc_kwh = epc_center_kwh * number_epc_centers
 
@@ -917,7 +1064,7 @@ def lca_eolt(pcb_emissions_kg, alu_bbu_rru_kg, cu_antenna_kg, alu_antenna_kg,
     return eolt_emission_dict
 
 
-def phase_emission_ghg(cell_generation, emission_type_value, base_station_list):
+def phase_emission_ghg(cell_generation, emission_type_value, number_of_sites):
     """
     This function calculates the total phase GHG emissions based on the cellular 
     generation technology
@@ -928,8 +1075,8 @@ def phase_emission_ghg(cell_generation, emission_type_value, base_station_list):
         Cellphone generation technology.
     emission_type_value : float.
         Total LCA phase emissions value.
-    base_station_list : list.
-        List containing the number of base station emissions.
+    number_of_sites : int.
+        Number of base station emissions.
 
     Returns
     -------
@@ -937,15 +1084,7 @@ def phase_emission_ghg(cell_generation, emission_type_value, base_station_list):
         Phase emission value based on the cellular generation
     """
 
-    for base_station in base_station_list:
-
-        if cell_generation == '4G':
-
-            phase_emission_kg = emission_type_value * base_station_list[0]
-            
-        else:
-
-            phase_emission_kg = emission_type_value * base_station_list[1]
+    phase_emission_kg = emission_type_value * number_of_sites
             
 
     return phase_emission_kg
