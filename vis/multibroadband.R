@@ -46,17 +46,21 @@ label_totals <- df %>%
   group_by(technology, decile) %>%
   summarize(mean_value = sum(mean))
 
+df$normalized_sd <- pmax(df$sd, 0) / df$mean
+factor <- 0.1
+df$normalized_sd <- df$normalized_sd * factor
+
 per_user_capacity <- 
   ggplot(df, aes(x = decile, y = mean, fill = technology)) +
   geom_bar(stat = "identity", position = position_dodge(), width = 0.9) +
-  geom_errorbar(aes(ymin = mean - sd, ymax = mean + sd), width = .1,
-                position = position_dodge(.9), color = 'red',size = 0.5) + 
+  geom_errorbar(aes(ymin = mean - normalized_sd * mean, ymax = mean + normalized_sd * mean), 
+                width = .1, position = position_dodge(0.9), color = 'red', size = 0.5) + 
   geom_text(aes(label = formatC(round(after_stat(y), 3), 
       digits = 2, format = "fg", flag = "#")), color = 'black', size = 3.5, position = 
       position_dodge(0.9), vjust = 1.2, hjust = -0.2, angle = 90) +
   scale_fill_viridis_d(direction = 1) + 
   labs(colour = NULL, title = "A",
-       x = "Population Density Decile (Population per km²)", 
+       x = NULL, 
        y = bquote("Average per user capacity (Mbps)")) +
   theme(
     legend.position = 'bottom',
@@ -69,11 +73,11 @@ per_user_capacity <-
     legend.title = element_text(size = 12),
     legend.text = element_text(size = 12),
     axis.title.x = element_text(size = 12)
-  ) + scale_x_discrete(expand = c(0, 0.15)) +
+  ) +  scale_x_discrete(expand = c(0, 0.15)) +
   scale_y_continuous(expand = c(0, 0),
-  labels = function(y) format(y, scientific = FALSE),limits = c(0, 59))
-  guides(fill = guide_legend(ncol = 3, title = 'Technology')) +
-  theme(strip.text = element_text(size = 14))
+                     labels = function(y) format(y, scientific = FALSE), 
+                     limits = c(0, 59)) +
+  guides(fill = guide_legend(ncol = 3, title = 'Technology'))
 
 ##########################
 ## MULTITECHNOLOGY COST ##
@@ -132,7 +136,7 @@ per_user_cost <-
      position_dodge(0.9), vjust = 1.2, hjust = -0.2, angle = 90) +
   scale_fill_viridis_d(direction = -1) + 
   labs(colour = NULL, title = "B",  
-       x = "Population Density Decile (Population per km²)", 
+       x = NULL, 
        y = bquote("Average per user cost (US$)")) +
   theme(
     legend.position = 'bottom',
@@ -147,9 +151,9 @@ per_user_cost <-
     axis.title.x = element_text(size = 12)
   ) + scale_x_discrete(expand = c(0, 0.15)) +
   scale_y_continuous(expand = c(0, 0),
-  labels = function(y) format(y, scientific = FALSE),limits = c(0, 1399))
-  guides(fill = guide_legend(ncol = 3, title = 'Technology')) +
-  theme(strip.text = element_text(size = 14))
+  labels = function(y) format(y, scientific = FALSE), 
+  limits = c(0, 1399)) +
+  guides(fill = guide_legend(ncol = 3, title = 'Technology'))
 
 ##############################
 ##PANEL USER COSTS CAPACITY ##
@@ -227,7 +231,7 @@ per_user_emissions <-
       position_dodge(0.9), vjust = 1.2, hjust = -0.2, angle = 90) +
   scale_fill_viridis_d(direction = -1) + 
   labs(colour = NULL, title = "A",
-       x = "Population Density Decile (Population per km²)", 
+       x = NULL, 
        y = bquote("Annualized emissions per user (kg CO"["2"] ~ " e)")) +
   theme(
     legend.position = 'bottom',
@@ -282,7 +286,7 @@ per_user_scc <-
        position_dodge(0.9), vjust = 1.2, hjust = -0.2, angle = 90) +
   scale_fill_viridis_d(direction = -1) + 
   labs(colour = NULL, title = "B", 
-       x = "Population Density Decile (Population per km²)", 
+       x = NULL, 
        y = bquote("Annualized SCC per user (US$)")) +
   theme(
     legend.position = 'bottom',
@@ -437,10 +441,7 @@ cell_affordability <- ggplot(cell_cost, aes(x = decile, y = mean, fill = cell_ge
   guides(fill = guide_legend(ncol = 5, title = 'Mobile Technology')) +
   scale_x_discrete(expand = c(0, 0.15)) +
   scale_y_continuous(expand = c(0, 0),
-  labels = function(y) format(y, scientific = FALSE),limits = c(0, 44)) +
-  geom_vline(xintercept = 8, linetype = "dashed", color = "red", size = 0.5) +
-  annotate("text", x = 8, y = 25, label = "Above 2% of monthly GNI per capita", 
-           color = "red", size = 2.5, angle = 90, vjust = 1.4)
+  labels = function(y) format(y, scientific = FALSE),limits = c(0, 44))
 
 #########################
 ## FIBER AFFORDABILITY ##
@@ -502,10 +503,7 @@ fib_affordability <- ggplot(fiber_cost, aes(x = decile, y = percent_gni,
   guides(fill = guide_legend(ncol = 5, title = 'Last Mile Access')) +
   scale_x_discrete(expand = c(0, 0.15)) +
   scale_y_continuous(expand = c(0, 0),
-  labels = function(y) format(y, scientific = FALSE),limits = c(0, 44)) +
-  geom_vline(xintercept = 7, linetype = "dashed", color = "red", size = 0.5) +
-  annotate("text", x = 7, y = 25, label = "Above 2% of monthly GNI per capita", 
-           color = "red", size = 2.5, angle = 90, vjust = 1.4)
+  labels = function(y) format(y, scientific = FALSE),limits = c(0, 44)) 
 
 #############################
 ## SATELLITE AFFORDABILITY ##

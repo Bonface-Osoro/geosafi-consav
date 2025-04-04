@@ -99,7 +99,7 @@ Received_Power <- ggplot(df2, aes(continuous, mean, color = frequency_mhz)) +
   geom_line(position = position_dodge(width = 0.5), size = 0.5) + 
   geom_point(size = 0.3, position=position_dodge(0.5)) +
   labs( colour = NULL,
-        title = "B",x = "Inter-Site Distance (km)",
+        title = "C",x = "Inter-Site Distance (km)",
         y = "Received Power (dB)",
         fill = "Frequency") + 
   scale_color_brewer(palette = "Dark2") +
@@ -133,7 +133,7 @@ sinr_db <- ggplot(df3, aes(continuous, mean, color = frequency_mhz)) +
   geom_line(position = position_dodge(width = 0.5), size = 0.5) + 
   geom_point(size = 0.3, position=position_dodge(0.5)) +
   labs( colour = NULL,
-        title = "C",x = "Inter-Site Distance (km)",
+        title = "D",x = "Inter-Site Distance (km)",
         y = "SINR (dB)",
         fill = "Frequency") + 
   scale_color_brewer(palette = "Dark2") +
@@ -340,11 +340,79 @@ number_of_sites <- ggplot(df, aes(x = decile, y = mean, fill = frequency_mhz)) +
   labels = function(y) format(y, scientific = FALSE), 
   limits = c(0, 750)) 
 
+########################
+## Interference Power ##
+########################
+data <- read.csv(file.path(folder, '..', 'results', 'cellular', 
+                           'mobile_capacity_results.csv'))
+data <- data %>%
+  filter(cell_generation == "4G" & frequency_mhz %in% c(700, 800, 1800,
+                                                        2600, 3500, 5800))
+
+data$frequency_mhz = factor(
+  data$frequency_mhz,
+  levels = c(700, 800, 1800, 2600, 3500, 5800),
+  labels = c('0.7 GHz (5G)', '0.8 GHz (4G)', '1.8 GHz (4G)',
+             '2.6 GHz (4G)', '3.5 GHz (5G)', '5.8 GHz (5G)'))
+
+data$discrete <- cut(data$interference_signal_path_km, seq(0,100,5))
+data$continuous = ""
+data$continuous[data$discrete == '(0,5]'] <- 2.5
+data$continuous[data$discrete == '(5,10]'] <- 7.5
+data$continuous[data$discrete == '(10,15]'] <- 12.5
+data$continuous[data$discrete == '(15,20]'] <- 17.5
+data$continuous[data$discrete == '(20,25]'] <- 22.5
+data$continuous[data$discrete == '(25,30]'] <- 27.5
+data$continuous[data$discrete == '(30,35]'] <- 32.5
+data$continuous[data$discrete == '(35,40]'] <- 37.5
+data$continuous[data$discrete == '(40,45]'] <- 42.5
+data$continuous[data$discrete == '(45,50]'] <- 52.5
+data$continuous[data$discrete == '(50,55]'] <- 57.5
+data$continuous[data$discrete == '(55,60]'] <- 62.5
+data$continuous[data$discrete == '(60,65]'] <- 67.5
+data$continuous[data$discrete == '(65,70]'] <- 72.5
+data$continuous[data$discrete == '(75,80]'] <- 77.5
+data$continuous[data$discrete == '(80,85]'] <- 82.5
+data$continuous[data$discrete == '(85,90]'] <- 87.5
+data$continuous[data$discrete == '(90,95]'] <- 92.5
+data$continuous[data$discrete == '(95,100]'] <- 97.5
+
+df5 = select(data, interference_db, frequency_mhz, 
+             continuous)
+
+df5$continuous = as.numeric(df5$continuous)
+df5 = df5 %>%
+  group_by(frequency_mhz, continuous) %>%
+  summarise(
+    mean = mean(interference_db),
+    sd = sd(interference_db))
+
+interference_db <- ggplot(df5, aes(continuous, mean, color = frequency_mhz)) + 
+  geom_line(position = position_dodge(width = 0.5), size = 0.5) + 
+  geom_point(size = 0.3, position=position_dodge(0.5)) +
+  labs( colour = NULL,
+        title = "B",x = "Inter-Site Distance (km)",
+        y = "Interference (dB)",
+        fill = "Frequency") + 
+  scale_color_brewer(palette = "Dark2") +
+  theme(
+    legend.position = 'bottom',
+    axis.text.x = element_text(size = 10),
+    panel.spacing = unit(0.6, "lines"),
+    plot.title = element_text(size = 15, face = "bold"),
+    plot.subtitle = element_text(size = 13),
+    axis.text.y = element_text(size = 10),
+    axis.title.y = element_text(size = 10),
+    legend.title = element_text(size = 10),
+    legend.text = element_text(size = 9),
+    axis.title.x = element_text(size = 10)) +
+  guides(color = guide_legend(ncol = 6))
+
 #################
 ## Panel Plots ##
 #################
-signal_plots <- ggarrange(path_loss, Received_Power, sinr_db, 
-    spectral_efficiency, spectral_pdf, capacity_per_user, nrow = 3, ncol = 2, 
+signal_plots <- ggarrange(path_loss, interference_db, Received_Power, sinr_db, 
+    spectral_pdf, capacity_per_user, nrow = 3, ncol = 2, 
     common.legend = TRUE, legend='bottom') 
 
 path = file.path(folder, 'figures', 'signal_plots.png')

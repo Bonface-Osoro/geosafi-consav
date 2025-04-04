@@ -656,7 +656,7 @@ uncovered_poor_population <-
   scale_x_discrete(expand = c(0, 0.15)) +
   scale_y_continuous(expand = c(0, 0),
   labels = function(y) format(y, scientific = FALSE),limits = c(0, 12000)) + 
-  facet_wrap( ~ poverty_range, nrow = 3) 
+  facet_wrap( ~ poverty_range, ncol = 3) 
 
 ##########################################################
 ##SSA Relative Uncovered and Poor Population by Regions ##
@@ -720,7 +720,7 @@ relative_uncovered_poor_population <-
   scale_x_discrete(expand = c(0, 0.15)) +
   scale_y_continuous(expand = c(0, 0), labels = function(y)
     format(y, scientific = FALSE), limits = c(0, 109)) +
-  facet_wrap( ~ poverty_range, nrow = 3) 
+  facet_wrap( ~ poverty_range, ncol = 3) 
 
 
 ####################################################
@@ -728,7 +728,7 @@ relative_uncovered_poor_population <-
 ####################################################
 relative_poor <- ggarrange(uncovered_poor_population,
   relative_uncovered_poor_population,
-  ncol = 2,
+  nrow = 2,
   common.legend = TRUE, legend = 'bottom')
 
 uncovered_poor <- ggarrange(uncovered_2g_poor,
@@ -738,7 +738,7 @@ uncovered_poor <- ggarrange(uncovered_2g_poor,
    common.legend = TRUE, legend = 'bottom')
 
 path = file.path(folder, 'figures', 'poor_and_uncovered.png')
-png(path, units = "in", width = 9, height = 12, res = 300)
+png(path, units = "in", width = 9, height = 8, res = 300)
 print(relative_poor)
 dev.off()
 

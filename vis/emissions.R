@@ -79,7 +79,7 @@ emissions_per_user <- ggplot(df1, aes(x = decile, y = mean, fill = cell_generati
       position_dodge(0.9), vjust = 1.2, hjust = -0.2, angle = 90) +
   scale_fill_viridis_d(direction = -1) + 
   labs(colour = NULL, title = "B", x = NULL, 
-       y = bquote("Emissions (Mt CO"["2"] ~ " e)")) + 
+       y = bquote("Emissions (kg CO"["2"] ~ " e)")) + 
   theme(legend.position = 'bottom',
     axis.text.x = element_text(size = 10),
     panel.spacing = unit(0.6, "lines"),
@@ -175,25 +175,5 @@ path = file.path(folder, 'figures', 'aggregate_emissions.png')
 png(path, units="in", width=9, height=11, res=300)
 print(aggregate_emissions)
 dev.off()
-
-################# FOR SUPPLEMENTARY SECTION ################################
-data <- read.csv(file.path(folder, '..', 'results', 'SSA', 'SSA_decile_emissions.csv'))
-scaling_factor <- 0.5
-
-df = data %>%
-  group_by(cell_generation, decile) %>%
-  summarize(mean = mean(per_user_ghg_kg),
-            sd = sd(per_user_ghg_kg),
-            scaled_sd = sd(per_user_ghg_kg) * scaling_factor,  # Scaling the SD
-            mean_ghgs = round(mean(per_user_ghg_kg)),
-            scaled_sd_ghgs = round(scaled_sd))
-
-ggplot(df, aes(x = as.factor(decile), y = mean_ghgs, fill = cell_generation)) +
-  geom_bar(stat = "identity", position = position_dodge(), width = 0.7) +  # Bar plot
-  geom_errorbar(aes(ymin = mean_ghgs - scaled_sd_ghgs, ymax = mean_ghgs + scaled_sd_ghgs),
-                width = 0.2, position = position_dodge(0.7)) +  # Error bars
-  labs(x = "Decile", y = "Mean GHGs", title = "Mean GHGs by Decile and Cell Generation")
-
-
 
 
