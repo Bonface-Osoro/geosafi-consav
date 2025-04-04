@@ -60,6 +60,42 @@ def process_mobile_data():
     return None
 
 
+def model_data():
+    """
+    This function calculates the summary statistics of the African poverty and 
+    connectivity results needed in the capacity, cost and emission model.
+    """
+    print('Generating decile summary statistics')
+
+    pop_data = os.path.join(DATA_SSA, 'SSA_to_be_served_population.csv')
+    df = pd.read_csv(pop_data)
+
+    df = df.groupby(['decile']).agg(total_population = ('population', 'sum'),
+        total_poor_unconnected = ('poor_unconnected', 'sum'), total_area_sqkm = 
+        ('area', 'sum'), total_max_distance_km = ('max_distance_km', 'sum'), 
+        mean_poor_connected = ('poor_unconnected', 'mean'), mean_area_sqkm = 
+        ('area', 'mean'), mean_distance_km = ('max_distance_km', 'mean'),
+        maritime_km = ('maritime_km', 'mean'), 
+        cost_per_1GB_usd = ('cost_per_1GB', 'mean'),
+        monthly_income_usd = ('monthly_GNI', 'mean'), 
+        cost_per_month_usd = ('cost_per_month_usd', 'mean'),  
+        arpu_usd = ('arpu_usd', 'mean'),
+        adoption_rate = ('adoption_rate', 'mean')).reset_index()
+
+    filename = 'SSA_decile_summary_stats.csv'
+    folder_out = os.path.join(DATA_SSA)
+
+    if not os.path.exists(folder_out):
+
+        os.makedirs(folder_out)
+    
+    path_out = os.path.join(folder_out, filename)
+    df.to_csv(path_out, index = False)
+
+
+    return None
+
+
 def multigeneration_cell_capacity(i, mobile_params):
     """
     This function generates random values within the given parameter ranges. 
@@ -562,7 +598,7 @@ def uq_inputs_emissions(parameters):
     site_path = os.path.join(DATA_SSA, 'SSA_number_of_sites.csv')
     df1 = pd.read_csv(pop_path)
     df2 = pd.read_csv(site_path)
-    df2 = df2[['cell_generation', 'number_of_sites', 'decile']]
+    df2 = df2[['cell_generation', 'frequency_mhz', 'number_of_sites', 'decile']]
     df1 = pd.merge(df1, df2, on = 'decile')
 
     filename = 'uq_parameters_emission.csv'
@@ -613,6 +649,7 @@ if __name__ == '__main__':
 
     print('Preparing mobile data')
     #process_mobile_data()
+    #model_data()
 
     print('Running uq_capacity_inputs_generator()')
     #uq_inputs_capacity(parameters)

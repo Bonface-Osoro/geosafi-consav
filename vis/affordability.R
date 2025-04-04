@@ -109,7 +109,8 @@ monthly_income <- ggplot(data = data) +
   scale_fill_viridis_d(na.value = "grey50",direction = -1,
                     name = "Income (US$)",
                     labels = function(x) ifelse(is.na(x), "No Data", x)) +
-  labs(colour = NULL) + 
+  labs(colour = NULL,
+       title = "Average monthly income per Capita of SSA countries") + 
   theme(axis.title.y = element_text(size = 6),
         axis.title = element_text(size = 12),
         axis.text.x = element_text(size = 9),
