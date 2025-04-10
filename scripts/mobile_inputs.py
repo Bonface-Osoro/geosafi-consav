@@ -8,7 +8,6 @@ September 2024
 """
 parameters = {                                            
     '4G': {
-        'cell_generation' : '4G',
         'grid_length' : 100,
         'transmitters' : 1,
         'mean_monthly_demand_GB' : [10, 20, 30],
@@ -30,10 +29,7 @@ parameters = {
         'shadow_fading_db' : 0,
         'building_penetration_loss_db' : 12,
         'antenna_sectors' : 3,
-        'subcarriers' : 1200,
         'system_temperature_k' : 294,
-        'interference_low_db' : 1,
-        'interference_high_db' : 3,
         'sector_antenna_low' : 1400,
         'sector_antenna_high' : 1600,
         'remote_radio_unit_low' : 3400,
@@ -145,7 +141,6 @@ parameters = {
         'draws' : 100 
     },
     '5G': {
-        'cell_generation' : '5G',
         'grid_length' : 100,
         'transmitters' : 1,
         'mean_monthly_demand_GB' : [10, 20, 30],
@@ -167,10 +162,7 @@ parameters = {
         'shadow_fading_db' : 0,
         'building_penetration_loss_db' : 12,
         'antenna_sectors' : 3,
-        'subcarriers' : 600,
         'system_temperature_k' : 294,
-        'interference_low_db' : 1,
-        'interference_high_db' : 3,
         'sector_antenna_low' : 1400,
         'sector_antenna_high' : 1600,
         'remote_radio_unit_low' : 3400,

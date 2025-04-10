@@ -6,7 +6,9 @@ library(sf)
 library(readr)
 library(RColorBrewer)
 library(dplyr)
-library("cowplot")
+library(ggspatial)
+library(osmdata)
+library(prettymapr)
 
 suppressMessages(library(tidyverse))
 folder <- dirname(rstudioapi::getSourceEditorContext()$path)
@@ -599,7 +601,7 @@ data1 <- na.omit(data1)
 data1 <- data1[, c("GID_1", "technology", "region", "poverty_range", "poor_unconnected")]
 data1 = data1 %>%
   group_by(GID_1, technology, region, poverty_range) %>%
-  summarize(poor_uncovered_gid = mean(poor_unconnected))
+  summarize(poor_uncovered_gid = poor_unconnected)
 
 gid_pop <- read.csv(file.path(folder, '..', 'results', 'SSA', 
                               'SSA_subregional_population_deciles.csv'))
@@ -632,9 +634,9 @@ uncovered_poor_population <-
   ggplot(df,  aes(x = decile, y = poor_uncovered, fill = technology)) +
   geom_bar(stat = 'identity', position = position_dodge(0.9)) + coord_flip() + 
   geom_text(aes(label = formatC(signif(after_stat(y), 3), 
-                                digits = 3, format = "fg", flag = "#")),
-            size = 3, position = position_dodge(0.9),
-            vjust = 0.5, hjust = -0.3) +
+    digits = 3, format = "fg", flag = "#")),
+    size = 3, position = position_dodge(0.9),
+    vjust = 0.5, hjust = -0.3) +
   labs(colour = NULL,
        title = 'A',
        x = NULL,
@@ -831,6 +833,56 @@ png(path, units = "in", width = 10, height = 11, res = 300)
 print(ssa_details)
 dev.off()
 
+############################
+## SSA Population Density ##
+############################
+ssa_borders <- st_read(file.path(folder, '..', 'data', 'raw', 
+     'Africa_Boundaries', 'Africa_Countries.shp'))
+africa_data <- st_read(file.path(folder, '..', 'data', 'raw', 
+    'Africa_Boundaries', 'SSA_combined_shapefile.shp'))
 
+africa_shp <- africa_data %>%
+  select(GID_0, NAME_0, GID_1, GID_2, geometry)
 
+gid_pop <- read.csv(file.path(folder, '..', 'results', 'SSA', 
+                              'SSA_subregional_population_deciles.csv'))
+
+merged_data <- merge(africa_shp, gid_pop, by = "GID_2")
+pop_bins <- c(-Inf, 9, 20, 40, 70, 100, 170, 
+              270, 450, 1000, Inf)
+
+merged_data$population_bin <- cut(merged_data$pop_density_sqkm, 
+    breaks = pop_bins, labels = c("Below 9", "10 - 20", "21 - 40", 
+    "41 - 70", "71 - 100", "100 - 170", "171 - 270", "271 - 450", 
+    "451 - 1,000", 
+    "Above 1,000"))
+
+population_density <- ggplot() + 
+  geom_sf(data = africa_data, fill = "palegreen3", color = "black", linewidth = 0.01) +
+  geom_sf(data = merged_data, aes(fill = population_bin), 
+          linewidth = 0.001,) +
+  geom_sf(data = ssa_borders, color = "black", fill = NA, linewidth = 0.03) +
+  scale_fill_viridis_d(direction = -1) +
+  labs(title = "Population Density Distribution of SSA",
+       fill = "Population \nDensity (people per km²)") +
+  theme(legend.position = 'bottom',
+        axis.text.x = element_text(size = 7),
+        panel.spacing = unit(0.6, "lines"),
+        plot.title = element_text(size = 11, face = "bold"),
+        plot.subtitle = element_text(size = 8),
+        axis.text.y = element_text(size = 7),
+        axis.title.y = element_text(size = 8),
+        legend.title = element_text(size = 9),
+        legend.text = element_text(size = 8),
+        axis.title.x = element_text(size = 9)) + 
+  guides(fill = guide_legend(nrow = 2)) + 
+  guides(fill = guide_legend(ncol = 5)) +
+  annotation_scale(location = "bl", width_hint = 0.2) +
+  coord_sf(crs = 4326) 
+ 
+
+path = file.path(folder, 'figures', 'ssa_population_map.png')
+png(path, units = "in", width = 6, height = 7, res = 300)
+print(population_density)
+dev.off()
 

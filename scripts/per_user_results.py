@@ -3,6 +3,8 @@ import os
 import math
 import time
 import warnings
+import csv
+import numpy as np
 import pandas as pd
 import geopandas as gpd
 from shapely.wkt import loads
@@ -20,7 +22,95 @@ BASE_PATH = CONFIG['file_locations']['base_path']
 CELL_RESULTS = os.path.join(BASE_PATH, '..', 'results', 'cellular')
 DATA_RESULTS = os.path.join(BASE_PATH, '..', 'results', 'final')
 DATA_SSA = os.path.join(BASE_PATH, '..', 'results', 'SSA')
+DATA_RAW = os.path.join(BASE_PATH, '..', 'data', 'raw', 'tower')
 VALID = os.path.join(BASE_PATH, '..', 'validation')
+
+
+def network_dimension():
+    """
+    This function is for calculating the number of required sites for each 
+    decile
+    """
+    cap_data = os.path.join(CELL_RESULTS, 'mobile_capacity_results.csv')
+    df = pd.read_csv(cap_data)
+    df = df[['cell_generation', 'frequency_mhz', 'channel_bandwidth_mhz', 
+             'intersite_distance_km', 'spectral_efficiency_bpshz', 
+             'capacity_mbps', 'site_area_sqkm', 'capacity_mbps_km2',
+             'mean_monthly_demand_GB', 'traffic_busy_hour', 
+             'smartphone_penetration', 'decile']]
+
+    decile_data = os.path.join(DATA_SSA, 'SSA_poor_unconnected.csv')
+    region_data = os.path.join(DATA_SSA, 
+                'SSA_subregional_population_deciles.csv')
+
+    df1 = pd.read_csv(decile_data)
+    df2 = pd.read_csv(region_data)
+
+    df1 = df1.rename(columns = {'GID_1': 'GID_2'})
+    df1 = df1[['GID_2', 'technology', 'poor_unconnected', 'poverty_range']]
+
+    df1 = df1[df1['technology'] == '3G']
+    df1 = df1[df1['poverty_range'] == 'GSAP2_poor']
+
+    df2 = df2[['GID_2', 'decile', 'area']]
+    df1 = pd.merge(df1, df2, on = 'GID_2', how = 'inner')
+
+    df1 = df1[['decile', 'poor_unconnected', 'area']]
+
+    df1 = df1.groupby(['decile']).agg(total_decile_population = 
+                     ('poor_unconnected', 'sum'),
+                     mean_decile_population = ('poor_unconnected', 'mean'),
+                     total_decile_area = ('area', 'sum'),
+                     mean_decile_area = ('area', 'mean')).reset_index()
+
+    df1['total_decile_population'] = df1['total_decile_population'].astype(int)
+    df1['mean_decile_population'] = df1['mean_decile_population'].astype(int)
+    df1['total_decile_area'] = df1['total_decile_area'].astype(int)
+    df1['mean_decile_area'] = df1['mean_decile_area'].astype(int)
+
+    df = pd.merge(df, df1, on = 'decile', how = 'inner')
+    
+    df['average_user_demand_mbps'] = mb.user_demand(df['mean_monthly_demand_GB'], 
+                    df['traffic_busy_hour'], df['smartphone_penetration'], 
+                    df['mean_decile_population'], df['mean_decile_area'])
+    df['required_mbps'] = df['average_user_demand_mbps'] * df['mean_decile_population']
+    df['no_of_required_sites'] = (df['required_mbps']) / df['capacity_mbps_km2']
+    df['average_user_capacity_mbps'] = (df['required_mbps'] 
+                            / df['mean_decile_population'])
+
+    df = df[df['mean_monthly_demand_GB'] == 30]
+
+    dff = df.groupby(['decile', 'cell_generation', 'channel_bandwidth_mhz']
+                     ).agg(no_of_required_sites = ('no_of_required_sites', 
+                     'sum')).reset_index()
+    
+    for index, row in dff.iterrows():
+
+        if row['cell_generation'] == '5G':
+       
+            corresponding_row = dff[(dff['decile'] == row['decile']) & (
+                dff['cell_generation'] == '4G')]
+        
+            if not corresponding_row.empty:
+                
+                dff.at[index, 'no_of_required_sites'] = corresponding_row[
+                    'no_of_required_sites'].values[0] * 1.5
+                
+    
+    dff['no_of_required_sites'] = dff['no_of_required_sites'].round().astype(int)
+    filename = 'SSA_mobile_capacity_results.csv'
+    filename_1 = 'SSA_number_of_sites.csv'
+    if not os.path.exists(DATA_SSA):
+        os.makedirs(DATA_SSA)
+
+    path_out = os.path.join(DATA_SSA, filename)
+    path_out_2 = os.path.join(DATA_SSA, filename_1)
+    df.to_csv(path_out, index = False)
+    dff.to_csv(path_out_2, index = False)
+
+
+    return None
+
 
 def process_africa_results():
 
@@ -140,8 +230,11 @@ def decile_emissions_per_user():
     df['annualized_per_user_scc_cost_usd'] = (df['per_user_scc_cost_usd'] 
                                               / df['assessment_period'])
     
-    df = pd.melt(df, id_vars = ['cell_generation', 'decile', 'frequency_mhz',
-         'per_user_scc_cost_usd', 'annualized_per_user_scc_cost_usd', 'scc_cost_usd',
+    df['annualized_per_user_scc_cost_usd'] = (
+        df['annualized_per_user_scc_cost_usd'] / 5)
+    
+    df = pd.melt(df, id_vars = ['cell_generation', 'decile', 'scc_cost_usd',
+         'per_user_scc_cost_usd', 'annualized_per_user_scc_cost_usd', 
          'assessment_period', 'per_user_ghg_kg', 'total_emissions_ghg_kg'], 
          value_vars = ['per_user_mfg_ghg_kg', 'per_user_trans_ghg_kg', 
           'per_user_construct_ghg_kg', 'per_user_ops_ghg_kg', 
@@ -151,10 +244,12 @@ def decile_emissions_per_user():
     df['annualized_per_user_ghg'] = (df['per_user_ghg_kg'] / 
                                      df['assessment_period'])
     
+    df['annualized_per_user_ghg'] = df['annualized_per_user_ghg'] / 5
+    
     df['annualized_phase_per_user_kg'] = (df['phase_per_user_kg'] 
                                           / df['assessment_period'])
 
-    df = df[['cell_generation', 'decile', 'frequency_mhz', 'assessment_period', 
+    df = df[['cell_generation', 'decile', 'assessment_period', 
              'lca_phase', 'phase_per_user_kg', 'annualized_phase_per_user_kg', 
              'per_user_ghg_kg', 'annualized_per_user_ghg', 'scc_cost_usd',
              'total_emissions_ghg_kg', 'per_user_scc_cost_usd',
@@ -184,13 +279,14 @@ def decile_cost_per_user():
     df = pd.read_csv(pop_data)
     
     ################### Per user costs #####################
+    df['per_user_tco_usd'] = (df['total_decile_tco_usd'] / 
+                                 (df['mean_poor_connected']))
     
-    df['per_user_tco_usd'] = (df['total_base_station_tco_usd'] / 
-                                 (df['total_poor_unconnected'] 
-                                 * (df['adoption_rate'] / 100)))
+    df['annualized_per_user_cost_usd'] = ((df['per_user_tco_usd']) 
+                                          / (df['assessment_years']))
     
-    df['annualized_per_user_cost_usd'] = (df['per_user_tco_usd'] 
-                                          / df['assessment_years'])
+    df['annualized_per_user_cost_usd'] = (df['annualized_per_user_cost_usd'] 
+                                          / 5)
     
     df['monthly_per_user_cost_usd'] = (df['annualized_per_user_cost_usd'] / 12)
 
@@ -198,10 +294,12 @@ def decile_cost_per_user():
     
     df['percent_gni'] = df['monthly_price'] / df['monthly_income_usd'] * 100
     
-    df = df[['cell_generation', 'decile', 'per_user_tco_usd', 'frequency_mhz',
-             'total_base_station_tco_usd', 'annualized_per_user_cost_usd', 
-             'monthly_per_user_cost_usd', 'adoption_rate', 'arpu_usd', 
-             'monthly_income_usd', 'percent_gni', 'monthly_price']]
+    df = df[['cell_generation', 'decile', 'total_base_station_tco_usd', 
+             'total_decile_tco_usd','number_of_sites', 'per_user_tco_usd', 
+             'mean_area_sqkm', 'mean_poor_connected','total_poor_unconnected',
+             'annualized_per_user_cost_usd', 'monthly_per_user_cost_usd', 
+             'existing_tower_no', 'adoption_rate', 'arpu_usd', 'monthly_price',
+             'monthly_income_usd', 'percent_gni']]
 
     df['technology'] = 'cellular'
     filename = 'SSA_decile_costs.csv'
@@ -236,7 +334,7 @@ def decile_capacity_per_user():
              'per_user_capacity_mbps', 'decile']]
 
     df['technology'] = 'cellular'
-    filename = 'SSA_decile_capacity.csv'
+    filename = 'radio_simulation_results.csv'
     folder_out = os.path.join(DATA_SSA)
 
     if not os.path.exists(folder_out):
@@ -252,10 +350,12 @@ def decile_capacity_per_user():
 
 if __name__ == '__main__':
 
+    #network_dimension()
+
     #process_africa_results()
     
     #decile_capacity_per_user()
 
-    #decile_cost_per_user()
+    decile_cost_per_user()
 
     decile_emissions_per_user()

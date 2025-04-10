@@ -16,8 +16,7 @@ folder <- dirname(rstudioapi::getSourceEditorContext()$path)
 data <- read.csv(file.path(folder, '..', 'results', 'cellular', 
                            'mobile_capacity_results.csv'))
 data <- data %>%
-  filter(cell_generation == "4G" & frequency_mhz %in% c(700, 800, 1800,
-                            2600, 3500, 5800))
+  filter(frequency_mhz %in% c(700, 800, 1800, 2600, 3500, 5800))
 
 data$frequency_mhz = factor(
   data$frequency_mhz,
@@ -188,8 +187,7 @@ spectral_efficiency <- ggplot(df4, aes(continuous, mean, color = frequency_mhz))
 data <- read.csv(file.path(folder, '..', 'results', 'cellular', 
                            'mobile_capacity_results.csv'))
 data <- data %>%
-  filter(cell_generation == "4G" & frequency_mhz %in% c(700, 800, 1800,
-  2600, 3500, 5800))
+  filter(frequency_mhz %in% c(700, 800, 1800, 2600, 3500, 5800))
 
 data$frequency_mhz = factor(
   data$frequency_mhz,
@@ -219,10 +217,9 @@ guides(color = guide_legend(nrow = 2))
 ######################
 ## CAPACITY RESULTS ##
 ######################
-data <- read.csv(file.path(folder, '..', 'results', 'SSA', 'SSA_decile_capacity.csv'))
+data <- read.csv(file.path(folder, '..', 'results', 'SSA', 'radio_simulation_results.csv'))
 data <- data %>%
-  filter(cell_generation == "4G" & frequency_mhz %in% c(700, 800, 1800,
-                                                        2600, 3500, 5800))
+  filter(frequency_mhz %in% c(700, 800, 1800, 2600, 3500, 5800))
 
 data$frequency_mhz = factor(
   data$frequency_mhz,
@@ -297,29 +294,29 @@ data$decile = factor(data$decile, levels = c('Decile 1', 'Decile 2', 'Decile 3',
      'Decile 6 \n(<106 km²)', 'Decile 7 \n(<63 km²)', 'Decile 8 \n(<39 km²)', 
      'Decile 9 \n(<21 km²)', 'Decile 10 \n(<9 km²)'))
 
-data <- data %>%
-  filter(frequency_mhz %in% c(700, 800, 1800,2600, 3500, 5800))
+#data <- data %>%
+  #filter(frequency_mhz %in% c(700, 800, 1800,2600, 3500, 5800))
 
-data$frequency_mhz = factor(
-  data$frequency_mhz,
-  levels = c(700, 800, 1800, 2600, 3500, 5800),
-  labels = c('0.7 GHz (5G)', '0.8 GHz (4G)', '1.8 GHz (4G)',
-             '2.6 GHz (4G)', '3.5 GHz (5G)', '5.8 GHz (5G)'))
+#data$frequency_mhz = factor(
+  #data$frequency_mhz,
+  #levels = c(700, 800, 1800, 2600, 3500, 5800),
+  #labels = c('0.7 GHz (5G)', '0.8 GHz (4G)', '1.8 GHz (4G)',
+             #'2.6 GHz (4G)', '3.5 GHz (5G)', '5.8 GHz (5G)'))
 
 df = data %>%
-  group_by(frequency_mhz, decile) %>%
-  summarize(mean = mean(number_of_sites),
-            sd = sd(number_of_sites))
+  group_by(cell_generation, decile) %>%
+  summarize(mean = mean(no_of_required_sites),
+            sd = sd(no_of_required_sites))
 
-number_of_sites <- ggplot(df, aes(x = decile, y = mean, fill = frequency_mhz)) +
+number_of_sites <- ggplot(df, aes(x = decile, y = mean, fill = cell_generation)) +
   geom_bar(stat = "identity", position = position_dodge(), width = 0.9) +
-  geom_errorbar(aes(ymin = mean - sd, ymax = mean + sd), width = .2,
-                position = position_dodge(.9), color = 'red',size = 0.2) + 
-  geom_text(aes(label = formatC(signif(after_stat(y), 4), 
-     digits = 2, format = "d", flag = "#")), color = 'black', size = 3, position = 
-     position_dodge(0.9), vjust = .5, hjust = -0.1, angle = 90) +
+  #geom_errorbar(aes(ymin = mean - sd, ymax = mean + sd), width = .2,
+                #position = position_dodge(.9), color = 'red',size = 0.2) + 
+  #geom_text(aes(label = formatC(signif(after_stat(y), 4), 
+     #digits = 2, format = "d", flag = "#")), color = 'black', size = 3, position = 
+     #position_dodge(0.9), vjust = .5, hjust = -0.1, angle = 90) +
   scale_fill_viridis_d(direction = -1) +
-  labs(colour = NULL, title = "D",x = NULL, y = "Number of New Sites") +
+  labs(colour = NULL, title = "Required sites",x = NULL, y = "Number of New Sites") +
   theme(
     legend.position = 'bottom',
     axis.text.x = element_text(size = 10),
@@ -338,7 +335,7 @@ number_of_sites <- ggplot(df, aes(x = decile, y = mean, fill = frequency_mhz)) +
   scale_x_discrete(expand = c(0, 0)) +   
   scale_y_continuous(expand = c(0, 0), 
   labels = function(y) format(y, scientific = FALSE), 
-  limits = c(0, 750)) 
+  limits = c(0, 35000)) 
 
 ########################
 ## Interference Power ##
@@ -346,8 +343,7 @@ number_of_sites <- ggplot(df, aes(x = decile, y = mean, fill = frequency_mhz)) +
 data <- read.csv(file.path(folder, '..', 'results', 'cellular', 
                            'mobile_capacity_results.csv'))
 data <- data %>%
-  filter(cell_generation == "4G" & frequency_mhz %in% c(700, 800, 1800,
-                                                        2600, 3500, 5800))
+  filter(frequency_mhz %in% c(700, 800, 1800, 2600, 3500, 5800))
 
 data$frequency_mhz = factor(
   data$frequency_mhz,
@@ -420,6 +416,60 @@ png(path, units="in", width=7, height=8, res=300)
 print(signal_plots)
 dev.off()
 
+###################################
+## MEAN DECILE PER USER CAPACITY ##
+###################################
+data <- read.csv(file.path(folder, '..', 'results', 'SSA', 
+                           'SSA_mobile_capacity_results.csv'))
+data$decile = factor(data$decile, levels = c('Decile 1', 'Decile 2', 'Decile 3', 
+   'Decile 4', 'Decile 5', 'Decile 6', 'Decile 7', 'Decile 8', 'Decile 9', 
+   'Decile 10'), labels = c('Decile 1 \n(>958 km²)', 'Decile 2 \n(<957 km²)', 
+    'Decile 3 \n(<455 km²)', 'Decile 4 \n(<272 km²)', 'Decile 5 \n(<171 km²)', 
+    'Decile 6 \n(<106 km²)', 'Decile 7 \n(<63 km²)', 'Decile 8 \n(<39 km²)', 
+    'Decile 9 \n(<21 km²)', 'Decile 10 \n(<9 km²)'))
+
+#data <- data %>%
+#filter(frequency_mhz %in% c(700, 800, 1800,2600, 3500, 5800))
+
+#data$frequency_mhz = factor(
+#data$frequency_mhz,
+#levels = c(700, 800, 1800, 2600, 3500, 5800),
+#labels = c('0.7 GHz (5G)', '0.8 GHz (4G)', '1.8 GHz (4G)',
+#'2.6 GHz (4G)', '3.5 GHz (5G)', '5.8 GHz (5G)'))
+
+df = data %>%
+  group_by(cell_generation, decile) %>%
+  summarize(mean = mean(average_user_capacity_mbps),
+            sd = sd(average_user_capacity_mbps))
+
+decile_capacity <- ggplot(df, aes(x = decile, y = mean, fill = cell_generation)) +
+  geom_bar(stat = "identity", position = position_dodge(), width = 0.9) +
+  geom_errorbar(aes(ymin = mean - sd, ymax = mean + sd), width = .2,
+  position = position_dodge(.9), color = 'red',size = 0.2) + 
+  geom_text(aes(label = formatC(signif(after_stat(y), 4), 
+  digits = 2, format = "d", flag = "#")), color = 'black', size = 3, position = 
+  position_dodge(0.9), vjust = .5, hjust = -0.1, angle = 90) +
+  scale_fill_viridis_d(direction = -1) +
+  labs(colour = NULL, title = "D",x = NULL, y = "Number of New Sites") +
+  theme(
+    legend.position = 'bottom',
+    axis.text.x = element_text(size = 10),
+    panel.spacing = unit(0.6, "lines"),
+    plot.title = element_text(size = 15, face = "bold"),
+    plot.subtitle = element_text(size = 13),
+    axis.text.y = element_text(size = 10),
+    axis.title.y = element_text(size = 10),
+    legend.title = element_text(size = 10),
+    legend.text = element_text(size = 9),
+    strip.text = element_text(size = 11),
+    axis.title.x = element_text(size = 10)) +
+  guides(fill = guide_legend(ncol = 5, title = 'Frequency')) +
+  expand_limits(y = 0) +
+  guides(fill = guide_legend(ncol = 5, title = 'Frequency')) +
+  scale_x_discrete(expand = c(0, 0)) +   
+  scale_y_continuous(expand = c(0, 0), 
+  labels = function(y) format(y, scientific = FALSE), 
+  limits = c(0, 100)) 
 
 
 
