@@ -19,13 +19,6 @@ data$decile = factor(data$decile, levels = c('Decile 1', 'Decile 2', 'Decile 3',
      'Decile 6 \n(<106 km²)', 'Decile 7 \n(<63 km²)', 'Decile 8 \n(<39 km²)', 
      'Decile 9 \n(<21 km²)', 'Decile 10 \n(<9 km²)'))
 
-data$frequency_mhz = factor(
-  data$frequency_mhz,
-  levels = c(700, 800, 850, 900, 1800, 2100, 2300, 2500, 2600, 3500, 5800),
-  labels = c('0.7 GHz (5G)', '0.8 GHz (4G)', '0.85 GHz (4G)', '0.9 GHz (4G)', 
-             '1.8 GHz (4G)', '2.1 GHz (4G)', '2.3 GHz (4G)', '2.5 GHz (4G)',
-             '2.6 GHz (4G)', '3.5 GHz (5G)', '5.8 GHz (5G)'))
-
 ############################
 ## Total Carbon Emissions ##
 ############################
@@ -40,7 +33,7 @@ total_emissions <- ggplot(df, aes(x = decile, y = mean, fill = cell_generation))
   geom_errorbar(aes(ymin = mean - sd, ymax = mean + sd), width = .2,
                 position = position_dodge(.9), color = 'red',size = 0.3) + 
   geom_text(aes(label = formatC(signif(after_stat(y), 4), 
-         digits = 2, format = "g", flag = "#")), color = 'black', size = 3.5, position = 
+         digits = 2, format = "fg", flag = "#")), color = 'black', size = 3.5, position = 
               position_dodge(0.9), vjust = 1.2, hjust = -0.2, angle = 90) +
   scale_fill_viridis_d(direction = -1) + 
   labs(colour = NULL, title = "A", x = NULL, 
@@ -59,7 +52,7 @@ total_emissions <- ggplot(df, aes(x = decile, y = mean, fill = cell_generation))
   guides(fill = guide_legend(ncol = 7, title = 'Mobile Technology')) +
   scale_x_discrete(expand = c(0, 0.15)) +
   scale_y_continuous(expand = c(0, 0),
-  labels = function(y) format(y, scientific = FALSE),limits = c(0, 13))
+  labels = function(y) format(y, scientific = FALSE),limits = c(0, 59))
 
 
 ##########################################
@@ -75,7 +68,7 @@ emissions_per_user <- ggplot(df1, aes(x = decile, y = mean, fill = cell_generati
   geom_errorbar(aes(ymin = mean - sd, ymax = mean + sd), width = .2,
                 position = position_dodge(.9), color = 'red',size = 0.3) + 
   geom_text(aes(label = formatC(signif(after_stat(y), 4), 
-      digits = 2, format = "g", flag = "#")), color = 'black', size = 3.5, position = 
+      digits = 2, format = "fg", flag = "#")), color = 'black', size = 3.5, position = 
       position_dodge(0.9), vjust = 1.2, hjust = -0.2, angle = 90) +
   scale_fill_viridis_d(direction = -1) + 
   labs(colour = NULL, title = "B", x = NULL, 
@@ -94,7 +87,7 @@ emissions_per_user <- ggplot(df1, aes(x = decile, y = mean, fill = cell_generati
   guides(fill = guide_legend(ncol = 7, title = 'Mobile Technology')) +
   scale_x_discrete(expand = c(0, 0.15)) +
   scale_y_continuous(expand = c(0, 0),
-  labels = function(y) format(y, scientific = FALSE),limits = c(0, 58))
+  labels = function(y) format(y, scientific = FALSE),limits = c(0, 92))
 
 
 ###############################
@@ -128,7 +121,7 @@ total_scc <- ggplot(df2, aes(x = decile, y = mean, fill = cell_generation)) +
   guides(fill = guide_legend(ncol = 7, title = 'Mobile Technology')) +
   scale_x_discrete(expand = c(0, 0.15)) +
   scale_y_continuous(expand = c(0, 0),
-  labels = function(y) format(y, scientific = FALSE),limits = c(0, 0.99))
+  labels = function(y) format(y, scientific = FALSE),limits = c(0, 4.4))
 
 #############################################
 ## Annualized Social Carbon Costs per user ##
@@ -162,7 +155,7 @@ per_user_scc <- ggplot(df3, aes(x = decile, y = mean, fill = cell_generation)) +
   guides(fill = guide_legend(ncol = 7, title = 'Mobile Technology')) +
   scale_x_discrete(expand = c(0, 0.15)) +
   scale_y_continuous(expand = c(0, 0),
-  labels = function(y) format(y, scientific = FALSE),limits = c(0, 4.2))
+  labels = function(y) format(y, scientific = FALSE),limits = c(0, 7.4))
 
 ########################
 ##PANEL USER EMISSIONS##

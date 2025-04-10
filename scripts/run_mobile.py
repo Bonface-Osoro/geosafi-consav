@@ -30,9 +30,9 @@ def process_capacity_item(item):
     """
     Helper function to process each item in parallel.
     """
-    user_demand = mb.user_demand(item['mean_monthly_demand_GB'], 
-                item['traffic_busy_hour'], item['smartphone_penetration'], 
-                item['mean_poor_connected'], item['mean_area_sqkm'])
+    #user_demand = mb.user_demand(item['mean_monthly_demand_GB'], 
+                #item['traffic_busy_hour'], item['smartphone_penetration'], 1, 1) 
+                #item['mean_poor_connected'], item['mean_area_sqkm'])
     
     random_variation = mb.generate_log_normal_dist_value(
         item['frequency_MHz'], item['mu'], item['sigma'], 
@@ -67,8 +67,10 @@ def process_capacity_item(item):
                     item['trans_antenna_gain_dbi'], int_path_loss_db, 
                     item['shadow_fading_db'], 
                     item['building_penetration_loss_db'])
-    
-    channel_bandwidth_mhz = mb.bandwidth(item['frequency_MHz'])
+
+    cell_generation = mb.system_type(item['frequency_MHz'])
+
+    channel_bandwidth_mhz = mb.bandwidth(cell_generation)
 
     noise_db = mb.calc_noise(item['frequency_MHz'], channel_bandwidth_mhz)
 
@@ -81,10 +83,17 @@ def process_capacity_item(item):
                          interference_db)
     
     spectral_efficiency_bpshz = mb.get_spectral_efficiency(lut, 
-                                        item['cell_generation'], sinr_db)
+                                        cell_generation, sinr_db)
+    
+    capacity_mbps = mb.calc_capacity(spectral_efficiency_bpshz, 
+                channel_bandwidth_mhz, item['antenna_sectors']) * 3
+    
+    site_area_sqkm = mb.calc_site_area(intersite_distance_km)
+
+    capacity_mbps_km2 = mb.calc_area_capacity(capacity_mbps, site_area_sqkm)
     
     return {
-        'cell_generation' : item['cell_generation'],
+        'cell_generation' : cell_generation,
         'frequency_mhz' : item['frequency_MHz'],
         'intersite_distance_km' : intersite_distance_km,
         'interference_signal_path_km' : interference_signal_path_km,
@@ -97,15 +106,18 @@ def process_capacity_item(item):
         'interference_db' : interference_db,
         'sinr_db' : sinr_db,
         'spectral_efficiency_bpshz' : spectral_efficiency_bpshz,
-        'user_demand_mbps_sqkm' : user_demand,
+        'capacity_mbps' : capacity_mbps,
+        'site_area_sqkm' : site_area_sqkm,
+        'capacity_mbps_km2' : capacity_mbps_km2,
+        'mean_monthly_demand_GB' : item['mean_monthly_demand_GB'],
+        'traffic_busy_hour' : item['traffic_busy_hour'],
         'channel_bandwidth_mhz' : channel_bandwidth_mhz,
-        'total_poor_unconnected' : item['total_poor_unconnected'],
-        'mean_poor_connected' : item['mean_poor_connected'],
-        'mean_area_sqkm' : item['mean_area_sqkm'],
+        'smartphone_penetration' : item['smartphone_penetration'],
         'decile' : item['decile']
     }
 
-def run_uq_processing_capacity_parallel():
+
+def run_uq_processing_capacity():
     """
     Run the UQ inputs through the mobile broadband model in parallel.
     """
@@ -144,71 +156,6 @@ def run_uq_processing_capacity_parallel():
     return None
 
 
-
-def network_dimension():
-    """
-    This function is for calculating the number of required sites for each 
-    decile
-    """
-    cap_data = os.path.join(RESULTS, 'mobile_capacity_results.csv')
-    df = pd.read_csv(cap_data)
-    df = df[df['cell_generation'] == '4G']
-    df = df[['frequency_mhz', 'channel_bandwidth_mhz', 'intersite_distance_km',
-             'spectral_efficiency_bpshz', 'user_demand_mbps_sqkm',  
-             'mean_poor_connected', 'mean_area_sqkm', 'decile']]
-    
-    df['cell_generation'] = df['frequency_mhz'].apply(lambda x: '5G' if x in 
-                            [700, 3500, 5800] else '4G')
-    
-    df1 = df.groupby(['cell_generation', 'frequency_mhz', 'channel_bandwidth_mhz', 
-                      'intersite_distance_km', 'decile']).agg(
-    total_spectral_efficiency = ('spectral_efficiency_bpshz', 'sum'),
-    avg_user_demand_mbps_sqkm = ('user_demand_mbps_sqkm', 'mean'),
-    average_population = ('mean_poor_connected', 'mean'),
-    mean_area_sqkm = ('mean_area_sqkm', 'mean')).reset_index()
-
-    df1['average_population'] = df1['average_population'].astype(int)
-
-    df1['total_capacity_mbps'] = (df1['total_spectral_efficiency'] 
-                                 * df1['channel_bandwidth_mhz'])
-
-    df1['total_area_capacity_mbps'] = (df1['avg_user_demand_mbps_sqkm'] 
-                                 * df1['average_population'])
-    
-    df = df.groupby(['cell_generation', 'frequency_mhz', 'channel_bandwidth_mhz', 
-        'decile']).agg(total_spectral_efficiency = ('spectral_efficiency_bpshz', 
-        'sum'), avg_user_demand_mbps_sqkm = ('user_demand_mbps_sqkm', 'mean'),
-        average_population = ('mean_poor_connected', 'mean'),
-        mean_area_sqkm = ('mean_area_sqkm', 'mean')).reset_index()
-    
-    df['average_population'] = df['average_population'].astype(int)
-
-    df['total_capacity_mbps'] = (df['total_spectral_efficiency'] 
-                                 * df['channel_bandwidth_mhz'])
-
-    df['total_area_capacity_mbps'] = (df['avg_user_demand_mbps_sqkm'] 
-                                 * df['average_population'])
-
-    df['number_of_sites'] = (df['total_area_capacity_mbps'] 
-                                 / df['total_capacity_mbps']).astype(int)
-
-    df = df[['cell_generation', 'frequency_mhz', 'channel_bandwidth_mhz', 
-             'number_of_sites', 'average_population', 'decile']]
-    
-    filename = 'SSA_number_of_sites.csv'
-    filename_1 = 'SSA_mobile_capacity_results.csv'
-    if not os.path.exists(SSA_DATA):
-        os.makedirs(SSA_DATA)
-
-    path_out = os.path.join(SSA_DATA, filename)
-    path_out_1 = os.path.join(SSA_DATA, filename_1)
-    df.to_csv(path_out, index = False)
-    df1.to_csv(path_out_1, index = False)
-
-
-    return None
-
-
 def process_cost_item(item):
     """
     Process a single item to compute various costs.
@@ -221,7 +168,7 @@ def process_cost_item(item):
             item['tower_usd'], item['civil_materials_usd'], 
             item['router_usd'])
 
-    spectrum_cost_usd = mb.spectrum_cost(item['frequency_mhz'], 
+    spectrum_cost_usd = mb.spectrum_cost(item['channel_bandwidth_mhz'], 
             item['mean_poor_connected'], item['mhz_per_pop_usd'])
 
     capex_cost_usd = mb.capex_cost(equipment_cost_usd, spectrum_cost_usd,
@@ -234,26 +181,31 @@ def process_cost_item(item):
             item['fiber_link_usd'])
 
     total_cost_ownership = mb.total_cost_ownership(capex_cost_usd, 
-            opex_cost_usd, item['discount_rate'], item['assessment_years'],
-            item['number_of_sites'])
+            opex_cost_usd, item['discount_rate'], item['assessment_years'])
+    
+    total_decile_tco_usd = total_cost_ownership * item['no_of_required_sites']
 
     result = {
         'cell_generation': item['cell_generation'],
-        'frequency_mhz': item['frequency_mhz'],
+        'frequency_mhz': item['channel_bandwidth_mhz'],
         'equipment_cost_usd': equipment_cost_usd,
         'spectrum_cost_usd': spectrum_cost_usd,
         'capex_cost_usd': capex_cost_usd,
         'opex_cost_usd': opex_cost_usd,
         'total_base_station_tco_usd': total_cost_ownership,
-        'total_poor_unconnected': item['total_poor_unconnected'],
+        'total_decile_tco_usd' : total_decile_tco_usd,
+        'total_poor_unconnected' : item['total_poor_unconnected'],
+        'mean_area_sqkm': item['mean_area_sqkm'],
         'mean_poor_connected': item['mean_poor_connected'],
+        'total_area_sqkm' : item['total_area_sqkm'],
         'cost_per_1GB_usd': item['cost_per_1GB_usd'],
         'monthly_income_usd': item['monthly_income_usd'],
         'cost_per_month_usd': item['cost_per_month_usd'],
         'arpu_usd': item['arpu_usd'],
         'assessment_years': item['assessment_years'],
         'adoption_rate' : item['adoption_rate'],
-        'number_of_sites' : item['number_of_sites'],
+        'existing_tower_no' : item['existing_tower_no'],
+        'number_of_sites' : item['no_of_required_sites'],
         'decile': item['decile']}
 
     return result
@@ -321,7 +273,7 @@ def process_emission_item(item):
     total_mfg_ghg = (aluminium_mfg_ghg + steel_iron_mfg_ghg + concrete_mfg_ghg 
                      + plastics_mfg_ghg + other_metals_mfg_ghg)    
     total_mfg_ghg = mb.phase_emission_ghg(item['cell_generation'], 
-                    total_mfg_ghg, item['number_of_sites'])
+                    total_mfg_ghg, item['no_of_required_sites'])
 
     lca_trans = mb.lca_transportation(item['mean_distance_km'], 
                                       item['consumption_lt_per_km'], 
@@ -330,14 +282,14 @@ def process_emission_item(item):
                                       item['container_ship_kgco2e'])
     total_trans_ghg_kg = lca_trans['trans_ghg_kg']
     total_trans_ghg_kg = mb.phase_emission_ghg(item['cell_generation'], 
-                        total_trans_ghg_kg, item['number_of_sites'])
+                        total_trans_ghg_kg, item['no_of_required_sites'])
 
     lca_constr = mb.lca_construction(item['machine_fuel_eff_lt_per_hr'], 
                                      item['machine_operation_hrs'], 
                                      item['diesel_factor_kgco2e'])
     total_construction_ghg = lca_constr['construction_ghg']
     total_construction_ghg = mb.phase_emission_ghg(item['cell_generation'], 
-                            total_construction_ghg, item['number_of_sites'])
+                            total_construction_ghg, item['no_of_required_sites'])
 
     lca_ops = mb.lca_operations(item['smartphone_kwh'], item['ict_kwh'],
                                 item['base_band_unit_kwh'], 
@@ -346,10 +298,10 @@ def process_emission_item(item):
                                 item['epc_center_kwh'], 
                                 item['number_epc_centers'],
                                 item['electricity_kg_co2e'],
-                                item['number_of_sites'])
+                                item['no_of_required_sites'])
     total_operations_ghg = lca_ops['operations_ghg']
     total_operations_ghg = mb.phase_emission_ghg(item['cell_generation'], 
-                        total_operations_ghg, item['number_of_sites'])
+                        total_operations_ghg, item['no_of_required_sites'])
 
     lca_eolts = mb.lca_eolt(item['bbu_rru_pcb_kg'], item['bbu_rru_aluminium_kg'], 
                             item['copper_antenna_kg'], 
@@ -370,7 +322,7 @@ def process_emission_item(item):
                       + plastics_eolt_ghg + other_metals_eolt_ghg)
     
     total_eolt_ghg = mb.phase_emission_ghg(item['cell_generation'], 
-                    total_eolt_ghg, item['number_of_sites'])
+                    total_eolt_ghg, item['no_of_required_sites'])
 
     total_emissions_ghg_kg = (total_mfg_ghg + total_trans_ghg_kg 
                         + total_construction_ghg + total_operations_ghg 
@@ -378,7 +330,6 @@ def process_emission_item(item):
     
     result = {
         'cell_generation': item['cell_generation'],
-        'frequency_mhz' : item['frequency_mhz'],
         'aluminium_mfg_ghg_kg': aluminium_mfg_ghg,
         'steel_iron_mfg_ghg_kg': steel_iron_mfg_ghg,
         'concrete_mfg_ghg_kg': concrete_mfg_ghg,
@@ -394,10 +345,11 @@ def process_emission_item(item):
         'total_operations_ghg_kg': total_operations_ghg,
         'total_eolt_ghg_kg': total_eolt_ghg,
         'total_emissions_ghg_kg': total_emissions_ghg_kg,
+        'total_population' : item['total_population'],
         'total_poor_unconnected': item['total_poor_unconnected'],
         'mean_poor_connected': item['mean_poor_connected'],
         'social_carbon_cost_usd' : item['social_carbon_cost_usd'],
-        'number_of_sites': item['number_of_sites'],
+        'no_of_required_sites': item['no_of_required_sites'],
         'assessment_period': item['assessment_period'],
         'decile': item['decile']
     }
@@ -422,17 +374,18 @@ def run_uq_processing_emission():
     with concurrent.futures.ThreadPoolExecutor() as executor:
 
         results = list(tqdm(executor.map(process_emission_item, df), 
-                desc="Processing uncertainty mobile results", total=len(df)))
+                desc ="Processing uncertainty mobile results", total = len(df)))
 
     df_results = pd.DataFrame(results)
 
     filename = 'mobile_emission_results.csv'
 
     if not os.path.exists(RESULTS):
+
         os.makedirs(RESULTS)
 
     path_out = os.path.join(RESULTS, filename)
-    df_results.to_csv(path_out, index=False)
+    df_results.to_csv(path_out, index = False)
 
 
     return None
@@ -440,12 +393,10 @@ def run_uq_processing_emission():
 
 if __name__ == '__main__':
 
-    print('Running mobile broadband capacity model')
-    run_uq_processing_capacity_parallel()
+    #print('Running mobile broadband capacity model')
+    #run_uq_processing_capacity()
 
-    network_dimension()
-
-    print('Running mobile broadband cost model')
+    #print('Running mobile broadband cost model')
     run_uq_processing_cost()
 
     print('Running mobile broadband emissions model')

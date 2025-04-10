@@ -315,14 +315,43 @@ def calc_power_received(transmitter_power_db, transmitter_antenna_gain_db,
     return power_received_dbm
 
 
-def bandwidth(frequency_mhz):
+def system_type(frequency_mhz):
+    """
+    This is a helper function for determining whether the technology is 4G or 5G
+
+    Parameters
+    ----------
+    frequency_mhz : int.
+        transmitting frequency in MHz
+
+    Returns
+    -------
+    cell_generation : string
+        Cellular technology/generation.
+    """
+    five_G_frequencies = [700, 3500, 5800]
+    frequencies = [frequency_mhz]
+
+    if any(num in five_G_frequencies for num in frequencies):
+
+        cell_generation = '5G'
+
+    else:
+
+        cell_generation = '4G'
+
+
+    return cell_generation
+
+
+def bandwidth(cell_generation):
     """
     This is a helper fucntion to calculate the channel bandwidth
 
     Parameters
     ----------
-    frequency_mhz : float.
-        Frequency spectrum in MHz
+    cell_generation : float.
+        Cellular technology/generation
 
     Returns
     -------
@@ -330,13 +359,13 @@ def bandwidth(frequency_mhz):
         Channel bandwidth.
     """
 
-    if frequency_mhz == 700 or frequency_mhz == 5800 or frequency_mhz == 3500:
+    if cell_generation == '4G':
 
-        chn_bandwidth_mhz = 40
+        chn_bandwidth_mhz = 10
 
     else:
 
-        chn_bandwidth_mhz = 10
+        chn_bandwidth_mhz = 40
 
 
     return chn_bandwidth_mhz
@@ -499,7 +528,7 @@ def calc_maximum_distance(geometry):
     return max_distance_km
 
 
-def calc_channel_capacity(spectral_efficiency, chn_bandwidth_mhz):
+def calc_capacity(spectral_efficiency, chn_bandwidth_mhz, antenna_sectors):
     """
     Calculate the channel capacity in Mbps.
 
@@ -511,6 +540,8 @@ def calc_channel_capacity(spectral_efficiency, chn_bandwidth_mhz):
         The number of bits per Hertz that can be transmitted.
     chn_bandwidth_mhz: float
         The channel bandwidth in Megahertz.
+    antenna_sectors : int
+        Number if antenna sectors, usually 3
 
     Returns
     -------
@@ -519,46 +550,54 @@ def calc_channel_capacity(spectral_efficiency, chn_bandwidth_mhz):
 
     """
     channel_capacity_mbps = ((spectral_efficiency * chn_bandwidth_mhz * 10 ** 6) 
-                             / 1e6)
+                             / 1e6) * antenna_sectors
 
 
     return channel_capacity_mbps
 
 
-def base_station_capacity(cell_generation, capacity_value, base_station_list):
+def calc_site_area(intersite_distance_km):
     """
-    This function calculates the capacity based on the cellular generation 
-    technology
+    Calculate the site area served by a cellular tower.
 
     Parameters
     ----------
-    cell_generation : string.
-        Cellphone generation technology.
-    capacity_value : float.
-        Capacity value.
-    base_station_list : list.
-        List containing the number of base station.
+    intersite_distance_km : float
+        Spatial distance between the transmitter and the receiver.
 
     Returns
     -------
-    base_station_capacity_mbps : float
-        Base station capacity
+    site_area_sqkm : float
+        Site area.
     """
+    inter_site_distance = intersite_distance_km * 2
+    site_area_km2 = (math.sqrt(3) / 2 * inter_site_distance ** 2)
+    site_area_sqkm = 1 / site_area_km2
 
-    for base_station in base_station_list:
 
-        if cell_generation == '4G':
+    return site_area_sqkm
 
-            base_station_capacity_mbps = ((capacity_value * 
-                                           base_station_list[0]))
-            
-        else:
 
-            base_station_capacity_mbps = ((capacity_value * 
-                                           base_station_list[1]))
-            
+def calc_area_capacity(capacity_mbps, site_area_sqkm):
+    """
+    Calculate the area capacity.
 
-    return base_station_capacity_mbps
+    Parameters
+    ----------
+    capacity_mbps : float
+        Channel capacity in Mbps.
+    site_area_sqkm : float
+        Site are in km^2.
+
+    Returns
+    -------
+    capacity_mbps_km2 : float
+        Capacity per km2.
+    """
+    capacity_mbps_km2 = capacity_mbps / site_area_sqkm
+
+
+    return capacity_mbps_km2
 
 
 ############################
@@ -708,7 +747,7 @@ def opex_cost(site_rental, base_station_energy, staff_costs, antenna_upgrade,
 
 
 def total_cost_ownership(total_capex, total_opex, discount_rate, 
-                         assessment_period, number_of_sites):
+                         assessment_period):
     """
     Calculate the total cost of ownership(TCO) in US$:
 
@@ -722,8 +761,6 @@ def total_cost_ownership(total_capex, total_opex, discount_rate,
         discount rate.
     assessment_period : int.
         assessment period of the infrastructure.
-    number_of_sites : int
-        Total number of mobile stations
 
     Returns
     -------
@@ -740,8 +777,6 @@ def total_cost_ownership(total_capex, total_opex, discount_rate,
         year_costs.append(yearly_opex)
 
     total_cost_ownership = total_capex + sum(year_costs) + total_opex
-
-    total_cost_ownership = total_cost_ownership * number_of_sites
 
 
     return total_cost_ownership

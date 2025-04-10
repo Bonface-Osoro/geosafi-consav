@@ -673,6 +673,156 @@ print(satellite_model)
 dev.off()
 
 
+###########################
+## SSA Capacity per User ##
+###########################
+ssa_borders <- st_read(file.path(folder, '..', 'data', 'raw', 
+                                 'Africa_Boundaries', 'Africa_Countries.shp'))
+africa_data <- st_read(file.path(folder, '..', 'data', 'raw', 
+                                 'Africa_Boundaries', 'SSA_combined_shapefile.shp'))
+
+africa_shp <- africa_data %>%
+  select(GID_0, NAME_0, GID_1, GID_2, geometry)
+
+gid_pop <- read.csv(file.path(folder, '..', 'results', 'SSA', 
+                              'SSA_subregional_population_deciles.csv'))
+
+cap_data <- read.csv(file.path(folder, '..', 'results', 'SSA', 
+    'SSA_mobile_capacity_results.csv'))
+cap_data = cap_data %>%
+  group_by(decile) %>%
+  summarise(maximum_capacity = max(average_user_capacity_mbps))
+
+region_pop <- merge(africa_shp, gid_pop, by = "GID_2")
+merged_data <- merge(region_pop, cap_data, by = "decile")
+cap_bins <- c(-Inf, 0.3, 5, 9, 15, 25, 34, 65, 70, 75, Inf)
+
+merged_data$capacity_bin <- cut(merged_data$maximum_capacity, 
+    breaks = cap_bins, labels = c("Below 2 Mbps", "2 - 5 Mbps", 
+    "5.1 - 9 Mbps", "9.1 - 15 Mbps", "16 - 25 Mbps", "26 - 34 Mbps", 
+    "35 - 65 Mbps", "65 - 70 Mbps", "71 - 75 Mbps", "Above 75 Mbps"))
+
+capacity_per_user_map <- ggplot() + 
+  geom_sf(data = africa_data, fill = "palegreen3", color = "black", linewidth = 0.01) +
+  geom_sf(data = merged_data, aes(fill = capacity_bin), 
+          linewidth = 0.001,) +
+  geom_sf(data = ssa_borders, color = "black", fill = NA, linewidth = 0.03) +
+  scale_fill_viridis_d(direction = -1) +
+  labs(title = "Universal broadband per user speeds",
+       subtitle = "For user data traffic demand of 30 GB per month",
+       fill = "Required capacity \nper User (Mbps)") +
+  theme(legend.position = 'bottom',
+        axis.text.x = element_text(size = 7),
+        panel.spacing = unit(0.6, "lines"),
+        plot.title = element_text(size = 11, face = "bold"),
+        plot.subtitle = element_text(size = 8),
+        axis.text.y = element_text(size = 7),
+        axis.title.y = element_text(size = 8),
+        legend.title = element_text(size = 9),
+        legend.text = element_text(size = 8),
+        axis.title.x = element_text(size = 9)) + 
+  guides(fill = guide_legend(nrow = 2)) + 
+  guides(fill = guide_legend(ncol = 5)) +
+  annotation_scale(location = "bl", width_hint = 0.2) +
+  coord_sf(crs = 4326) 
+
+path = file.path(folder, 'dissertation_figures', 'ssa_capacity_per_user_map.png')
+png(path, units = "in", width = 6, height = 7, res = 300)
+print(capacity_per_user_map)
+dev.off()
+
+#######################
+## SSA Cost per User ##
+#######################
+cost_data <- subset(read.csv(file.path(folder, '..', 'results', 'SSA', 
+     'SSA_decile_costs.csv')), cell_generation != "5G")
+
+cost_data = cost_data %>%
+  group_by(decile) %>%
+  summarise(mean_cost = max(annualized_per_user_cost_usd))
+cst_bins <- c(-Inf, 2, 30, 60, 103, 160, 220, 320, 360, 570, Inf)
+
+merged_cost_data <- merge(region_pop, cost_data, by = "decile")
+
+merged_cost_data$cost_bin <- cut(merged_cost_data$mean_cost, 
+    breaks = cst_bins, labels = c("Below 20", "21 - 30", "31 - 60", "61 - 103", 
+    "104 - 160", "161 - 220", "221 - 320", "321 - 360", "361 - 500", "Above 500"))
+
+cost_per_user_map <- ggplot() + 
+  geom_sf(data = africa_data, fill = "palegreen3", color = "black", linewidth = 0.01) +
+  geom_sf(data = merged_cost_data, aes(fill = cost_bin), 
+          linewidth = 0.001,) +
+  geom_sf(data = ssa_borders, color = "black", fill = NA, linewidth = 0.03) +
+  scale_fill_viridis_d(direction = -1) +
+  labs(title = "Universal broadband per user costs",
+       subtitle = "Annualized Cost of deploying a 30 GB broadband service",
+       fill = "Estimated \nCost per User (US$)") +
+  theme(legend.position = 'bottom',
+        axis.text.x = element_text(size = 7),
+        panel.spacing = unit(0.6, "lines"),
+        plot.title = element_text(size = 11, face = "bold"),
+        plot.subtitle = element_text(size = 8),
+        axis.text.y = element_text(size = 7),
+        axis.title.y = element_text(size = 8),
+        legend.title = element_text(size = 9),
+        legend.text = element_text(size = 8),
+        axis.title.x = element_text(size = 9)) + 
+  guides(fill = guide_legend(nrow = 2)) + 
+  guides(fill = guide_legend(ncol = 5)) +
+  annotation_scale(location = "bl", width_hint = 0.2) +
+  coord_sf(crs = 4326) 
+
+path = file.path(folder, 'dissertation_figures', 'ssa_cost_per_user_map.png')
+png(path, units = "in", width = 6, height = 7, res = 300)
+print(cost_per_user_map)
+dev.off() 
+############################
+## SSA Emissions per User ##
+############################
+emission_data <- subset(read.csv(file.path(folder, '..', 'results', 'SSA', 
+    'SSA_decile_emissions.csv')), cell_generation != "5G")
+
+emission_data = emission_data %>%
+  group_by(decile) %>%
+  summarise(mean_emission = max(annualized_per_user_ghg))
+ghg_bins <- c(-Inf, 1, 2, 3, 4.5, 7, 10, 15, 20, 30, Inf)
+
+merged_emission_data <- merge(region_pop, emission_data, by = "decile")
+
+merged_emission_data$emissions_bin <- cut(merged_emission_data$mean_emission, 
+     breaks = ghg_bins, labels = c("Below 1", "1.1 - 2", "2.1 - 3", 
+           "3.1 - 5", "5.1 - 7", "7.1 - 10", "11 - 15", 
+           "16 - 20", "21 - 30", "Above 50"))
+
+emission_per_user_map <- ggplot() + 
+  geom_sf(data = africa_data, fill = "palegreen3", color = "black", linewidth = 0.01) +
+  geom_sf(data = merged_emission_data, aes(fill = emissions_bin), 
+          linewidth = 0.001,) +
+  geom_sf(data = ssa_borders, color = "black", fill = NA, linewidth = 0.03) +
+  scale_fill_viridis_d(direction = -1) +
+  labs(title = "Universal broadband per user emissions",
+       subtitle = "Annualized GHG emissions of deploying a 30 GB broadband service",
+       fill = expression("Estimated \nEmissions (kg CO"[2]*"e)")) +
+  theme(legend.position = 'bottom',
+        axis.text.x = element_text(size = 7),
+        panel.spacing = unit(0.6, "lines"),
+        plot.title = element_text(size = 11, face = "bold"),
+        plot.subtitle = element_text(size = 8),
+        axis.text.y = element_text(size = 7),
+        axis.title.y = element_text(size = 8),
+        legend.title = element_text(size = 9),
+        legend.text = element_text(size = 8),
+        axis.title.x = element_text(size = 9)) + 
+  guides(fill = guide_legend(nrow = 2)) + 
+  guides(fill = guide_legend(ncol = 5)) +
+  annotation_scale(location = "bl", width_hint = 0.2) +
+  coord_sf(crs = 4326) 
+
+path = file.path(folder, 'dissertation_figures', 'ssa_emissions_per_user_map.png')
+png(path, units = "in", width = 6, height = 7, res = 300)
+print(emission_per_user_map)
+dev.off() 
+
 
 
 

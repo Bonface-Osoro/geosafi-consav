@@ -171,7 +171,6 @@ def multigeneration_cell_capacity(i, mobile_params):
                 'sigma' : mobile_params['sigma'],
                 'seed_value' : mobile_params['seed_value'],
                 'draws' : mobile_params['draws'],
-                'cell_generation' : mobile_params['cell_generation'],
                 'transmitter_height_m' : transmitter_height_m,
                 'user_antenna_height_m' : user_antenna_height_m,
                 'transmitter_power_dbm' : transmitter_power_dbm,
@@ -220,10 +219,7 @@ def uq_inputs_capacity(parameters):
 
     # Import user data
     mob_path = os.path.join(DATA_RESULTS, 'cellular', 'SSA_mobile_data.csv') 
-    pop_path = os.path.join(DATA_SSA, 'SSA_decile_summary_stats.csv')
     df1 = pd.read_csv(mob_path)
-    df2 = pd.read_csv(pop_path)
-    df3 = pd.merge(df1, df2, on = 'decile')
 
     filename = 'uq_parameters_capacity.csv'
     folder_out = os.path.join(DATA_RESULTS, 'cellular')
@@ -232,11 +228,11 @@ def uq_inputs_capacity(parameters):
 
         os.makedirs(folder_out)
     
-    merged_df = pd.merge(df, df3, on = 'decile')
+    merged_df = pd.merge(df, df1, on = 'decile')
     path_out = os.path.join(folder_out, filename)
     merged_df.to_csv(path_out, index = False)
 
-    return
+    return None
 
 
 def multigeneration_cell_costs(i, mobile_params):
@@ -321,9 +317,6 @@ def multigeneration_cell_costs(i, mobile_params):
                     'sigma' : mobile_params['sigma'],
                     'seed_value' : mobile_params['seed_value'],
                     'draws' : mobile_params['draws'],
-                    #'cell_generation' : mobile_params['cell_generation'],
-                    #'frequency_mhz' : frequency,
-                    #'channel_bandwidth_mhz' : mobile_params['channel_bandwidth_mhz'],
                     'sector_antenna_usd' : sector_antenna,
                     'remote_radio_unit_usd' : remote_radio_unit,
                     'io_fronthaul_usd' : io_fronthaul,
@@ -379,11 +372,24 @@ def uq_inputs_costs(parameters):
     # Import user data
     pop_path = os.path.join(DATA_SSA, 'SSA_decile_summary_stats.csv') 
     site_path = os.path.join(DATA_SSA, 'SSA_number_of_sites.csv')
+    tower_path = os.path.join(DATA_raw, 'tower', 'GID_2_tower_locations.csv')
+    region_data = os.path.join(DATA_SSA, 'SSA_subregional_population_deciles.csv')
+
     df1 = pd.read_csv(pop_path)
     df2 = pd.read_csv(site_path)
-    df2 = df2[['cell_generation', 'frequency_mhz', 'channel_bandwidth_mhz', 
-               'number_of_sites', 'decile']]
+    df3 = pd.read_csv(tower_path)
+    df4 = pd.read_csv(region_data)
+
+    df2 = df2[['cell_generation', 'channel_bandwidth_mhz', 
+               'no_of_required_sites', 'decile']]
+    
     df1 = pd.merge(df1, df2, on = 'decile')
+
+    df3 = pd.merge(df3, df4, on = 'GID_2', how = 'inner')
+    df3 = df3.groupby(['decile']).agg(existing_tower_no = 
+                    ('existing_tower_no', 'mean')).reset_index()
+    
+    df3['existing_tower_no'] = df3['existing_tower_no'].round().astype(int)
 
     filename = 'uq_parameters_cost.csv'
     folder_out = os.path.join(DATA_RESULTS, 'cellular')
@@ -392,12 +398,13 @@ def uq_inputs_costs(parameters):
 
         os.makedirs(folder_out)
     
-    merged_df = pd.merge(df, df1, on = 'decile')
+    df = pd.merge(df, df1, on = 'decile')
+    df = pd.merge(df, df3, on = 'decile', how = 'inner')
     path_out = os.path.join(folder_out, filename)
-    merged_df.to_csv(path_out, index = False)
+    df.to_csv(path_out, index = False)
 
 
-    return
+    return None
 
 
 def multigeneration_cell_emissions(i, mobile_params):
@@ -596,9 +603,13 @@ def uq_inputs_emissions(parameters):
     pop_path = os.path.join(DATA_SSA, 'SSA_decile_summary_stats.csv') 
     df1 = pd.read_csv(pop_path)
     site_path = os.path.join(DATA_SSA, 'SSA_number_of_sites.csv')
+
+
     df1 = pd.read_csv(pop_path)
     df2 = pd.read_csv(site_path)
-    df2 = df2[['cell_generation', 'frequency_mhz', 'number_of_sites', 'decile']]
+
+
+    df2 = df2[['cell_generation', 'no_of_required_sites', 'decile']]
     df1 = pd.merge(df1, df2, on = 'decile')
 
     filename = 'uq_parameters_emission.csv'
@@ -655,7 +666,7 @@ if __name__ == '__main__':
     #uq_inputs_capacity(parameters)
 
     print('Running uq_cost_inputs_generator()')
-    #uq_inputs_costs(parameters)
+    uq_inputs_costs(parameters)
 
     print('Running uq_inputs_emissions_generator()')
     uq_inputs_emissions(parameters)
