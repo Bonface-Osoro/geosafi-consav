@@ -198,7 +198,8 @@ capacity_per_user <- ggplot(df, aes(continuous, mean, color = frequency_mhz)) +
   geom_line(position = position_dodge(width = 0.5), size = 0.5) + 
   geom_point(size = 0.3, position=position_dodge(0.5)) +
   labs( colour = NULL,
-        subtitle = "C",x = "Inter-Site Distance (km)",
+        title = "Capacity per user",
+        subtitle = "Estimated for different frequencies",x = "Inter-Site Distance (km)",
         y = "Capacity \nper user (Mbps)",
         fill = "Frequency") + 
   scale_color_brewer(palette = "Dark2") +
@@ -207,13 +208,13 @@ capacity_per_user <- ggplot(df, aes(continuous, mean, color = frequency_mhz)) +
     axis.text.x = element_text(size = 10),
     panel.spacing = unit(0.6, "lines"),
     plot.title = element_text(size = 15, face = "bold"),
-    plot.subtitle = element_text(size = 13, face = "bold"),
+    plot.subtitle = element_text(size = 13),
     axis.text.y = element_text(size = 10),
     axis.title.y = element_text(size = 10),
     legend.title = element_text(size = 10),
     legend.text = element_text(size = 9),
     axis.title.x = element_text(size = 10)) +
-  guides(color = guide_legend(ncol = 6))
+  guides(color = guide_legend(ncol = 3))
 
 mobile_capacity <- ggarrange(path_loss, sinr_db, 
    capacity_per_user, ncol = 3, nrow = 1, align = c('hv'),
@@ -230,18 +231,11 @@ data$decile = factor(data$decile, levels = c('Decile 1', 'Decile 2', 'Decile 3',
    'Decile 6 \n(<106 km²)', 'Decile 7 \n(<63 km²)', 'Decile 8 \n(<39 km²)', 
    'Decile 9 \n(<21 km²)', 'Decile 10 \n(<9 km²)'))
 
-data$frequency_mhz = factor(
-  data$frequency_mhz,
-  levels = c(700, 800, 850, 900, 1800, 2100, 2300, 2500, 2600, 3500, 5800),
-  labels = c('0.7 GHz (5G)', '0.8 GHz (4G)', '0.85 GHz (4G)', '0.9 GHz (4G)', 
-             '1.8 GHz (4G)', '2.1 GHz (4G)', '2.3 GHz (4G)', '2.5 GHz (4G)',
-             '2.6 GHz (4G)', '3.5 GHz (5G)', '5.8 GHz (5G)'))
-
 
 df1 = data %>%
   group_by(cell_generation, decile) %>%
-  summarize(mean = mean(annualized_per_user_cost_usd),
-            sd = sd(annualized_per_user_cost_usd))
+  summarize(mean = mean(total_decile_tco_usd)/1e9,
+            sd = sd(total_decile_tco_usd)/1e9)
 
 anualized_tco_per_user <- ggplot(df1, aes(x = decile, y = mean, 
                                           fill = cell_generation)) +
@@ -252,15 +246,15 @@ anualized_tco_per_user <- ggplot(df1, aes(x = decile, y = mean,
      digits = 2, format = "g", flag = "#")), color = 'black', size = 3.5, position = 
     position_dodge(0.9), vjust = 1.2, hjust = -0.2, angle = 90) +
   scale_fill_viridis_d(direction = -1) + 
-  labs(colour = NULL, title = "Mobile broadband cost per user results for SSA", 
+  labs(colour = NULL, title = "TCO for deployment of Mobile broadband in SSA.", 
+       subtitle = "Deployment costs for 4G and 5G mobile broadband across deciles.",
        x = NULL, 
-       y = "Costs (US$ per user)") + 
-  theme(
-    legend.position = 'bottom',
+       y = "Total Costs (US$ billion)") + 
+  theme(legend.position = 'bottom',
     axis.text.x = element_text(size = 10),
     panel.spacing = unit(0.6, "lines"),
     plot.title = element_text(size = 15, face = "bold"),
-    plot.subtitle = element_text(size = 13, face = "bold"),
+    plot.subtitle = element_text(size = 13),
     axis.text.y = element_text(size = 10),
     axis.title.y = element_text(size = 10),
     legend.title = element_text(size = 10),
@@ -270,7 +264,7 @@ anualized_tco_per_user <- ggplot(df1, aes(x = decile, y = mean,
   guides(fill = guide_legend(ncol = 5, title = 'Mobile Technology')) +
   scale_x_discrete(expand = c(0, 0.15)) +
   scale_y_continuous(expand = c(0, 0),
-  labels = function(y) format(y, scientific = FALSE),limits = c(0, 130))
+  labels = function(y) format(y, scientific = FALSE),limits = c(0, 5.9))
 
 data <- read.csv(file.path(folder, '..', 'results', 'SSA', 
                            'SSA_decile_emissions.csv'))
@@ -546,7 +540,7 @@ per_user_capacity <-
      position_dodge(0.9), vjust = 1.2, hjust = -0.2, angle = 90) +
   scale_fill_viridis_d(direction = 1) + 
   labs(colour = NULL, 
-      title = "Satellite broadband capacity per user results for SSA", x = NULL, 
+      title = "Satellite broadband capacity per user results for SSA.", x = NULL, 
       y = bquote("Capacity (Mbps)")) +
   theme(
     legend.position = 'bottom',
@@ -602,8 +596,8 @@ annualized_user_tco_ssa <- ggplot(df2, aes(x = decile, y = mean, fill = constell
       digits = 2, format = "fg", flag = "#")), color = 'black', size = 3.5, position = 
       position_dodge(0.9), vjust = 1.2, hjust = -0.2, angle = 90) +
   scale_fill_viridis_d(direction = 1) +
-  labs(colour = NULL, title = "Satellite broadband cost per user results for SSA", 
-       x = NULL, y = bquote("Annualized \nTCO per user (US$)")) +
+  labs(colour = NULL, title = "Satellite broadband cost per user results for SSA.", 
+       x = NULL, y = bquote("Annualized \nTCO per user (US$).")) +
   theme(legend.position = 'bottom',
     axis.text.x = element_text(size = 11),
     panel.spacing = unit(0.6, "lines"),
@@ -646,7 +640,7 @@ annualized_user_emissions_ssa <- ggplot(df4, aes(x = decile,
      digits = 3, format = "fg", flag = "#")), color = 'black', size = 3.5, position = 
      position_dodge(0.9), vjust = 1.2, hjust = -0.2, angle = 90) +
   scale_fill_viridis_d(direction = 1) +
-  labs(colour = NULL, title = "Satellite broadband emissions per user results for SSA", 
+  labs(colour = NULL, title = "Satellite broadband emissions per user results for SSA.", 
        x = NULL, y = bquote("Emissions (kg CO"["2"] ~ " e)")) +
   theme(legend.position = 'bottom',
     axis.text.x = element_text(size = 11),
@@ -708,8 +702,8 @@ capacity_per_user_map <- ggplot() +
           linewidth = 0.001,) +
   geom_sf(data = ssa_borders, color = "black", fill = NA, linewidth = 0.03) +
   scale_fill_viridis_d(direction = -1) +
-  labs(title = "Universal broadband per user speeds",
-       subtitle = "For user data traffic demand of 30 GB per month",
+  labs(title = "Universal broadband per user speeds.",
+       subtitle = "For user data traffic demand of 30 GB per month.",
        fill = "Required capacity \nper User (Mbps)") +
   theme(legend.position = 'bottom',
         axis.text.x = element_text(size = 7),
@@ -730,6 +724,12 @@ path = file.path(folder, 'dissertation_figures', 'ssa_capacity_per_user_map.png'
 png(path, units = "in", width = 6, height = 7, res = 300)
 print(capacity_per_user_map)
 dev.off()
+
+path = file.path(folder, 'dissertation_figures', 'ssa_capacity_per_user_plot.png')
+png(path, units = "in", width = 5, height = 5, res = 300)
+print(capacity_per_user)
+dev.off()
+
 
 #######################
 ## SSA Cost per User ##
@@ -754,8 +754,8 @@ cost_per_user_map <- ggplot() +
           linewidth = 0.001,) +
   geom_sf(data = ssa_borders, color = "black", fill = NA, linewidth = 0.03) +
   scale_fill_viridis_d(direction = -1) +
-  labs(title = "Universal broadband per user costs",
-       subtitle = "Annualized Cost of deploying a 30 GB broadband service",
+  labs(title = "Universal broadband per user costs.",
+       subtitle = "Annualized cost of deploying a 30 GB broadband service.",
        fill = "Estimated \nCost per User (US$)") +
   theme(legend.position = 'bottom',
         axis.text.x = element_text(size = 7),
@@ -776,6 +776,12 @@ path = file.path(folder, 'dissertation_figures', 'ssa_cost_per_user_map.png')
 png(path, units = "in", width = 6, height = 7, res = 300)
 print(cost_per_user_map)
 dev.off() 
+
+path = file.path(folder, 'dissertation_figures', 'ssa_mobile_tco_plot.png')
+png(path, units = "in", width = 8, height = 5, res = 300)
+print(anualized_tco_per_user)
+dev.off()
+
 ############################
 ## SSA Emissions per User ##
 ############################
@@ -823,7 +829,89 @@ png(path, units = "in", width = 6, height = 7, res = 300)
 print(emission_per_user_map)
 dev.off() 
 
+data <- read.csv(file.path(folder, '..', 'results', 'SSA', 'SSA_decile_emissions.csv'))
+data$decile = factor(data$decile, levels = c('Decile 1', 'Decile 2', 'Decile 3', 
+     'Decile 4', 'Decile 5', 'Decile 6', 'Decile 7', 'Decile 8', 'Decile 9', 
+     'Decile 10'), labels = c('Decile 1 \n(>958 km²)', 'Decile 2 \n(<957 km²)', 
+      'Decile 3 \n(<455 km²)', 'Decile 4 \n(<272 km²)', 'Decile 5 \n(<171 km²)', 
+      'Decile 6 \n(<106 km²)', 'Decile 7 \n(<63 km²)', 'Decile 8 \n(<39 km²)', 
+      'Decile 9 \n(<21 km²)', 'Decile 10 \n(<9 km²)'))
 
 
+df1 = data %>%
+  group_by(cell_generation, decile) %>%
+  summarize(mean = mean(total_emissions_ghg_kg)/1e9,
+            sd = sd(total_emissions_ghg_kg)/1e9)
 
+total_mobile_emissions <- ggplot(df1, aes(x = decile, y = mean, 
+                                          fill = cell_generation)) +
+  geom_bar(stat = "identity", position = position_dodge(), width = 0.9) +
+  geom_errorbar(aes(ymin = mean - sd, ymax = mean + sd), width = .2,
+                position = position_dodge(.9), color = 'red',size = 0.3) + 
+  geom_text(aes(label = formatC(signif(after_stat(y), 4), 
+                                digits = 2, format = "g", flag = "#")), color = 'black', size = 3.5, position = 
+              position_dodge(0.9), vjust = 1.2, hjust = -0.2, angle = 90) +
+  scale_fill_viridis_d(direction = -1) + 
+  labs(colour = NULL, title = "Total GHG emissions from deployment of Mobile broadband in SSA.", 
+       subtitle = "GHG carbon emissions from deployment and operation of mobile broadband across deciles.",
+       x = NULL, 
+       y = expression("Total Emissions (Mt CO"[2]*"e)")) + 
+  theme(legend.position = 'bottom',
+        axis.text.x = element_text(size = 10),
+        panel.spacing = unit(0.6, "lines"),
+        plot.title = element_text(size = 15, face = "bold"),
+        plot.subtitle = element_text(size = 13),
+        axis.text.y = element_text(size = 10),
+        axis.title.y = element_text(size = 10),
+        legend.title = element_text(size = 10),
+        legend.text = element_text(size = 9),
+        axis.title.x = element_text(size = 10)) +
+  expand_limits(y = 0) +
+  guides(fill = guide_legend(ncol = 5, title = 'Mobile Technology')) +
+  scale_x_discrete(expand = c(0, 0.15)) +
+  scale_y_continuous(expand = c(0, 0),
+  labels = function(y) format(y, scientific = FALSE),limits = c(0, 54))
+
+path = file.path(folder, 'dissertation_figures', 'ssa_mobile_emissions_plot.png')
+png(path, units = "in", width = 8, height = 5, res = 300)
+print(total_mobile_emissions)
+dev.off()
+
+####################################
+##PRIM'S FIBER INFRASTRUCTURE MAP ##
+####################################
+access_nodes <- st_read(file.path(folder, '..', '..', 'glassfiber', 'results', 
+    'design_shapefiles', 'SSA_core_nodes_existing.shp'))
+access_edges <- st_read(file.path(folder, '..', '..', 'glassfiber', 'results', 
+     'design_shapefiles', 'SSA_combined_access_edges.shp'))
+core_edges <- st_read(file.path(folder, '..', '..', 'glassfiber', 'results', 
+     'design_shapefiles', 'SSA_core_edges_existing.shp'))
+core_edges$Type <- 'Existing Fiber Line'
+access_edges$Type <- 'Designed Fiber Access Lines'
+
+access_prims_fiber <- ggplot() +
+  geom_sf(data = africa_data, fill = "gray96", color = "black", linewidth = 0.01) +
+  geom_sf(data = core_edges, aes(color = Type), linewidth = 0.3, show.legend = TRUE) +
+  geom_sf(data = ssa_borders, color = "black", fill = NA, linewidth = 0.04) +
+  labs(title = "Existing fixed fiber infrastructure in SSA.", 
+       subtitle = "Only live fiber lines mapped.", color = "Network") + 
+  scale_color_manual(values = c("Existing Fiber Line" = "green4", 
+                                "Designed Fiber Access Lines" = "darkorange")) +
+  theme(axis.title.y = element_text(size = 6),
+    axis.title = element_text(size = 12),
+    axis.text.x = element_text(size = 9),
+    axis.text.y = element_text(size = 9),
+    plot.subtitle = element_text(size = 14),
+    plot.title = element_text(size = 16, face = "bold"),
+    legend.position = "bottom",
+    legend.direction = "horizontal",
+    legend.title = element_text(size = 14),
+    legend.text = element_text(size = 12)) + 
+  annotation_scale(location = "bl", width_hint = 0.5) + 
+  coord_sf(crs = 4326) 
+
+path = file.path(folder, 'dissertation_figures', 'ssa_fixed_fiber_map.png')
+png(path, units = "in", width = 7, height = 8, res = 300)
+print(access_prims_fiber)
+dev.off() 
 
