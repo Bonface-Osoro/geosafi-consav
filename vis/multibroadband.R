@@ -5,7 +5,8 @@ library(dplyr)
 library(sf)
 library(osmdata)
 library(prettymapr)
-
+library(ggspatial)
+library(grid)
 
 suppressMessages(library(tidyverse))
 folder <- dirname(rstudioapi::getSourceEditorContext()$path)
@@ -596,7 +597,9 @@ affordability <- ggplot() + annotation_map_tile(type = "osm", zoom = 4) +
           linewidth = 0.001,) +
   geom_sf(data = ssa_borders, color = "grey40", fill = NA, size = 0.005) +
   scale_fill_viridis_d(direction = 1) +
-  labs(fill = "Technology Choice") +
+  labs(title = "Broadband suitability map.",
+       subtitle = "Considering mobile 4G, FTTnb fixed fiber access and LEO satellite.", 
+    fill = "Technology Choice") +
   theme(
     legend.position = 'bottom',
     axis.text.x = element_text(size = 14),

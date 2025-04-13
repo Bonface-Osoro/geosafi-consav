@@ -93,6 +93,10 @@ def process_capacity_item(item):
     capacity_mbps_km2 = mb.calc_area_capacity(capacity_mbps, site_area_sqkm)
     
     return {
+        'transmitter_x' : item['transmitter_x'],
+        'transmitter_y' : item['transmitter_y'],
+        'receiver_x' : item['receiver_x'],
+        'receiver_y' : item['receiver_y'],
         'cell_generation' : cell_generation,
         'frequency_mhz' : item['frequency_MHz'],
         'intersite_distance_km' : intersite_distance_km,
@@ -394,10 +398,10 @@ def run_uq_processing_emission():
 if __name__ == '__main__':
 
     #print('Running mobile broadband capacity model')
-    #run_uq_processing_capacity()
+    run_uq_processing_capacity()
 
     #print('Running mobile broadband cost model')
-    run_uq_processing_cost()
+    #run_uq_processing_cost()
 
-    print('Running mobile broadband emissions model')
-    run_uq_processing_emission()
+    #print('Running mobile broadband emissions model')
+    #run_uq_processing_emission()

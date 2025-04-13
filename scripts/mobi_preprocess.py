@@ -12,6 +12,9 @@ import os
 import random
 import numpy as np
 import pandas as pd
+import geopandas as gpd
+from shapely import wkt
+from shapely.geometry import Point
 from mobile_inputs import parameters
 from geosafi_consav.mobile import generate_log_normal_dist_value
 pd.options.mode.chained_assignment = None 
@@ -25,6 +28,114 @@ DATA_raw = os.path.join(BASE_PATH, '..', 'data', 'raw')
 
 deciles = ['Decile 1', 'Decile 2', 'Decile 3', 'Decile 4', 'Decile 5',
            'Decile 6', 'Decile 7', 'Decile 8', 'Decile 9', 'Decile 10']
+
+def site_generation(iso3):
+    """
+    This function generate a set of points from a polygon.
+
+    Parameters
+    ----------
+    iso3 : string.
+        country iso3 code of the target area
+
+    Return
+    """
+    
+    area_path = os.path.join(DATA_RESULTS, 'final', iso3, 'population', 
+                             '{}_population_results.csv'.format(iso3))
+    
+    df = pd.read_csv(area_path)
+    df['geometry'] = df['geometry'].apply(wkt.loads)
+
+    # Read csv file with polygon geometry
+    gdf = gpd.GeoDataFrame(df, geometry = 'geometry')
+    gdf.set_crs(epsg = 4326, inplace = True)
+
+    # Obtain the region with the largest area
+    gdf_proj = gdf.to_crs(epsg = 3857)
+    gdf_proj['area_m'] = gdf_proj.geometry.area
+    smallest_area_gdf = gdf_proj.loc[[gdf_proj['area_m'].idxmax()]]
+
+    # Get the centroid of the polygon (This acts as the transmitter)
+    centroid = smallest_area_gdf.geometry.centroid.values[0]
+    centroid_x, centroid_y = centroid.x, centroid.y
+
+    # Polygon boundary for interference generation
+    max_distance = 50000  # 100 km
+    spacing = 800  # Adjust for grid density
+
+    dx = spacing * 3**0.5
+    dy = spacing * 1.5
+
+    hex_points = []
+    polygon = smallest_area_gdf.geometry.values[0]
+
+    # Step 5: Generate hexagonal receiver points
+    for i in range(-int(max_distance // dx), int(max_distance // dx) + 1):
+
+        for j in range(-int(max_distance // dy), int(max_distance // dy) + 1):
+
+            x = centroid_x + i * dx
+            y = centroid_y + j * dy
+
+            if i % 2 != 0:
+
+                y += spacing * 0.75
+
+            point = Point(x, y)
+
+            if centroid.distance(point) <= max_distance and polygon.contains(point):
+
+                hex_points.append((x, y))
+
+    if not hex_points:
+
+        raise ValueError("No receiver points generated. " \
+        "Try lowering spacing or checking polygon size.")
+
+    # Generate interference points within receiver bounding area and inside polygon
+    rx_xs, rx_ys = zip(*hex_points)
+    rx_min, rx_max = min(rx_xs), max(rx_xs)
+    ry_min, ry_max = min(rx_ys), max(rx_ys)
+
+    combined_rows = []
+
+    # Generate random interference point within bounds and polygon
+    for rx, ry in hex_points:
+        
+        while True:
+
+            ix = random.uniform(rx_min, rx_max)
+            iy = random.uniform(ry_min, ry_max)
+            interference_point = Point(ix, iy)
+            if polygon.contains(interference_point):
+
+                break
+
+            # Append combined data
+        combined_rows.append({
+            'transmitter_x': centroid_x,
+            'transmitter_y': centroid_y,
+            'receiver_x': rx,
+            'receiver_y': ry,
+            'interference_x': ix,
+            'interference_y': iy,
+            'geometry': Point(rx, ry)  
+        })
+
+    '''combined_gdf = gpd.GeoDataFrame(combined_rows, crs = "EPSG:3857")
+
+    filename = 'coordinates.csv'
+    folder_out = os.path.join(DATA_RESULTS, 'cellular')
+
+    if not os.path.exists(folder_out):
+
+        os.makedirs(folder_out)
+
+    path_out = os.path.join(folder_out, filename)
+    combined_gdf.drop(columns = 'geometry').to_csv(path_out, index = False)'''
+
+    return print(combined_rows)
 
 
 def process_mobile_data():
@@ -655,18 +766,20 @@ def select_frequency(row):
 
 if __name__ == '__main__':
 
-    print('Setting seed for consistent results')
+    #print('Setting seed for consistent results')
     random.seed(10)
 
-    print('Preparing mobile data')
+    site_generation('KEN')
+
+   # print('Preparing mobile data')
     #process_mobile_data()
     #model_data()
 
-    print('Running uq_capacity_inputs_generator()')
+    #print('Running uq_capacity_inputs_generator()')
     #uq_inputs_capacity(parameters)
 
-    print('Running uq_cost_inputs_generator()')
-    uq_inputs_costs(parameters)
+    #print('Running uq_cost_inputs_generator()')
+    #uq_inputs_costs(parameters)
 
-    print('Running uq_inputs_emissions_generator()')
-    uq_inputs_emissions(parameters)
+    #print('Running uq_inputs_emissions_generator()')
+    #uq_inputs_emissions(parameters)

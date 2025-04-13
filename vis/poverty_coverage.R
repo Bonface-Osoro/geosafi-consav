@@ -463,7 +463,7 @@ uncovered_2g_poor <- ggplot() +
   geom_sf(data = merged_data, aes(fill = population_bin), 
           linewidth = 0.001,) +
   scale_fill_viridis_d(direction = -1) +
-  labs(title = "A",
+  labs(title = "(A) Uncovered by 2G.",
        fill = "Relative percentage of \nuncovered and poor population") +
   theme(legend.position = 'bottom',
         axis.text.x = element_text(size = 7),
@@ -520,7 +520,7 @@ uncovered_3g_poor <- ggplot() +
   geom_sf(data = merged_data, aes(fill = population_bin), 
           linewidth = 0.001,) +
   scale_fill_viridis_d(direction = -1) +
-  labs(title = 'B',
+  labs(title = '(B) Uncovered by 3G.',
        fill = "Relative percentage of \nuncovered and poor population") +
   theme(legend.position = 'bottom',
         axis.text.x = element_text(size = 7),
@@ -576,7 +576,7 @@ uncovered_4g_poor <- ggplot() +
   geom_sf(data = merged_data, aes(fill = population_bin), 
           linewidth = 0.001,) +
   scale_fill_viridis_d(direction = -1) +
-  labs(title ='C',
+  labs(title ='(C) Uncovered by 4G.',
        fill = "Relative percentage of \nuncovered and poor population") +
   theme(legend.position = 'bottom',
         axis.text.x = element_text(size = 7),
@@ -630,8 +630,7 @@ df$decile = factor(df$decile, levels = c('Decile 1', 'Decile 2', 'Decile 3',
    'Decile 8 \n(22 - 39 per km²)', 'Decile 9 \n(10 - 21 per km²)', 
    'Decile 10 \n(<9 per km²)'))
 
-uncovered_poor_population <-
-  ggplot(df,  aes(x = decile, y = poor_uncovered, fill = technology)) +
+uncovered_poor_population <- ggplot(df,  aes(x = decile, y = poor_uncovered, fill = technology)) +
   geom_bar(stat = 'identity', position = position_dodge(0.9)) + coord_flip() + 
   geom_text(aes(label = formatC(signif(after_stat(y), 3), 
     digits = 3, format = "fg", flag = "#")),
@@ -806,7 +805,8 @@ total_area <-
       digits = 3, format = "fg", flag = "#")), size = 4, 
       position = position_dodge(0.9), vjust = 0.5, hjust = -0.2) +
   labs(colour = NULL,
-       title = 'B',
+       title = 'Total SSA Area.',
+       subtitle = "The largest portion of SSA has less than 9 people per km².",
        x = NULL,
        y = 'Total Area (million km²)',
        fill = NULL) +
@@ -821,7 +821,7 @@ total_area <-
         legend.text = element_text(size = 12),
         axis.title.x = element_text(size = 12)) +
   expand_limits(y = 0) +
-  scale_fill_viridis_d(direction = -1) +
+  scale_fill_viridis_d() +
   scale_x_discrete(expand = c(0, 0.15)) +
   scale_y_continuous(expand = c(0, 0),
   labels = function(y) format(y, scientific = FALSE),limits = c(0, 11))
