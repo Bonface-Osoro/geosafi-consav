@@ -23,7 +23,7 @@ Results
 `Figure 2` shows the modeled per-user capacity for sub-regions in Sub-Saharan Africa with different population density thresholds based on a data demand of 30 GB per month.
 #### Figure 2 Mobile Broadband Capacity Results.
 <p align="center">
-  <img src="/ssa_capacity_per_user_map.png" />
+  <img src="/docs/ssa_capacity_per_user_map.png" />
 </p>
 
 `Figure 3` shows the sub-regions in Sub-Saharan Africa classified by the most appropriate and affordable broadband technology based on population density.
