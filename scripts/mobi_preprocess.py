@@ -62,7 +62,7 @@ def site_generation(iso3):
 
     # Polygon boundary for interference generation
     max_distance = 50000  # 100 km
-    spacing = 800  # Adjust for grid density
+    spacing = 1500  # Adjust for grid density
 
     dx = spacing * 3**0.5
     dy = spacing * 1.5
@@ -123,7 +123,9 @@ def site_generation(iso3):
             'geometry': Point(rx, ry)  
         })
 
-    '''combined_gdf = gpd.GeoDataFrame(combined_rows, crs = "EPSG:3857")
+    my_dict = dict(enumerate(combined_rows))
+
+    combined_gdf = gpd.GeoDataFrame(combined_rows, crs = "EPSG:3857")
 
     filename = 'coordinates.csv'
     folder_out = os.path.join(DATA_RESULTS, 'cellular')
@@ -133,9 +135,9 @@ def site_generation(iso3):
         os.makedirs(folder_out)
 
     path_out = os.path.join(folder_out, filename)
-    combined_gdf.drop(columns = 'geometry').to_csv(path_out, index = False)'''
+    combined_gdf.drop(columns = 'geometry').to_csv(path_out, index = False)
 
-    return print(combined_rows)
+    return my_dict
 
 
 def process_mobile_data():
@@ -256,10 +258,6 @@ def multigeneration_cell_capacity(i, mobile_params):
                 mobile_params['user_antenna_loss_low_db'], 
                 mobile_params['user_antenna_loss_high_db'])
             
-            interference_db = random.randint(
-                mobile_params['interference_low_db'], 
-                mobile_params['interference_high_db'])
-            
             for _ in range(50):
                 
                 transmitter_x = random.uniform(0, mobile_params['grid_length'])
@@ -268,7 +266,7 @@ def multigeneration_cell_capacity(i, mobile_params):
                 receiver_y = random.uniform(0, (mobile_params['grid_length'] + 5))
                 interceptor_x = random.uniform(0, mobile_params['grid_length'])
                 interceptor_y = random.uniform(0, mobile_params['grid_length'])
-       
+    
             output.append({
                 'transmitter_x': transmitter_x, 
                 'transmitter_y': transmitter_y,
@@ -276,7 +274,6 @@ def multigeneration_cell_capacity(i, mobile_params):
                 'receiver_y': receiver_y,
                 'interference_x': interceptor_x,
                 'interference_y': interceptor_y,
-                'no_transmitters': mobile_params['transmitters'],
                 'iteration' : i,
                 'mu' : mobile_params['mu'],
                 'sigma' : mobile_params['sigma'],
@@ -288,12 +285,10 @@ def multigeneration_cell_capacity(i, mobile_params):
                 'trans_antenna_gain_dbi' : trans_antenna_gain_dbi,
                 'user_antenna_gain_dbi' : user_antenna_gain_dbi,
                 'user_antenna_loss_db' : user_antenna_loss_db,
-                'interference_db' : interference_db,
                 'shadow_fading_db' : mobile_params['shadow_fading_db'],
                 'building_penetration_loss_db' : (
                     mobile_params['building_penetration_loss_db']),
                 'antenna_sectors' : mobile_params['antenna_sectors'],
-                'subcarriers' : mobile_params['subcarriers'],
                 'system_temperature_k' : mobile_params['system_temperature_k'],
                 'mean_monthly_demand_GB' : demand,
                 'decile' : decile
@@ -315,7 +310,7 @@ def uq_inputs_capacity(parameters):
 
     """
     iterations = []
-
+    
     for key, mobile_params in parameters.items():
 
         for i in range(0, mobile_params['iterations']):
@@ -764,12 +759,138 @@ def select_frequency(row):
     return None
 
 
+def small_area_capacity(i, mobile_params):
+    """
+    This function generates random values within the given parameter ranges for 
+    a sample area. 
+
+    Parameters
+    ----------
+    i : int.
+        number of iterations
+    mobile_params : dict
+        Dictionary containing mobile engineering details
+
+    Return
+    ------
+        output : list
+            List containing capacity outputs
+
+    """
+    output = []
+    transmission_data = site_generation('KEN')
+
+    for key, sites in transmission_data.items(): 
+
+        for decile in deciles:
+
+            for demand in mobile_params['mean_monthly_demand_GB']:
+
+
+                transmitter_height_m = (
+                    mobile_params['transmitter_height_low_m'] +  
+                    mobile_params['transmitter_height_high_m']) / 2
+                
+                user_antenna_height_m = (
+                    mobile_params['user_antenna_height_low_m'] +  
+                    mobile_params['user_antenna_height_high_m']) / 2
+                
+                transmitter_power_dbm = (
+                    mobile_params['transmitter_power_low_dbm'] +  
+                    mobile_params['transmitter_power_high_dbm']) / 2
+                
+                trans_antenna_gain_dbi = (
+                    mobile_params['trans_antenna_gain_low_dbi'] +  
+                    mobile_params['trans_antenna_gain_high_dbi']) / 2
+                
+                user_antenna_gain_dbi = (
+                    mobile_params['user_antenna_gain_low_dbi'] +  
+                    mobile_params['user_antenna_gain_high_dbi']) / 2
+                
+                user_antenna_loss_db = (
+                    mobile_params['user_antenna_loss_low_db']+  
+                    mobile_params['user_antenna_loss_high_db']) / 2
+                
+
+                output.append({
+                    'transmitter_x': sites['transmitter_x'], 
+                    'transmitter_y': sites['transmitter_y'],
+                    'receiver_x': sites['receiver_x'],
+                    'receiver_y': sites['receiver_y'],
+                    'interference_x': sites['interference_x'],
+                    'interference_y': sites['interference_y'],
+                    'iteration' : i,
+                    'mu' : mobile_params['mu'],
+                    'sigma' : mobile_params['sigma'],
+                    'seed_value' : mobile_params['seed_value'],
+                    'draws' : mobile_params['draws'],
+                    'transmitter_height_m' : transmitter_height_m,
+                    'user_antenna_height_m' : user_antenna_height_m,
+                    'transmitter_power_dbm' : transmitter_power_dbm,
+                    'trans_antenna_gain_dbi' : trans_antenna_gain_dbi,
+                    'user_antenna_gain_dbi' : user_antenna_gain_dbi,
+                    'user_antenna_loss_db' : user_antenna_loss_db,
+                    'shadow_fading_db' : mobile_params['shadow_fading_db'],
+                    'building_penetration_loss_db' : (
+                        mobile_params['building_penetration_loss_db']),
+                    'antenna_sectors' : mobile_params['antenna_sectors'],
+                    'system_temperature_k' : mobile_params['system_temperature_k'],
+                    'mean_monthly_demand_GB' : demand,
+                    'decile' : decile
+                })
+
+
+    return output
+
+
+def test_site_uq_capacity(iso3, parameters):
+    """
+    Generate all UQ capacity inputs for a small region in preparation for 
+    running through the mobile broadband model. 
+
+    Parameters
+    ----------
+    parameters : dict
+        dictionary of dictionary containing mobile engineering values.
+    iso3 : string
+        ISO3 of the country of the targeted region
+
+    """
+    iterations = []
+    
+    for key, mobile_params in parameters.items():
+
+        if key in ['4G', '5G']:
+            data = small_area_capacity(0, mobile_params) 
+            iterations += data
+
+    df = pd.DataFrame.from_dict(iterations)
+
+    # Import user data
+    mob_path = os.path.join(DATA_RESULTS, 'cellular', 'SSA_mobile_data.csv') 
+    df1 = pd.read_csv(mob_path)
+
+    filename = '{}_parameters_capacity.csv'.format(iso3)
+    folder_out = os.path.join(DATA_RESULTS, 'cellular')
+
+    if not os.path.exists(folder_out):
+
+        os.makedirs(folder_out)
+    
+    merged_df = pd.merge(df, df1, on = 'decile')
+    path_out = os.path.join(folder_out, filename)
+    merged_df.to_csv(path_out, index = False)
+
+    return None
+
+
+
 if __name__ == '__main__':
 
     #print('Setting seed for consistent results')
     random.seed(10)
 
-    site_generation('KEN')
+    #site_generation('KEN')
 
    # print('Preparing mobile data')
     #process_mobile_data()
@@ -783,3 +904,5 @@ if __name__ == '__main__':
 
     #print('Running uq_inputs_emissions_generator()')
     #uq_inputs_emissions(parameters)
+
+    test_site_uq_capacity('KEN', parameters)

@@ -31,4 +31,4 @@ Results
 
 [2]	GADM, “Global Administrative Areas Boundaries.” https://gadm.org/download_world.html (accessed Sep. 14, 2022).
 
-[3] Country metadafile. Contained in `/data/countries.csv`
+[3] Country metadata file. Contained in `/data/countries.csv`

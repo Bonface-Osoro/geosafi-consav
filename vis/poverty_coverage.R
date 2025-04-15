@@ -609,7 +609,7 @@ data1 <- merge(data1, gid_pop, by = "GID_1")
 
 df = data1 %>%
   group_by(technology, decile, poverty_range) %>%
-  summarize(poor_uncovered = sum(poor_uncovered_gid)/1e3)
+  summarize(poor_uncovered = sum(poor_uncovered_gid)/1e6)
 
 df$technology = factor(
   df$technology,
@@ -633,13 +633,14 @@ df$decile = factor(df$decile, levels = c('Decile 1', 'Decile 2', 'Decile 3',
 uncovered_poor_population <- ggplot(df,  aes(x = decile, y = poor_uncovered, fill = technology)) +
   geom_bar(stat = 'identity', position = position_dodge(0.9)) + coord_flip() + 
   geom_text(aes(label = formatC(signif(after_stat(y), 3), 
-    digits = 3, format = "fg", flag = "#")),
-    size = 3, position = position_dodge(0.9),
+    digits = 2, format = "fg", flag = "#")),
+    size = 2.5, position = position_dodge(0.9),
     vjust = 0.5, hjust = -0.3) +
   labs(colour = NULL,
-       title = 'A',
+       title = '(A) Absolute population.', 
+       subtitle = "Absolute population uncovered by mobile signal and living below poverty line.",
        x = NULL,
-       y = 'Absolute population (`000`)',
+       y = 'Absolute population (Million)',
        fill = NULL) +
   theme(legend.position = 'bottom',
         axis.text.x = element_text(size = 9),
@@ -656,7 +657,7 @@ uncovered_poor_population <- ggplot(df,  aes(x = decile, y = poor_uncovered, fil
   scale_fill_viridis_d(direction = -1) +
   scale_x_discrete(expand = c(0, 0.15)) +
   scale_y_continuous(expand = c(0, 0),
-  labels = function(y) format(y, scientific = FALSE),limits = c(0, 12000)) + 
+  labels = function(y) format(y, scientific = FALSE),limits = c(0, 12)) + 
   facet_wrap( ~ poverty_range, ncol = 3) 
 
 ##########################################################
@@ -699,9 +700,10 @@ relative_uncovered_poor_population <-
   ggplot(df,  aes(x = decile, y = mean_perc, fill = technology)) +
   geom_bar(stat = 'identity', position = position_dodge(0.9)) +  coord_flip() +
   geom_text(aes(label = formatC(signif(after_stat(y), 3), 
-                                digits = 3,format = 'fg', flag = '#')), size = 3,
+      digits = 3,format = 'fg', flag = '#')), size = 3,
             position = position_dodge(0.9), vjust = 0.5, hjust = -0.1) +
-  labs(colour = NULL, title = 'B', 
+  labs(colour = NULL, title = '(B) Relative uncovered and poor population.', 
+       subtitle = "Expressed as a percentage of the total population.",
        x = NULL,
        y = 'Relative population (%)', 
        fill = NULL) +
@@ -806,7 +808,7 @@ total_area <-
       position = position_dodge(0.9), vjust = 0.5, hjust = -0.2) +
   labs(colour = NULL,
        title = 'Total SSA Area.',
-       subtitle = "The largest portion of SSA has less than 9 people per km².",
+       subtitle = "Large areas have less than 9 people per km².",
        x = NULL,
        y = 'Total Area (million km²)',
        fill = NULL) +

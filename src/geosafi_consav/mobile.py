@@ -270,7 +270,14 @@ def hk_path_loss_model(frequency_mhz, transmitter_height, user_antenna_m,
     first_term = 69.55 + (26.16 * math.log10(frequency_mhz))
     second_term = 13.82 * math.log10(transmitter_height)
     third_term = hk_city_correction_model(frequency_mhz, user_antenna_m)
-    fourth_term = math.log10(trans_user_dist_km)
+    #fourth_term = math.log10(trans_user_dist_km)
+    if abs(trans_user_dist_km) > 0:
+        
+        fourth_term = math.log10(abs(trans_user_dist_km))
+
+    else:
+        fourth_term = 1
+
     fifth_term = 44.9 - (6.55 * math.log10(transmitter_height))
 
     interim_ans = fourth_term * fifth_term
